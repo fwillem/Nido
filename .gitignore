@@ -1,15 +1,37 @@
+# Ignore Gradle files
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Ignore IntelliJ and Android Studio files
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+*.hprof
+*.log
 local.properties
+
+# Ignore dependency directories
+/.cxx/
+/out/
+/captures/
+/node_modules/
+/android/
+
+# Ignore Kotlin build files
+**/*.kotlin_metadata/
+**/*.kotlin_builtins/
+
+# Ignore Generated APKs & Bundles
+*.apk
+*.aab
+
+# Ignore Test Results
+**/test-results/
+/test-output/
+
+# Ignore Jetpack Compose Preview Caches
+**/debug-ui-compose/
+
+# Ignore Miscellaneous OS files
+.DS_Store
+Thumbs.db
