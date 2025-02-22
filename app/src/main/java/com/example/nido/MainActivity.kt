@@ -287,7 +287,7 @@ fun HandView(
                                 onDragStart = {
                                     if (sortMode == SortMode.FIFO) {
                                         draggedIndex = actualIndex
-                                        println("Drag started on actualIndex: $draggedIndex, sortedIndex: $sortedIndex, card: ${card.color} ${card.value}")
+                                    //    println("Drag started on actualIndex: $draggedIndex, sortedIndex: $sortedIndex, card: ${card.color} ${card.value}")
                                     }
                                 },
 
@@ -300,7 +300,7 @@ fun HandView(
                                             targetIndex!!
                                         }
 
-                                        println("Drag ended. Moving from $draggedIndex to $adjustedTarget")
+                                      //  println("Drag ended. Moving from $draggedIndex to $adjustedTarget")
                                         hand.cards.moveItem(draggedIndex!!, adjustedTarget)
                                     }
 
@@ -310,10 +310,10 @@ fun HandView(
 
 
                                 onDragCancel = {
-                                    println("Drag cancelled.")
+                                 //   println("Drag cancelled.")
                                     draggedIndex = null
                                     dragOffsetX = 0f
-                                    println("DragCancel: draggedIndex = $draggedIndex, targetIndex = $targetIndex, dragOffsetX = $dragOffsetX")
+                                //    println("DragCancel: draggedIndex = $draggedIndex, targetIndex = $targetIndex, dragOffsetX = $dragOffsetX")
                                 },
                                 onDrag = { change, dragAmount ->
                                     if (sortMode == SortMode.FIFO && draggedIndex != null) {
@@ -341,10 +341,6 @@ fun HandView(
             }
         }
 
-        Text(
-            text = "Dragged Index: $draggedIndex, Target Index: $targetIndex",
-            modifier = Modifier.padding(top = 8.dp)
-        )
     }
 }
 
@@ -408,7 +404,7 @@ fun NidoApp(modifier: Modifier = Modifier) {
             mapOf(
                 "New Hand" to {
                     currentHand.clear()
-                    val cardsToTake = minOf(5, deck.size)
+                    val cardsToTake = minOf(9, deck.size)
                     repeat(cardsToTake) {
                         currentHand.addCard(deck.removeAt(0))
                     }
@@ -437,20 +433,12 @@ fun NidoApp(modifier: Modifier = Modifier) {
 
         HandView(
             currentHand,
-            cardWidth = 100.dp,
-            cardHeight = 150.dp,
-            sortMode,
-            onDoubleClick = toggleSortMode
-        )
-        HandView(
-            currentHand,
-            cardWidth = 50.dp,
-            cardHeight = 80.dp,
+            cardWidth = 80.dp,
+            cardHeight = 160.dp,
             sortMode,
             onDoubleClick = toggleSortMode
         )
 
-        Text(text = "Deck size: ${deck.size}")
     }
 }
 
@@ -480,7 +468,7 @@ fun ActionButtonsRow(actions: Map<String, () -> Unit>) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         actions.forEach { (label, action) ->
