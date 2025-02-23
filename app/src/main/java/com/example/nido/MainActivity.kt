@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -47,9 +48,12 @@ enum class CardColor(val letter: Char) {
     MOCHA('m')
 }
 
+const val HAND_SIZE = 9
+
 data class Card(
     @DrawableRes val cardImageId: Int,
     val color: CardColor,
+    val isPartOfCompositions: Array<Boolean> = Array(HAND_SIZE) { false },
     val value: Int
 )
 
@@ -135,34 +139,231 @@ object CardResources {
     }
 }
 
+class Combination(val cards: MutableList<Card> = mutableListOf()) {
+    fun addCard(card: Card) {
+        this.cards.add(card)
+    }
 
-data class Hand(val cards: SnapshotStateList<Card> = mutableStateListOf()) {
+    // Compute the value by sorting digits in descending order and forming a number
+    val value: Int
+        get() = cards
+            .map { it.value }  // Extract values
+            .sortedDescending() // Sort from biggest to smallest
+            .joinToString("") // Convert to a string of digits
+            .toInt() // Convert to an integer
+}
 
+fun calculateExpectedCombinations(hand: Hand): Int {
+    var totalCombinations = 0
+
+    // **Group by Color** (Pour les séquences de cartes de même couleur)
+    val colorGroups = hand.cards.groupBy { it.color }
+    for ((_, group) in colorGroups) {
+        if (group.size > 1) {
+            totalCombinations += (1 shl group.size) - 1 - group.size // 2^N - 1 - N
+        }
+    }
+
+    // **Group by Value** (Pour les groupes de cartes ayant la même valeur)
+    val valueGroups = hand.cards.groupBy { it.value }
+    for ((_, group) in valueGroups) {
+        if (group.size > 1) {
+            totalCombinations += (1 shl group.size) - 1 - group.size // 2^N - 1 - N
+        }
+    }
+
+    // **Add individual cards** (Chaque carte est une combinaison unique)
+    totalCombinations += hand.cards.size
+
+    return totalCombinations
+}
+
+
+data class Hand(
+    val cards: SnapshotStateList<Card> = mutableStateListOf(),
+    val combinations: SnapshotStateList<Combination> = mutableStateListOf() // 🔹 Make observable
+) {
     fun addCard(card: Card) {
         cards.add(card)
+        updateCombinations() // Automatically detect new valid combinations
     }
+
+/*
+    fun findValidCombinations(cards: List<Card>): List<Combination> {
+        val validCombinations = mutableListOf<Combination>()
+
+        if (cards.isEmpty()) return validCombinations
+
+        // 🔹 Step 1: Find color-based sequences
+        val colorGroups = cards.groupBy { it.color }
+        colorGroups.values.forEach { group ->
+            val sortedGroup = group.sortedByDescending { it.value }
+
+            // Add all contiguous subsequences
+            for (i in sortedGroup.indices) {
+                for (j in i until sortedGroup.size) {
+                    validCombinations.add(Combination(sortedGroup.subList(i, j + 1).toMutableList()))
+                }
+            }
+        }
+
+        // 🔹 Step 2: Find same-value sets
+        val valueGroups = cards.groupBy { it.value }
+        valueGroups.values.forEach { group ->
+            if (group.size > 1) { // Only if there are at least 2 cards with the same value
+                validCombinations.add(Combination(group.toMutableList()))
+            }
+        }
+
+        // 🔹 Step 3: Include each card as a single combination
+        cards.forEach { card ->
+            validCombinations.add(Combination(mutableListOf(card)))
+        }
+
+        // 🔹 Step 4: Remove duplicate combinations (based on unique card sets)
+        val uniqueCombinations = validCombinations.distinctBy {
+            it.cards.map { card -> "${card.color.letter}${card.value}" }.sorted()
+        }
+
+        // 🔹 Step 5: Sort combinations by value (highest to lowest)
+        return uniqueCombinations.sortedByDescending { it.value }
+    }
+*/
+
+     fun findValidCombinations(cards: List<Card>): List<Combination> {
+        val validCombinations = mutableListOf<Combination>()
+
+        // **1. Group by Color & Sort**
+        val colorGroups = cards.groupBy { it.color }.mapValues { it.value.sortedByDescending { card -> card.value } }
+
+        // **2. Group by Value & Sort**
+        val valueGroups = cards.groupBy { it.value }.mapValues { it.value.sortedByDescending { card -> card.color.ordinal } }
+
+        val mainCombinations = mutableListOf<Combination>()
+
+        // **3. Identify the highest multi-card combinations first**
+        colorGroups.values.forEach { group ->
+            if (group.size >= 2) {
+                mainCombinations.add(Combination(group.toMutableList()))
+            }
+        }
+        valueGroups.values.forEach { group ->
+            if (group.size >= 2) {
+                mainCombinations.add(Combination(group.toMutableList()))
+            }
+        }
+
+        validCombinations.addAll(mainCombinations)
+
+        // **4. Extract ALL valid subsets from the highest ones**
+        for (combination in mainCombinations) {
+            val subsetCombinations = generateAllSubcombinations(combination.cards)
+            validCombinations.addAll(subsetCombinations)
+        }
+
+        // **5. Find missing 2-card combinations from color & value buckets**
+        for (group in colorGroups.values) {
+            if (group.size >= 2) {
+                validCombinations.addAll(generateAllSubcombinations(group))
+            }
+        }
+        for (group in valueGroups.values) {
+            if (group.size >= 2) {
+                validCombinations.addAll(generateAllSubcombinations(group))
+            }
+        }
+
+        // **6. Add single-card combinations**
+        cards.forEach { validCombinations.add(Combination(mutableListOf(it))) }
+
+        // **7. Sort in descending order based on value**
+        return validCombinations.distinctBy { it.cards.toSet() }
+            .sortedByDescending { it.value }
+    }
+
+    // **Helper Function: Generate ALL valid subsets from a group (Not just contiguous ones!)**
+    fun generateAllSubcombinations(cards: List<Card>): List<Combination> {
+        val subsets = mutableListOf<Combination>()
+        val size = cards.size
+
+        for (subsetSize in 2..size) { // Only 2 or more cards
+            val indices = (0 until size).toList()
+            val combinations = indices.combinations(subsetSize)
+            for (combinationIndices in combinations) {
+                val subset = combinationIndices.map { cards[it] }
+                subsets.add(Combination(subset.toMutableList()))
+            }
+        }
+
+        return subsets
+    }
+
+    // **Extension Function: Generate All Combinations of a Given Size**
+    fun <T> List<T>.combinations(k: Int): List<List<T>> {
+        if (k > size) return emptyList()
+        if (k == size) return listOf(this)
+        if (k == 1) return map { listOf(it) }
+
+        val result = mutableListOf<List<T>>()
+        for (i in indices) {
+            val elem = this[i]
+            val remaining = subList(i + 1, size)
+            val subCombinations = remaining.combinations(k - 1)
+            for (subComb in subCombinations) {
+                result.add(listOf(elem) + subComb)
+            }
+        }
+        return result
+    }
+
+
 
 
     fun removeCard(card: Card): Boolean {
-        return cards.remove(card)
+        val removed = cards.remove(card)
+        if (removed) updateCombinations() // Ensure combinations are recalculated
+        return removed
     }
 
-    // Improved `removeCard` function
-    fun removeCard(index: Int = 0): Card? = cards.getOrNull(index)?.also { cards.removeAt(index) }
+    fun removeCard(index: Int = 0): Card? = cards.getOrNull(index)?.also {
+        cards.removeAt(index)
+        updateCombinations()
+    }
 
+
+    fun removeCombination(combination: Combination): Boolean {
+        // Check if all cards exist before removing
+        if (!combination.cards.all { it in cards }) return false
+
+        // Remove all cards in the combination from the hand
+        combination.cards.forEach { cards.remove(it) }
+
+        updateCombinations() // Recompute combinations
+        return true
+    }
 
     fun clear() {
         cards.clear()
+        combinations.clear()
     }
 
     fun isEmpty(): Boolean = cards.isEmpty()
     fun count(): Int = cards.size
+
+    fun updateCombinations() {
+        combinations.clear() // Clear previous combinations
+        val newCombinations = findValidCombinations(cards)
+
+        // 🔹 Instead of reassigning, add elements directly to `SnapshotStateList`
+        combinations.addAll(newCombinations)
+    }
 
 
     override fun toString(): String = cards
         .joinToString(", ") { "${it.color.name} ${it.value}" }
         .ifEmpty { "The hand is empty" }
 }
+
 
 // Function to sort cards based on the selected sorting mode
 /*
@@ -198,6 +399,48 @@ fun List<Card>.sortedByComplexCriteria(): List<Card> {
 
     return sortedCards
 }
+
+@Composable
+fun CombinationsView(
+    combinations: List<Combination>,
+    cardWidth: Dp,
+    cardHeight: Dp
+) {
+    if (combinations.isEmpty()) {
+        Text("No combinations available", color = Color.Red)
+        return
+    }
+
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White), // Optional background
+        horizontalArrangement = Arrangement.Center
+    ) {
+        items(combinations.size) { index ->
+            val combination = combinations[index]  // Fetch combination at index
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(4.dp)
+            ) {
+                Row {
+                    combination.cards.forEach { card ->
+                        CardView(
+                            card,
+                            Modifier
+                                .width(cardWidth)
+                                .height(cardHeight)
+                        )
+                    }
+                }
+                Text("${combination.value}", fontSize = 16.sp, color = Color.Black)
+            }
+        }
+    }
+
+
+}
+
 
 
 @Composable
@@ -352,16 +595,107 @@ fun <T> MutableList<T>.swap(from: Int, to: Int) {
         this[to] = temp
     }
 }
+fun generateTestHand1(): Hand {
+    return Hand().apply {
+        addCard(Card(CardResources.getImage(CardColor.BLUE, 1), CardColor.BLUE, value = 1))
+        addCard(Card(CardResources.getImage(CardColor.RED, 7), CardColor.RED, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 9), CardColor.MOCHA, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 2), CardColor.MOCHA, value = 2))
+        addCard(Card(CardResources.getImage(CardColor.RED, 3), CardColor.RED, value = 3))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 5), CardColor.GREEN, value = 5))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 8), CardColor.GREEN, value = 8))
+        addCard(Card(CardResources.getImage(CardColor.RED, 9), CardColor.RED, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 1), CardColor.MOCHA, value = 1))
+    }
+}
+
+fun generateTestHand2(): Hand {
+    return Hand().apply {
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 1), CardColor.MOCHA, value = 1))
+        addCard(Card(CardResources.getImage(CardColor.RED, 7), CardColor.RED, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 9), CardColor.MOCHA, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 2), CardColor.MOCHA, value = 2))
+        addCard(Card(CardResources.getImage(CardColor.RED, 3), CardColor.RED, value = 3))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 5), CardColor.GREEN, value = 5))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 8), CardColor.GREEN, value = 8))
+        addCard(Card(CardResources.getImage(CardColor.RED, 9), CardColor.RED, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.RED, 1), CardColor.RED, value = 1))
+    }
+}
+
+fun generateTestHand3(): Hand {  // 7-card sequence
+    return Hand().apply {
+        addCard(Card(CardResources.getImage(CardColor.RED, 9), CardColor.RED, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.RED, 8), CardColor.RED, value = 8))
+        addCard(Card(CardResources.getImage(CardColor.RED, 7), CardColor.RED, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.RED, 6), CardColor.RED, value = 6))
+        addCard(Card(CardResources.getImage(CardColor.RED, 5), CardColor.RED, value = 5))
+        addCard(Card(CardResources.getImage(CardColor.RED, 4), CardColor.RED, value = 4))
+        addCard(Card(CardResources.getImage(CardColor.RED, 3), CardColor.RED, value = 3))
+        addCard(Card(CardResources.getImage(CardColor.BLUE, 2), CardColor.BLUE, value = 2))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 2), CardColor.MOCHA, value = 2))
+    }
+}
+
+fun generateTestHand4(): Hand {  // Full spectrum of colors
+    return Hand().apply {
+        addCard(Card(CardResources.getImage(CardColor.RED, 9), CardColor.RED, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.BLUE, 8), CardColor.BLUE, value = 8))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 7), CardColor.GREEN, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 6), CardColor.MOCHA, value = 6))
+        addCard(Card(CardResources.getImage(CardColor.PINK, 5), CardColor.PINK, value = 5))
+        addCard(Card(CardResources.getImage(CardColor.ORANGE, 4), CardColor.ORANGE, value = 4))
+        addCard(Card(CardResources.getImage(CardColor.BLUE, 3), CardColor.BLUE, value = 3))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 2), CardColor.GREEN, value = 2))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 1), CardColor.MOCHA, value = 1))
+    }
+}
+
+fun generateTestHand5(): Hand {  // Minimal overlaps case
+    return Hand().apply {
+        addCard(Card(CardResources.getImage(CardColor.RED, 9), CardColor.RED, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 9), CardColor.MOCHA, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 8), CardColor.GREEN, value = 8))
+        addCard(Card(CardResources.getImage(CardColor.ORANGE, 7), CardColor.ORANGE, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.PINK, 7), CardColor.PINK, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.BLUE, 5), CardColor.BLUE, value = 5))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 4), CardColor.MOCHA, value = 4))
+        addCard(Card(CardResources.getImage(CardColor.RED, 3), CardColor.RED, value = 3))
+        addCard(Card(CardResources.getImage(CardColor.ORANGE, 2), CardColor.ORANGE, value = 2))
+    }
+}
+
+fun generateTestHand6(): Hand { // Quadruple: Four cards of value 7 (Different colors)
+    return Hand().apply {
+
+        addCard(Card(CardResources.getImage(CardColor.RED, 7), CardColor.RED, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.BLUE, 7), CardColor.BLUE, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 7), CardColor.GREEN, value = 7))
+        addCard(Card(CardResources.getImage(CardColor.MOCHA, 7), CardColor.MOCHA, value = 7))
+
+        // Triple: Three cards of value 3 (Different colors)
+        addCard(Card(CardResources.getImage(CardColor.PINK, 3), CardColor.PINK, value = 3))
+        addCard(Card(CardResources.getImage(CardColor.ORANGE, 3), CardColor.ORANGE, value = 3))
+        addCard(Card(CardResources.getImage(CardColor.RED, 3), CardColor.RED, value = 3))
+
+        // Single unique values
+        addCard(Card(CardResources.getImage(CardColor.BLUE, 9), CardColor.BLUE, value = 9))
+        addCard(Card(CardResources.getImage(CardColor.GREEN, 1), CardColor.GREEN, value = 1))
+    }
+}
 
 
-fun generateDeck(): MutableList<Card> {
+fun generateDeck(shuffle : Boolean = false): MutableList<Card> {
     val deck = mutableListOf<Card>()
     for (color in CardColor.values()) {
-        for (value in 1..9) {
+        for (value in 1..HAND_SIZE) {
             val cardImageId = CardResources.getImage(color, value)
-            deck.add(Card(cardImageId, color, value))
+            deck.add(Card(cardImageId, color,  value=value))
         }
     }
+    if (shuffle)
+        deck.shuffle()
+
     return deck
 }
 
@@ -379,19 +713,34 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+
+val testVectors = listOf(
+    ::generateTestHand1,
+    ::generateTestHand2,
+    ::generateTestHand3,
+    ::generateTestHand4,
+    ::generateTestHand5,
+    ::generateTestHand6
+)
 @Composable
 fun NidoApp(modifier: Modifier = Modifier) {
     var deck by remember { mutableStateOf(generateDeck()) }
     val currentHand = remember { Hand() }
-    var sortMode by remember { mutableStateOf(SortMode.FIFO) } // Track sorting mode
+    var sortMode by remember { mutableStateOf(SortMode.FIFO) } // Sorting mode
+    var testVectorIndex by remember { mutableStateOf(0) }
 
-    // Function to toggle sorting mode
-    val toggleSortMode: () -> Unit = {
-        sortMode = when (sortMode) {
-            SortMode.FIFO -> SortMode.COLOR
-            SortMode.COLOR -> SortMode.VALUE
-            SortMode.VALUE -> SortMode.FIFO
-        }
+    val switchTestVector: () -> Unit = {
+        testVectorIndex = (testVectorIndex + 1) % testVectors.size
+        currentHand.clear()
+        testVectors[testVectorIndex]().cards.forEach { currentHand.addCard(it) }
+    }
+
+    val drawNewHand: () -> Unit = {
+        currentHand.clear()
+        val cardsToTake = minOf(HAND_SIZE, deck.size)
+        repeat(cardsToTake) { currentHand.addCard(deck.removeAt(0)) }
+        if (deck.isEmpty()) deck = generateDeck(shuffle = true) // Reset deck if empty
     }
 
     Column(
@@ -402,43 +751,28 @@ fun NidoApp(modifier: Modifier = Modifier) {
     ) {
         ActionButtonsRow(
             mapOf(
-                "New Hand" to {
-                    currentHand.clear()
-                    val cardsToTake = minOf(9, deck.size)
-                    repeat(cardsToTake) {
-                        currentHand.addCard(deck.removeAt(0))
-                    }
-                },
-                "Remove Card" to {
-                    currentHand.removeCard()?.let { deck.add(it) }
-                },
-                "Add Card" to {
-                    deck.firstOrNull()?.let {
-                        deck.removeAt(0)
-                        currentHand.addCard(it)
-                    }
-                },
-                "Empty" to {
-                    repeat(currentHand.count()) {
-                        currentHand.removeCard()?.let { deck.add(it) }
-                    }
-                },
+                "New Hand" to drawNewHand,  // Restore original behavior
+                "Remove Card" to { currentHand.removeCard()?.let { deck.add(it) } },
+                "Add Card" to { deck.firstOrNull()?.let { deck.removeAt(0); currentHand.addCard(it) } },
+                "Cycle Test Vector" to switchTestVector, // Replace Empty with Test Cycle
                 "Shuffle" to { deck.shuffle() },
-                "Sort Mode: ${sortMode.name}" to toggleSortMode // Single function call!
+                "Sort Mode: ${sortMode.name}" to {
+                    sortMode = when (sortMode) {
+                        SortMode.FIFO -> SortMode.COLOR
+                        SortMode.COLOR -> SortMode.VALUE
+                        SortMode.VALUE -> SortMode.FIFO
+                    }
+                }
             )
         )
 
-        // Pass the same toggle function to both HandView calls
+        HandView(currentHand, cardWidth = 80.dp, cardHeight = 160.dp, sortMode, onDoubleClick = switchTestVector)
+        CombinationsView(currentHand.combinations, cardWidth = 40.dp, cardHeight = 80.dp)
 
-
-        HandView(
-            currentHand,
-            cardWidth = 80.dp,
-            cardHeight = 160.dp,
-            sortMode,
-            onDoubleClick = toggleSortMode
-        )
-
+        // **Display Checksum**
+        val expectedCombinations = calculateExpectedCombinations(currentHand)
+        Text("Expected Combinations: $expectedCombinations", fontSize = 16.sp, color = Color.Red)
+        Text("Generated Combinations: ${currentHand.combinations.size}", fontSize = 16.sp, color = Color.Blue)
     }
 }
 
