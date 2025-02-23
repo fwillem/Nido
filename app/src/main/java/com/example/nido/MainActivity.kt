@@ -647,10 +647,10 @@ fun NidoApp(modifier: Modifier = Modifier) {
                 .background(Color(0xFF006400)),
             contentAlignment = Alignment.Center
         ) {
-            HandViewDebug(
+            HandView(
                 hand = currentHand,
-                cardWidth = 140.dp,
-                cardHeight = 230.dp,
+                cardWidth = CARD_WIDTH.dp,
+                cardHeight = CARD_HEIGHT.dp,
                 sortMode = sortMode,
                 onDoubleClick = toggleSortMode
             )
