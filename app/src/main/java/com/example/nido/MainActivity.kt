@@ -5,37 +5,34 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.nido.ui.theme.NidoTheme
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import com.example.nido.ui.theme.NidoTheme
+import kotlin.times
 
 enum class SortMode { FIFO, COLOR, VALUE }
 
@@ -48,6 +45,8 @@ enum class CardColor(val letter: Char) {
     MOCHA('m')
 }
 
+const val CARD_WIDTH = 80
+const val CARD_HEIGHT = 160
 const val HAND_SIZE = 9
 
 data class Card(
@@ -76,7 +75,6 @@ object CardResources {
         "p_7" to R.drawable.nido_card_p_7,
         "p_8" to R.drawable.nido_card_p_8,
         "p_9" to R.drawable.nido_card_p_9,
-
         // ORANGE (o)
         "o_1" to R.drawable.nido_card_o_1,
         "o_2" to R.drawable.nido_card_o_2,
@@ -87,7 +85,6 @@ object CardResources {
         "o_7" to R.drawable.nido_card_o_7,
         "o_8" to R.drawable.nido_card_o_8,
         "o_9" to R.drawable.nido_card_o_9,
-
         // BLUE (b)
         "b_1" to R.drawable.nido_card_b_1,
         "b_2" to R.drawable.nido_card_b_2,
@@ -98,7 +95,6 @@ object CardResources {
         "b_7" to R.drawable.nido_card_b_7,
         "b_8" to R.drawable.nido_card_b_8,
         "b_9" to R.drawable.nido_card_b_9,
-
         // RED (r)
         "r_1" to R.drawable.nido_card_r_1,
         "r_2" to R.drawable.nido_card_r_2,
@@ -109,7 +105,6 @@ object CardResources {
         "r_7" to R.drawable.nido_card_r_7,
         "r_8" to R.drawable.nido_card_r_8,
         "r_9" to R.drawable.nido_card_r_9,
-
         // GREEN (g)
         "g_1" to R.drawable.nido_card_g_1,
         "g_2" to R.drawable.nido_card_g_2,
@@ -120,7 +115,6 @@ object CardResources {
         "g_7" to R.drawable.nido_card_g_7,
         "g_8" to R.drawable.nido_card_g_8,
         "g_9" to R.drawable.nido_card_g_9,
-
         // MOCHA (m)
         "m_1" to R.drawable.nido_card_m_1,
         "m_2" to R.drawable.nido_card_m_2,
@@ -147,101 +141,57 @@ class Combination(val cards: MutableList<Card> = mutableListOf()) {
     // Compute the value by sorting digits in descending order and forming a number
     val value: Int
         get() = cards
-            .map { it.value }  // Extract values
-            .sortedDescending() // Sort from biggest to smallest
-            .joinToString("") // Convert to a string of digits
-            .toInt() // Convert to an integer
+            .map { it.value }
+            .sortedDescending()
+            .joinToString("")
+            .toInt()
 }
 
 fun calculateExpectedCombinations(hand: Hand): Int {
     var totalCombinations = 0
 
-    // **Group by Color** (Pour les séquences de cartes de même couleur)
+    // Group by Color
     val colorGroups = hand.cards.groupBy { it.color }
     for ((_, group) in colorGroups) {
         if (group.size > 1) {
-            totalCombinations += (1 shl group.size) - 1 - group.size // 2^N - 1 - N
+            totalCombinations += (1 shl group.size) - 1 - group.size
         }
     }
 
-    // **Group by Value** (Pour les groupes de cartes ayant la même valeur)
+    // Group by Value
     val valueGroups = hand.cards.groupBy { it.value }
     for ((_, group) in valueGroups) {
         if (group.size > 1) {
-            totalCombinations += (1 shl group.size) - 1 - group.size // 2^N - 1 - N
+            totalCombinations += (1 shl group.size) - 1 - group.size
         }
     }
 
-    // **Add individual cards** (Chaque carte est une combinaison unique)
+    // Add individual cards
     totalCombinations += hand.cards.size
 
     return totalCombinations
 }
 
-
 data class Hand(
     val cards: SnapshotStateList<Card> = mutableStateListOf(),
-    val combinations: SnapshotStateList<Combination> = mutableStateListOf() // 🔹 Make observable
+    val combinations: SnapshotStateList<Combination> = mutableStateListOf()
 ) {
     fun addCard(card: Card) {
         cards.add(card)
-        updateCombinations() // Automatically detect new valid combinations
+        updateCombinations()
     }
 
-/*
     fun findValidCombinations(cards: List<Card>): List<Combination> {
         val validCombinations = mutableListOf<Combination>()
 
-        if (cards.isEmpty()) return validCombinations
-
-        // 🔹 Step 1: Find color-based sequences
-        val colorGroups = cards.groupBy { it.color }
-        colorGroups.values.forEach { group ->
-            val sortedGroup = group.sortedByDescending { it.value }
-
-            // Add all contiguous subsequences
-            for (i in sortedGroup.indices) {
-                for (j in i until sortedGroup.size) {
-                    validCombinations.add(Combination(sortedGroup.subList(i, j + 1).toMutableList()))
-                }
-            }
-        }
-
-        // 🔹 Step 2: Find same-value sets
-        val valueGroups = cards.groupBy { it.value }
-        valueGroups.values.forEach { group ->
-            if (group.size > 1) { // Only if there are at least 2 cards with the same value
-                validCombinations.add(Combination(group.toMutableList()))
-            }
-        }
-
-        // 🔹 Step 3: Include each card as a single combination
-        cards.forEach { card ->
-            validCombinations.add(Combination(mutableListOf(card)))
-        }
-
-        // 🔹 Step 4: Remove duplicate combinations (based on unique card sets)
-        val uniqueCombinations = validCombinations.distinctBy {
-            it.cards.map { card -> "${card.color.letter}${card.value}" }.sorted()
-        }
-
-        // 🔹 Step 5: Sort combinations by value (highest to lowest)
-        return uniqueCombinations.sortedByDescending { it.value }
-    }
-*/
-
-     fun findValidCombinations(cards: List<Card>): List<Combination> {
-        val validCombinations = mutableListOf<Combination>()
-
-        // **1. Group by Color & Sort**
+        // Group by Color & Sort
         val colorGroups = cards.groupBy { it.color }.mapValues { it.value.sortedByDescending { card -> card.value } }
 
-        // **2. Group by Value & Sort**
+        // Group by Value & Sort
         val valueGroups = cards.groupBy { it.value }.mapValues { it.value.sortedByDescending { card -> card.color.ordinal } }
 
         val mainCombinations = mutableListOf<Combination>()
 
-        // **3. Identify the highest multi-card combinations first**
         colorGroups.values.forEach { group ->
             if (group.size >= 2) {
                 mainCombinations.add(Combination(group.toMutableList()))
@@ -255,13 +205,11 @@ data class Hand(
 
         validCombinations.addAll(mainCombinations)
 
-        // **4. Extract ALL valid subsets from the highest ones**
         for (combination in mainCombinations) {
             val subsetCombinations = generateAllSubcombinations(combination.cards)
             validCombinations.addAll(subsetCombinations)
         }
 
-        // **5. Find missing 2-card combinations from color & value buckets**
         for (group in colorGroups.values) {
             if (group.size >= 2) {
                 validCombinations.addAll(generateAllSubcombinations(group))
@@ -273,20 +221,17 @@ data class Hand(
             }
         }
 
-        // **6. Add single-card combinations**
         cards.forEach { validCombinations.add(Combination(mutableListOf(it))) }
 
-        // **7. Sort in descending order based on value**
         return validCombinations.distinctBy { it.cards.toSet() }
             .sortedByDescending { it.value }
     }
 
-    // **Helper Function: Generate ALL valid subsets from a group (Not just contiguous ones!)**
     fun generateAllSubcombinations(cards: List<Card>): List<Combination> {
         val subsets = mutableListOf<Combination>()
         val size = cards.size
 
-        for (subsetSize in 2..size) { // Only 2 or more cards
+        for (subsetSize in 2..size) {
             val indices = (0 until size).toList()
             val combinations = indices.combinations(subsetSize)
             for (combinationIndices in combinations) {
@@ -298,7 +243,6 @@ data class Hand(
         return subsets
     }
 
-    // **Extension Function: Generate All Combinations of a Given Size**
     fun <T> List<T>.combinations(k: Int): List<List<T>> {
         if (k > size) return emptyList()
         if (k == size) return listOf(this)
@@ -316,12 +260,9 @@ data class Hand(
         return result
     }
 
-
-
-
     fun removeCard(card: Card): Boolean {
         val removed = cards.remove(card)
-        if (removed) updateCombinations() // Ensure combinations are recalculated
+        if (removed) updateCombinations()
         return removed
     }
 
@@ -330,15 +271,11 @@ data class Hand(
         updateCombinations()
     }
 
-
     fun removeCombination(combination: Combination): Boolean {
-        // Check if all cards exist before removing
         if (!combination.cards.all { it in cards }) return false
 
-        // Remove all cards in the combination from the hand
         combination.cards.forEach { cards.remove(it) }
-
-        updateCombinations() // Recompute combinations
+        updateCombinations()
         return true
     }
 
@@ -351,53 +288,82 @@ data class Hand(
     fun count(): Int = cards.size
 
     fun updateCombinations() {
-        combinations.clear() // Clear previous combinations
+        combinations.clear()
         val newCombinations = findValidCombinations(cards)
-
-        // 🔹 Instead of reassigning, add elements directly to `SnapshotStateList`
         combinations.addAll(newCombinations)
     }
-
 
     override fun toString(): String = cards
         .joinToString(", ") { "${it.color.name} ${it.value}" }
         .ifEmpty { "The hand is empty" }
 }
 
-
-// Function to sort cards based on the selected sorting mode
-/*
 fun List<Card>.sortedByMode(mode: SortMode): List<Card> {
     return when (mode) {
-        SortMode.FIFO -> this // No sorting, keep as is
-        SortMode.COLOR -> this.sortedWith(compareBy({ it.color.ordinal }, { it.value }))
-        SortMode.VALUE -> this.sortedBy { it.value }
-    }
-}
-*/
-fun List<Card>.sortedByMode(mode: SortMode): List<Card> {
-    return when (mode) {
-        SortMode.FIFO -> this // No sorting, keep as is
-        SortMode.COLOR -> this // Will be handled by complex criterias
-        SortMode.VALUE -> this.sortedByDescending { it.value } // Sort all cards by descending value
+        SortMode.FIFO -> this
+        SortMode.COLOR -> this
+        SortMode.VALUE -> this.sortedByDescending { it.value }
     }
 }
 
 fun List<Card>.sortedByComplexCriteria(): List<Card> {
     val groupedByColor = this.groupBy { it.color }
-
     val colorOrder = groupedByColor.entries.sortedByDescending { entry ->
-        entry.value.joinToString("") { it.value.toString() }.toIntOrNull() ?: 0 // Handle potential parsing errors
+        entry.value.joinToString("") { it.value.toString() }.toIntOrNull() ?: 0
     }.map { it.key }
-
     val sortedCards = mutableListOf<Card>()
-
     for (color in colorOrder) {
         val cardsOfColor = groupedByColor[color] ?: emptyList()
         sortedCards.addAll(cardsOfColor.sortedByDescending { it.value })
     }
-
     return sortedCards
+}
+
+@Composable
+fun DiscardPileView(discardPile: List<Card>, cardWidth: Dp, cardHeight: Dp) {
+    val density = LocalDensity.current
+    Box(
+        modifier = Modifier
+            .width(cardWidth * 3)
+            .height(cardHeight)
+            .border(2.dp, Color.White, RoundedCornerShape(8.dp))
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (discardPile.isEmpty()) {
+            Text(
+                text = "DISCARD",
+                fontSize = 12.sp,
+                color = Color.White,
+                modifier = Modifier.graphicsLayer(rotationZ = -45f)
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                val maxCardsToShow = 5
+                val overlapFraction = 0.67f
+                val displayedCards = discardPile.takeLast(maxCardsToShow)
+                displayedCards.forEachIndexed { index, card ->
+                    val cardWidthPx = with(density) { cardWidth.toPx() }
+                    val offsetX = (-index * (cardWidthPx * overlapFraction))
+                    Box(
+                        modifier = Modifier
+                            .zIndex(index.toFloat())
+                            .graphicsLayer(translationX = offsetX)
+                    ) {
+                        CardView(
+                            card = card,
+                            modifier = Modifier
+                                .width(cardWidth)
+                                .height(cardHeight)
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -410,15 +376,14 @@ fun CombinationsView(
         Text("No combinations available", color = Color.Red)
         return
     }
-
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White), // Optional background
+            .background(Color.White),
         horizontalArrangement = Arrangement.Center
     ) {
         items(combinations.size) { index ->
-            val combination = combinations[index]  // Fetch combination at index
+            val combination = combinations[index]
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(4.dp)
@@ -437,157 +402,8 @@ fun CombinationsView(
             }
         }
     }
-
-
 }
 
-
-
-@Composable
-fun HandView(
-    hand: Hand,
-    cardWidth: Dp,
-    cardHeight: Dp,
-    sortMode: SortMode,
-    onDoubleClick: () -> Unit
-) {
-    var draggedIndex by remember { mutableStateOf<Int?>(null) }
-    var dragOffsetX by remember { mutableStateOf(0f) }
-    var targetIndex by remember { mutableStateOf<Int?>(null) }
-
-    val sortedCards = remember(sortMode) {
-        derivedStateOf {
-            if (sortMode == SortMode.COLOR) {
-                hand.cards.sortedByComplexCriteria()
-            } else {
-                hand.cards.sortedByMode(sortMode) // Use your existing sortedByMode for FIFO and VALUE
-            }
-        }
-    }.value
-
-
-    val cardWidthPx = with(LocalDensity.current) { cardWidth.toPx() }
-
-    LaunchedEffect(draggedIndex, dragOffsetX, sortMode) {
-        if (sortMode == SortMode.FIFO && draggedIndex != null) {
-            val rawIndexShift = (dragOffsetX / cardWidthPx).toInt()
-            val potentialTargetIndex = draggedIndex!! + rawIndexShift
-
-            // 🔹 Fix: Adjust for rightward movement
-            targetIndex = when {
-                dragOffsetX > 0 -> (potentialTargetIndex + 1).coerceIn(
-                    0,
-                    hand.cards.size
-                ) // Adjust one step forward
-                dragOffsetX < 0 -> potentialTargetIndex.coerceIn(
-                    0,
-                    hand.cards.size - 1
-                )  // Keep normal behavior for leftward drag
-                else -> potentialTargetIndex
-            }
-        } else {
-            targetIndex = null
-        }
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) { detectTapGestures(onDoubleTap = { onDoubleClick() }) },
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            sortedCards.forEachIndexed { sortedIndex, card ->
-                val actualIndex = hand.cards.indexOf(card)
-
-                val showRedLine =
-                    targetIndex != null && sortedIndex == targetIndex && sortMode == SortMode.FIFO
-
-                if (showRedLine) {
-                    Box(
-                        modifier = Modifier
-                            .height(cardHeight)
-                            .width(6.dp)
-                            .background(Color.Red)
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .zIndex(if (draggedIndex == actualIndex) 1f else 0f)
-                        .graphicsLayer {
-                            if (draggedIndex == actualIndex) {
-                                alpha = 0.5f
-                                translationX = dragOffsetX
-                            }
-                        }
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragStart = {
-                                    if (sortMode == SortMode.FIFO) {
-                                        draggedIndex = actualIndex
-                                    //    println("Drag started on actualIndex: $draggedIndex, sortedIndex: $sortedIndex, card: ${card.color} ${card.value}")
-                                    }
-                                },
-
-                                onDragEnd = {
-                                    if (sortMode == SortMode.FIFO && draggedIndex != null && targetIndex != null) {
-                                        val adjustedTarget = if (dragOffsetX > 0) {
-                                            // 🔹 Fix: Adjust insertion back by -1 for rightward movement
-                                            (targetIndex!! - 1).coerceIn(0, hand.cards.size - 1)
-                                        } else {
-                                            targetIndex!!
-                                        }
-
-                                      //  println("Drag ended. Moving from $draggedIndex to $adjustedTarget")
-                                        hand.cards.moveItem(draggedIndex!!, adjustedTarget)
-                                    }
-
-                                    draggedIndex = null
-                                    dragOffsetX = 0f
-                                },
-
-
-                                onDragCancel = {
-                                 //   println("Drag cancelled.")
-                                    draggedIndex = null
-                                    dragOffsetX = 0f
-                                //    println("DragCancel: draggedIndex = $draggedIndex, targetIndex = $targetIndex, dragOffsetX = $dragOffsetX")
-                                },
-                                onDrag = { change, dragAmount ->
-                                    if (sortMode == SortMode.FIFO && draggedIndex != null) {
-                                        dragOffsetX += dragAmount.x
-                                    }
-                                }
-                            )
-                        }
-                ) {
-                    CardView(card, Modifier
-                        .width(cardWidth)
-                        .height(cardHeight))
-                }
-            }
-
-            val showEndRedLine =
-                targetIndex != null && targetIndex == hand.cards.size && sortMode == SortMode.FIFO
-            if (showEndRedLine) {
-                Box(
-                    modifier = Modifier
-                        .height(cardHeight)
-                        .width(6.dp)
-                        .background(Color.Red)
-                )
-            }
-        }
-
-    }
-}
-
-// Extension function to swap two elements in a mutable list
 fun <T> MutableList<T>.swap(from: Int, to: Int) {
     if (from in indices && to in indices) {
         val temp = this[from]
@@ -595,6 +411,7 @@ fun <T> MutableList<T>.swap(from: Int, to: Int) {
         this[to] = temp
     }
 }
+
 fun generateTestHand1(): Hand {
     return Hand().apply {
         addCard(Card(CardResources.getImage(CardColor.BLUE, 1), CardColor.BLUE, value = 1))
@@ -623,7 +440,7 @@ fun generateTestHand2(): Hand {
     }
 }
 
-fun generateTestHand3(): Hand {  // 7-card sequence
+fun generateTestHand3(): Hand {
     return Hand().apply {
         addCard(Card(CardResources.getImage(CardColor.RED, 9), CardColor.RED, value = 9))
         addCard(Card(CardResources.getImage(CardColor.RED, 8), CardColor.RED, value = 8))
@@ -637,7 +454,7 @@ fun generateTestHand3(): Hand {  // 7-card sequence
     }
 }
 
-fun generateTestHand4(): Hand {  // Full spectrum of colors
+fun generateTestHand4(): Hand {
     return Hand().apply {
         addCard(Card(CardResources.getImage(CardColor.RED, 9), CardColor.RED, value = 9))
         addCard(Card(CardResources.getImage(CardColor.BLUE, 8), CardColor.BLUE, value = 8))
@@ -651,7 +468,7 @@ fun generateTestHand4(): Hand {  // Full spectrum of colors
     }
 }
 
-fun generateTestHand5(): Hand {  // Minimal overlaps case
+fun generateTestHand5(): Hand {
     return Hand().apply {
         addCard(Card(CardResources.getImage(CardColor.RED, 9), CardColor.RED, value = 9))
         addCard(Card(CardResources.getImage(CardColor.MOCHA, 9), CardColor.MOCHA, value = 9))
@@ -665,37 +482,30 @@ fun generateTestHand5(): Hand {  // Minimal overlaps case
     }
 }
 
-fun generateTestHand6(): Hand { // Quadruple: Four cards of value 7 (Different colors)
+fun generateTestHand6(): Hand {
     return Hand().apply {
-
         addCard(Card(CardResources.getImage(CardColor.RED, 7), CardColor.RED, value = 7))
         addCard(Card(CardResources.getImage(CardColor.BLUE, 7), CardColor.BLUE, value = 7))
         addCard(Card(CardResources.getImage(CardColor.GREEN, 7), CardColor.GREEN, value = 7))
         addCard(Card(CardResources.getImage(CardColor.MOCHA, 7), CardColor.MOCHA, value = 7))
-
-        // Triple: Three cards of value 3 (Different colors)
         addCard(Card(CardResources.getImage(CardColor.PINK, 3), CardColor.PINK, value = 3))
         addCard(Card(CardResources.getImage(CardColor.ORANGE, 3), CardColor.ORANGE, value = 3))
         addCard(Card(CardResources.getImage(CardColor.RED, 3), CardColor.RED, value = 3))
-
-        // Single unique values
         addCard(Card(CardResources.getImage(CardColor.BLUE, 9), CardColor.BLUE, value = 9))
         addCard(Card(CardResources.getImage(CardColor.GREEN, 1), CardColor.GREEN, value = 1))
     }
 }
-
 
 fun generateDeck(shuffle : Boolean = false): MutableList<Card> {
     val deck = mutableListOf<Card>()
     for (color in CardColor.values()) {
         for (value in 1..HAND_SIZE) {
             val cardImageId = CardResources.getImage(color, value)
-            deck.add(Card(cardImageId, color,  value=value))
+            deck.add(Card(cardImageId, color, value = value))
         }
     }
     if (shuffle)
         deck.shuffle()
-
     return deck
 }
 
@@ -713,8 +523,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-
 val testVectors = listOf(
     ::generateTestHand1,
     ::generateTestHand2,
@@ -723,11 +531,34 @@ val testVectors = listOf(
     ::generateTestHand5,
     ::generateTestHand6
 )
+
+@Composable
+fun PlayerRow(playerCounts: List<Int>, currentPlayerIndex: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        playerCounts.forEachIndexed { index, count ->
+            if (index == currentPlayerIndex) {
+                Text("🧑 You: $count cards", fontSize = 16.sp, color = Color.Yellow)
+            } else {
+                Text("Player ${index + 1}: $count cards", fontSize = 16.sp, color = Color.White)
+            }
+        }
+    }
+}
+
 @Composable
 fun NidoApp(modifier: Modifier = Modifier) {
-    var deck by remember { mutableStateOf(generateDeck()) }
+    var deck by remember { mutableStateOf(generateDeck(shuffle = true)) }
     val currentHand = remember { Hand() }
-    var sortMode by remember { mutableStateOf(SortMode.FIFO) } // Sorting mode
+    val playmat = remember { mutableStateListOf<Card>() }
+    val discardPile = remember { mutableStateListOf<Card>() }
+    val playerCounts = remember { mutableStateListOf(9, 9, 9, 9) }
+
+    var sortMode by remember { mutableStateOf(SortMode.FIFO) }
     var testVectorIndex by remember { mutableStateOf(0) }
 
     val switchTestVector: () -> Unit = {
@@ -736,43 +567,319 @@ fun NidoApp(modifier: Modifier = Modifier) {
         testVectors[testVectorIndex]().cards.forEach { currentHand.addCard(it) }
     }
 
+    val toggleSortMode: () -> Unit = {
+        sortMode = when (sortMode) {
+            SortMode.FIFO -> SortMode.COLOR
+            SortMode.COLOR -> SortMode.VALUE
+            SortMode.VALUE -> SortMode.FIFO
+        }
+    }
+
     val drawNewHand: () -> Unit = {
         currentHand.clear()
+        playmat.clear()
+        discardPile.clear()
         val cardsToTake = minOf(HAND_SIZE, deck.size)
         repeat(cardsToTake) { currentHand.addCard(deck.removeAt(0)) }
-        if (deck.isEmpty()) deck = generateDeck(shuffle = true) // Reset deck if empty
+        if (deck.isEmpty()) deck = generateDeck(shuffle = true)
     }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .background(Color(0xFF006400)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ActionButtonsRow(
-            mapOf(
-                "New Hand" to drawNewHand,  // Restore original behavior
-                "Remove Card" to { currentHand.removeCard()?.let { deck.add(it) } },
-                "Add Card" to { deck.firstOrNull()?.let { deck.removeAt(0); currentHand.addCard(it) } },
-                "Cycle Test Vector" to switchTestVector, // Replace Empty with Test Cycle
-                "Shuffle" to { deck.shuffle() },
-                "Sort Mode: ${sortMode.name}" to {
-                    sortMode = when (sortMode) {
-                        SortMode.FIFO -> SortMode.COLOR
-                        SortMode.COLOR -> SortMode.VALUE
-                        SortMode.VALUE -> SortMode.FIFO
+        // Top Row: Action Buttons
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .background(Color.DarkGray),
+            contentAlignment = Alignment.Center
+        ) {
+            ActionButtonsRow(
+                mapOf(
+                    "New Hand" to drawNewHand,
+                    "Remove Card" to { currentHand.removeCard()?.let { deck.add(it) } },
+                    "Add Card" to { deck.firstOrNull()?.let { deck.removeAt(0); currentHand.addCard(it) } },
+                    "Cycle Test Vector" to switchTestVector,
+                    "Shuffle" to { deck.shuffle() },
+                    "Sort Mode: ${sortMode.name}" to toggleSortMode,
+                    "Test Fill" to {
+                        drawNewHand()
+                        playmat.clear()
+                        repeat(3) { deck.firstOrNull()?.let { deck.removeAt(0); playmat.add(it) } }
+                        discardPile.clear()
+                        repeat(9) { deck.firstOrNull()?.let { deck.removeAt(0); discardPile.add(it) } }
+                    }
+                )
+            )
+        }
+
+        // Player Information Row
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .background(Color(0xFF004000)),
+            contentAlignment = Alignment.Center
+        ) {
+            PlayerRow(playerCounts = playerCounts, currentPlayerIndex = 1)
+        }
+
+        // Middle Section: MatView (Playmat + Discard Pile)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .background(Color(0xFF228B22)),
+            contentAlignment = Alignment.Center
+        ) {
+            // matView(playmat, discardPile)
+        }
+
+        // Bottom Section: HandView (Player's Hand)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .background(Color(0xFF006400)),
+            contentAlignment = Alignment.Center
+        ) {
+            HandViewDebug(
+                hand = currentHand,
+                cardWidth = 140.dp,
+                cardHeight = 230.dp,
+                sortMode = sortMode,
+                onDoubleClick = toggleSortMode
+            )
+        }
+    }
+}
+
+@Composable
+private fun matView(
+    playmat: SnapshotStateList<Card>,
+    discardPile: SnapshotStateList<Card>
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Playmat Section (75% Width)
+            Box(
+                modifier = Modifier
+                    .weight(3f)
+                    .fillMaxHeight()
+                    .background(Color(0xFF228B22), shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                LazyRow(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    items(playmat.size) { index ->
+                        CardView(
+                            card = playmat[index],
+                            modifier = Modifier
+                                .width(140.dp)
+                                .height(230.dp)
+                        )
                     }
                 }
-            )
-        )
+            }
+            // Discard Pile Section (25% Width)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(Color.Gray, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                DiscardPileView(
+                    discardPile = discardPile,
+                    cardWidth = 80.dp,
+                    cardHeight = 120.dp
+                )
+            }
+        }
+    }
+}
 
-        HandView(currentHand, cardWidth = 80.dp, cardHeight = 160.dp, sortMode, onDoubleClick = switchTestVector)
-        CombinationsView(currentHand.combinations, cardWidth = 40.dp, cardHeight = 80.dp)
 
-        // **Display Checksum**
-        val expectedCombinations = calculateExpectedCombinations(currentHand)
-        Text("Expected Combinations: $expectedCombinations", fontSize = 16.sp, color = Color.Red)
-        Text("Generated Combinations: ${currentHand.combinations.size}", fontSize = 16.sp, color = Color.Blue)
+@Composable
+fun HandViewDebug(
+    hand: Hand,
+    cardWidth: Dp,
+    cardHeight: Dp,
+    sortMode: SortMode, // Not used here, but kept for prototype compatibility
+    onDoubleClick: () -> Unit
+) {
+    // The outer Box fills the full width (since NidoApp places HandView inside a Box that fills width)
+    // and centers its content vertically.
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(Alignment.CenterVertically)
+            .pointerInput(Unit) {
+                detectTapGestures(onDoubleTap = { onDoubleClick() })
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        // Inner Box sizes itself only to the content (the Row)
+        Box(modifier = Modifier.wrapContentSize(Alignment.Center)) {
+            // Row with wrapContentWidth() ensures its width is exactly the sum of its children
+            Row(
+                modifier = Modifier.wrapContentWidth(),
+                horizontalArrangement = Arrangement.spacedBy(2.dp) // No extra spacing
+            ) {
+                // For each card in the hand, display a magenta box
+                hand.cards.forEach {
+                    Box(
+                        modifier = Modifier
+                            .width(cardWidth)
+                            .height(cardHeight)
+                            .background(Color.Magenta)
+                    ) {
+
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun HandView(
+    hand: Hand,
+    cardWidth: Dp,
+    cardHeight: Dp,
+    sortMode: SortMode,
+    onDoubleClick: () -> Unit
+) {
+    var draggedIndex by remember { mutableStateOf<Int?>(null) }
+    var dragOffsetX by remember { mutableStateOf(0f) }
+    var targetIndex by remember { mutableStateOf<Int?>(null) }
+
+    val sortedCards = remember(sortMode) {
+        derivedStateOf {
+            if (sortMode == SortMode.COLOR)
+                hand.cards.sortedByComplexCriteria()
+            else
+                hand.cards.sortedByMode(sortMode)
+        }
+    }.value
+
+    val cardWidthPx = with(LocalDensity.current) { cardWidth.toPx() }
+
+    LaunchedEffect(draggedIndex, dragOffsetX, sortMode) {
+        if (sortMode == SortMode.FIFO && draggedIndex != null) {
+            val rawIndexShift = (dragOffsetX / cardWidthPx).toInt()
+            val potentialTargetIndex = draggedIndex!! + rawIndexShift
+            targetIndex = when {
+                dragOffsetX > 0 -> (potentialTargetIndex + 1).coerceIn(0, hand.cards.size)
+                dragOffsetX < 0 -> potentialTargetIndex.coerceIn(0, hand.cards.size - 1)
+                else -> potentialTargetIndex
+            }
+        } else {
+            targetIndex = null
+        }
+    }
+
+    // Instead of filling the entire available space, we only wrap the content.
+    Box(
+        modifier = Modifier
+            .wrapContentSize()   // Key: size only as needed by its children
+            .pointerInput(Unit) { detectTapGestures(onDoubleTap = { onDoubleClick() }) },
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier.wrapContentWidth(), // Row's width equals the sum of its children
+            horizontalArrangement = Arrangement.spacedBy(0.dp) // No extra spacing between items
+        ) {
+            sortedCards.forEachIndexed { sortedIndex, card ->
+                if (targetIndex != null &&
+                    sortedIndex == targetIndex &&
+                    sortMode == SortMode.FIFO
+                ) {
+                    // Optional insertion marker (red line)
+                    Box(
+                        modifier = Modifier
+                            .height(cardHeight)
+                            .width(6.dp)
+                            .background(Color.Red)
+                    )
+                }
+                val actualIndex = hand.cards.indexOf(card)
+                Box(
+                    modifier = Modifier
+                        .zIndex(if (draggedIndex == actualIndex) 1f else 0f)
+                        .graphicsLayer {
+                            if (draggedIndex == actualIndex) {
+                                alpha = 0.5f
+                                translationX = dragOffsetX
+                            }
+                        }
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragStart = {
+                                    if (sortMode == SortMode.FIFO) {
+                                        draggedIndex = actualIndex
+                                    }
+                                },
+                                onDragEnd = {
+                                    if (sortMode == SortMode.FIFO &&
+                                        draggedIndex != null &&
+                                        targetIndex != null
+                                    ) {
+                                        val adjustedTarget = if (dragOffsetX > 0)
+                                            (targetIndex!! - 1).coerceIn(0, hand.cards.size - 1)
+                                        else targetIndex!!
+                                        hand.cards.moveItem(draggedIndex!!, adjustedTarget)
+                                    }
+                                    draggedIndex = null
+                                    dragOffsetX = 0f
+                                },
+                                onDragCancel = {
+                                    draggedIndex = null
+                                    dragOffsetX = 0f
+                                },
+                                onDrag = { _, dragAmount ->
+                                    if (sortMode == SortMode.FIFO && draggedIndex != null) {
+                                        dragOffsetX += dragAmount.x
+                                    }
+                                }
+                            )
+                        }
+                ) {
+                    CardView(
+                        card,
+                        Modifier
+                            .width(cardWidth)
+                            .height(cardHeight)
+                    )
+                }
+            }
+            if (targetIndex != null &&
+                targetIndex == hand.cards.size &&
+                sortMode == SortMode.FIFO
+            ) {
+                Box(
+                    modifier = Modifier
+                        .height(cardHeight)
+                        .width(6.dp)
+                        .background(Color.Red)
+                )
+            }
+        }
     }
 }
 
@@ -800,13 +907,25 @@ fun CardView(
 @Composable
 fun ActionButtonsRow(actions: Map<String, () -> Unit>) {
     Row(
-        Modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp),
+            .padding(2.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         actions.forEach { (label, action) ->
-            Button(onClick = action) { Text(label) }
+            Button(
+                onClick = action,
+                modifier = Modifier
+                    .height(16.dp)
+                    .padding(horizontal = 2.dp),
+                contentPadding = PaddingValues(4.dp)
+            ) {
+                Text(
+                    label,
+                    fontSize = 8.sp,
+                    lineHeight = 8.sp
+                )
+            }
         }
     }
 }
@@ -817,7 +936,6 @@ fun <T> MutableList<T>.moveItem(fromIndex: Int, toIndex: Int) {
         add(toIndex, item)
     }
 }
-
 
 @Preview(
     name = "Landscape Preview",
