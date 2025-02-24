@@ -2,12 +2,17 @@ package com.example.nido.game.rules
 
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
+import com.example.nido.game.rules.combinations
 
 // ✅ Global constant defining the number of cards a player can hold
 const val HAND_SIZE = 9
 
 // ✅ Convert to an object to avoid unnecessary instantiation
 object GameRules {
+
+    fun isValidMove(current: Combination, newMove: Combination): Boolean {
+        return newMove.value > current.value
+    }
 
     fun findValidCombinations(cards: List<Card>): List<Combination> {
         val validCombinations = mutableListOf<Combination>()
