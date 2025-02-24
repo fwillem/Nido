@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.example.nido.CardView
+import com.example.nido.data.model.Card
+
 
 @Composable
 fun DiscardPileView(discardPile: List<Card>, cardWidth: Dp, cardHeight: Dp) {

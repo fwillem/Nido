@@ -1,6 +1,7 @@
 package com.example.nido.utils
 
 import androidx.compose.material3.Card
+import androidx.compose.ui.input.pointer.PointerIcon.Companion.Hand
 import com.example.nido.data.model.*
 
 val testVectors = listOf(

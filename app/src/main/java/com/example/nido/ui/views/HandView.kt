@@ -26,12 +26,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.example.nido.CardView
-import com.example.nido.SortMode
-import com.example.nido.moveItem
-import com.example.nido.sortedByComplexCriteria
-import com.example.nido.sortedByMode
-
+import com.example.nido.data.model.Hand
+import com.example.nido.data.model.Card
+import com.example.nido.utils.SortMode
+import com.example.nido.utils.sortedByMode
+import com.example.nido.utils.sortedByComplexCriteria
 
 @Composable
 fun HandView(
@@ -45,14 +44,14 @@ fun HandView(
     var dragOffsetX by remember { mutableStateOf(0f) }
     var targetIndex by remember { mutableStateOf<Int?>(null) }
 
-    val sortedCards = remember(sortMode) {
+    val sortedCards by remember(sortMode) {
         derivedStateOf {
-            if (sortMode == SortMode.COLOR)
-                hand.cards.sortedByComplexCriteria()
-            else
-                hand.cards.sortedByMode(sortMode)
+            when (sortMode) {
+                SortMode.COLOR -> hand.cards.sortedByComplexCriteria()
+                else -> hand.cards.sortedByMode(sortMode)
+            }
         }
-    }.value
+    }
 
     val cardWidthPx = with(LocalDensity.current) { cardWidth.toPx() }
 
@@ -156,5 +155,15 @@ fun HandView(
                 )
             }
         }
+    }
+}
+
+/**
+ * ✅ Fix moveItem function (which was missing in Hand.kt)
+ */
+fun MutableList<Card>.moveItem(fromIndex: Int, toIndex: Int) {
+    if (fromIndex in indices && toIndex in indices) {
+        val item = removeAt(fromIndex)
+        add(toIndex, item)
     }
 }
