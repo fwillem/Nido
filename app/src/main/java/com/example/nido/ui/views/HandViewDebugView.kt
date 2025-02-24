@@ -18,8 +18,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.nido.SortMode
+import com.example.nido.utils.SortMode
+import com.example.nido.data.model.Hand
+import com.example.nido.data.model.Card
 
+import com.example.nido.utils.sortedByComplexCriteria
+import com.example.nido.utils.sortedByMode
 
 @Composable
 fun HandViewDebugView(

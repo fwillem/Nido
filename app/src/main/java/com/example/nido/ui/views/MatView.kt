@@ -18,10 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.nido.CardView
+import com.example.nido.data.model.Card
 
 @Composable
-private fun MatView(
+fun MatView(
     playmat: SnapshotStateList<Card>,
     discardPile: SnapshotStateList<Card>,
     cardWidth: Dp,

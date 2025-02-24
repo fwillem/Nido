@@ -1,4 +1,4 @@
-package com.example.nido.data.model
+package com.example.nido.data.model  // ✅ Make sure this matches exactly
 
 enum class CardColor(val letter: Char) {
     PINK('p'),
