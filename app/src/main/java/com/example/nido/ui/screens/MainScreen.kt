@@ -20,18 +20,14 @@ import com.example.nido.data.repository.CardRepository
 import com.example.nido.data.repository.CardRepository.generateDeck
 import com.example.nido.data.model.Card
 import com.example.nido.utils.SortMode
-import com.example.nido.utils.testVectors
 
 import com.example.nido.ui.views.ActionButtonsView
 import com.example.nido.ui.views.PlayersRowView
 import com.example.nido.ui.views.HandView
 import com.example.nido.ui.views.MatView
 
-import com.example.nido.ui.utils.CARD_WIDTH
-import com.example.nido.ui.utils.CARD_HEIGHT
-
-
-
+import com.example.nido.utils.Constants.CARD_WIDTH
+import com.example.nido.utils.Constants.CARD_HEIGHT
 
 
 
@@ -44,10 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.unit.dp
-
-
-
-
+import com.example.nido.utils.TestData.testVectors
 
 
 @Composable
