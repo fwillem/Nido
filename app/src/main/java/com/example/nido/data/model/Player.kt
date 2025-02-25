@@ -12,9 +12,10 @@ enum class PlayerType { LOCAL, AI, REMOTE }
 abstract class Player(
     val id: String,
     val name: String,
-    val avatar: Int,
+    val avatar: String,  // Changed from Int to String (Emoji)
     val playerType: PlayerType
-) {
+)
+{
     var score: Int = 0
     val hand: Hand = Hand()  // Placed in the body to allow subclasses to override it
 
