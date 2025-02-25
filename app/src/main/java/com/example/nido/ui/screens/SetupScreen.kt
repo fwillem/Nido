@@ -7,20 +7,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nido.data.model.Player
+import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.players.LocalPlayer
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.utils.Constants
 
 @Composable
 fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit) {
-    // ✅ Explicitly define the types to avoid "Not enough information to infer type argument"
-    var selectedPlayers by remember { mutableStateOf(emptyList<Player>()) }
+    // ✅ Viking AI Players (Names + Emojis)
+    val aiPlayers = listOf(
+        "Thorstein" to "⚡",  // God of Thunder vibes ⚡
+        "Erik" to "🪓",       // Erik the Red, famous Viking explorer 🪓
+        "Bjorn" to "🐻",      // Bjorn Ironside (means "Bear") 🐻
+        "Lagertha" to "🛡",   // Shieldmaiden, strong female warrior 🛡
+        "Freydis" to "🔥",    // Fearless explorer, fire spirit 🔥
+        "Astrid" to "🌙"      // Mystical and wise 🌙
+    )
 
+    // ✅ Default player: YOU (local human player)
+    var selectedPlayers by remember { mutableStateOf<List<Player>>(listOf(LocalPlayer("0", "You", "👤"))) }
+
+    // ✅ Game Point Limit (Slider)
     var selectedPointLimit by remember { mutableStateOf(Constants.GAME_DEFAULT_POINT_LIMIT) }
-
-    val stepSize = 5  // Change this if needed
+    val stepSize = 5
     val validSteps = (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
-
 
     Column(
         modifier = Modifier
@@ -29,11 +39,30 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit) {
     ) {
         Text("Game Setup", style = MaterialTheme.typography.headlineSmall)
 
-        // ✅ Button to add local player
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ✅ Display current selected players
+        selectedPlayers.forEach { player ->
+            Text("${player.avatar} ${player.name}")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // ✅ Button to add AI players
         Button(
-            onClick = { selectedPlayers = selectedPlayers + LocalPlayer("1", "Alice", 0) }
+            onClick = {
+                if (selectedPlayers.size < 6) {  // Max 6 players (1 Human + 5 AI)
+                    val nextAI = aiPlayers[selectedPlayers.size - 1] // Pick next AI from list
+                    selectedPlayers = selectedPlayers + AIPlayer(
+                        id = (selectedPlayers.size).toString(),
+                        name = nextAI.first,
+                        avatar = nextAI.second
+                    )
+                }
+            },
+            enabled = selectedPlayers.size < 6  // Disable button if max players reached
         ) {
-            Text("Add Local Player")
+            Text("Add AI Player")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -44,25 +73,22 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit) {
         // ✅ Slider to select point limit
         Text("Select Point Limit: $selectedPointLimit")
 
-
-
-
         Slider(
             value = selectedPointLimit.toFloat(),
             onValueChange = { newValue ->
-                selectedPointLimit = validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) } ?: Constants.GAME_DEFAULT_POINT_LIMIT
+                selectedPointLimit = validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) }
+                    ?: Constants.GAME_DEFAULT_POINT_LIMIT
             },
             valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
-            steps = (validSteps.size - 2) // Subtract 2 to make sure steps match
+            steps = (validSteps.size - 2) // Ensure correct steps
         )
-
 
         Spacer(modifier = Modifier.height(32.dp))
 
         // ✅ Start Game Button
         Button(
             onClick = { onGameStart(selectedPlayers, selectedPointLimit) },
-            enabled = selectedPlayers.isNotEmpty()
+            enabled = selectedPlayers.size >= 2  // Ensure at least 2 players
         ) {
             Text("Start Game")
         }

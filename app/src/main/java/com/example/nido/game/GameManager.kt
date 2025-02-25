@@ -8,13 +8,24 @@ import com.example.nido.data.model.Combination
 import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 import com.example.nido.game.multiplayer.NetworkManager
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 
 object GameManager {
     var players: List<Player> = emptyList()
     var currentTurnIndex: Int = 0
     var deck: MutableList<Card> = mutableListOf()
-    var playmat: MutableList<Card> = mutableListOf()
-    var discardPile: MutableList<Card> = mutableListOf()
+
+
+
+
+
+
+    var playmat: SnapshotStateList<Card> = mutableStateListOf()
+    var discardPile: SnapshotStateList<Card> = mutableStateListOf()
+
+
+
     var pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT
 
     // ✅ Delegate game-over check to GameRules

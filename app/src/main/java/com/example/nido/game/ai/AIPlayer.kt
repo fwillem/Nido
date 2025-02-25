@@ -6,7 +6,7 @@ import com.example.nido.data.model.PlayerType
 import com.example.nido.game.GameContext
 import com.example.nido.game.rules.GameRules
 
-class AIPlayer(id: String, name: String, avatar: Int) : Player(id, name, avatar, PlayerType.AI) {
+class AIPlayer(id: String, name: String, avatar: String) : Player(id, name, avatar, PlayerType.AI) {
     override fun play(gameContext: GameContext): Combination? {
         val possibleMoves: List<Combination> = GameRules.findValidCombinations(hand.cards)
 
