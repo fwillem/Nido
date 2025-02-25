@@ -2,12 +2,10 @@ package com.example.nido.game.rules
 
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
-import com.example.nido.game.rules.combinations
+import com.example.nido.data.model.Player
 
-// ✅ Global constant defining the number of cards a player can hold
 const val HAND_SIZE = 9
 
-// ✅ Convert to an object to avoid unnecessary instantiation
 object GameRules {
 
     fun isValidMove(current: Combination, newMove: Combination): Boolean {
@@ -17,11 +15,9 @@ object GameRules {
     fun findValidCombinations(cards: List<Card>): List<Combination> {
         val validCombinations = mutableListOf<Combination>()
 
-        // Group by Color & Sort
         val colorGroups = cards.groupBy { it.color }
             .mapValues { it.value.sortedByDescending { card -> card.value } }
 
-        // Group by Value & Sort
         val valueGroups = cards.groupBy { it.value }
             .mapValues { it.value.sortedByDescending { card -> card.color.ordinal } }
 
@@ -62,6 +58,20 @@ object GameRules {
             .sortedByDescending { it.value }
     }
 
+    fun isGameOver(players: List<Player>, pointLimit: Int): Boolean {
+        return players.any { it.score >= pointLimit }
+    }
+
+    fun getGameWinners(players: List<Player>): List<Player> {
+        val lowestScore = players.minOfOrNull { it.score } ?: return emptyList()
+        return players.filter { it.score == lowestScore }
+    }
+
+    fun getPlayerRankings(players: List<Player>): List<Pair<Player, Int>> {
+        return players.sortedBy { it.score }
+            .mapIndexed { index, player -> player to (index + 1) }
+    }
+
     private fun generateAllSubcombinations(cards: List<Card>): List<Combination> {
         val subsets = mutableListOf<Combination>()
         val size = cards.size
@@ -79,8 +89,6 @@ object GameRules {
     }
 }
 
-// ✅ Move this extension function OUTSIDE of `GameRules`
-// Extension function to generate all possible combinations of `k` elements from a list
 fun <T> List<T>.combinations(k: Int): List<List<T>> {
     if (k > size) return emptyList()
     if (k == size) return listOf(this)

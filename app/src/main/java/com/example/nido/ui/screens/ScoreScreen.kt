@@ -11,37 +11,45 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Player
-import com.example.nido.game.rules.GameSettings
+import com.example.nido.game.GameManager
+import com.example.nido.ui.theme.NidoColors
 
 @Composable
 fun ScoreScreen(
-    players: List<Player>,
     onContinue: () -> Unit,
     onEndGame: () -> Unit
 ) {
-    val winner = players.maxByOrNull { it.score }  // Player with the highest score
-    val gameOver = winner?.score ?: 0 >= GameSettings.gamePointLimit
+    val rankings = GameManager.getPlayerRankings() // ✅ Now gets (Player, Rank) pairs
+    val winners = GameManager.getGameWinners() // ✅ Overall winners
+    val gameOver = GameManager.isGameOver() // ✅ Check if game is over
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1B1B1B))
+            .background(NidoColors.BackgroundDark)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("🏆 Scoreboard", fontSize = 24.sp, color = Color.White)
+        Text("🏆 Final Rankings", fontSize = 24.sp, color = Color.White)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        players.sortedByDescending { it.score }.forEach { player ->
-            PlayerScoreRow(player, isWinner = player == winner && gameOver)
+        // ✅ Display Ranked Players (with ranking numbers)
+        rankings.forEach { (player, rank) ->
+            PlayerScoreRow(player = player, rank = rank)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         if (gameOver) {
-            Text("🎉 ${winner?.name} wins the game!", fontSize = 20.sp, color = Color.Yellow)
+            Text(
+                "🎉 Winner(s): ${winners.joinToString(", ") { it.name }}",
+                fontSize = 20.sp,
+                color = Color.Yellow
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             Button(onClick = onEndGame) {
                 Text("🏁 End Game")
             }
@@ -54,13 +62,15 @@ fun ScoreScreen(
 }
 
 @Composable
-fun PlayerScoreRow(player: Player, isWinner: Boolean) {
+fun PlayerScoreRow(player: Player, rank: Int) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = if (isWinner) Color.Yellow else Color.DarkGray)
+        colors = CardDefaults.cardColors(
+            containerColor = if (rank == 1) Color.Yellow else Color.DarkGray
+        )
     ) {
         Row(
             modifier = Modifier
@@ -69,8 +79,8 @@ fun PlayerScoreRow(player: Player, isWinner: Boolean) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("${player.name} (${player.playerType})", fontSize = 18.sp, color = Color.White)
-            Text("${player.score} pts", fontSize = 18.sp, color = if (isWinner) Color.Black else Color.White)
+            Text("#$rank ${player.name} (${player.playerType})", fontSize = 18.sp, color = Color.White)
+            Text("${player.score} pts", fontSize = 18.sp, color = Color.White)
         }
     }
 }

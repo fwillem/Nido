@@ -44,7 +44,9 @@ import com.example.nido.utils.TestData.testVectors
 
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(
+    onEndGame: () -> Unit,
+    modifier: Modifier = Modifier) {
     var deck = CardRepository.generateDeck(shuffle = true)
 
     val currentHand = remember { Hand() }
@@ -92,21 +94,45 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 .background(Color.DarkGray),
             contentAlignment = Alignment.Center
         ) {
-            ActionButtonsView (
+            ActionButtonsView(
                 mapOf(
-                    "New Hand" to drawNewHand,
-                    "Remove Card" to { currentHand.removeCard()?.let { deck.add(it) } },
-                    "Add Card" to { deck.firstOrNull()?.let { deck.removeAt(0); currentHand.addCard(it) } },
-                    "Cycle Test Vector" to switchTestVector,
-                    "Shuffle" to { deck.shuffle() },
-                    "Sort Mode: ${sortMode.name}" to toggleSortMode,
+                    "New Hand" to {
+                        println("New Hand clicked!")  // DEBUG
+                        drawNewHand()
+                    },
+                    "Remove Card" to {
+                        println("Remove Card clicked!")  // DEBUG
+                        currentHand.removeCard()?.let { deck.add(it) }
+                    },
+                    "Add Card" to {
+                        println("Add Card clicked!")  // DEBUG
+                        deck.firstOrNull()?.let { deck.removeAt(0); currentHand.addCard(it) }
+                    },
+                    "Cycle Test Vector" to {
+                        println("Cycle Test Vector clicked!")  // DEBUG
+                        switchTestVector()
+                    },
+                    "Shuffle" to {
+                        println("Shuffle clicked!")  // DEBUG
+                        deck.shuffle()
+                    },
+                    "Sort Mode: ${sortMode.name}" to {
+                        println("Sort Mode clicked!")  // DEBUG
+                        toggleSortMode()
+                    },
                     "Test Fill" to {
+                        println("Test Fill clicked!")  // DEBUG
                         drawNewHand()
                         playmat.clear()
                         repeat(3) { deck.firstOrNull()?.let { deck.removeAt(0); playmat.add(it) } }
                         discardPile.clear()
                         repeat(9) { deck.firstOrNull()?.let { deck.removeAt(0); discardPile.add(it) } }
+                    },
+                    "Quit" to {
+                        println("Quit")  // DEBUG
+                        onEndGame()
                     }
+
                 )
             )
         }

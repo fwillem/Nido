@@ -1,10 +1,15 @@
 package com.example.nido.game.ai
 
 import com.example.nido.data.model.Combination
+import com.example.nido.data.model.Player
+import com.example.nido.data.model.PlayerType
+import com.example.nido.game.GameContext
+import com.example.nido.game.rules.GameRules
 
+class AIPlayer(id: String, name: String, avatar: Int) : Player(id, name, avatar, PlayerType.AI) {
+    override fun play(gameContext: GameContext): Combination? {
+        val possibleMoves: List<Combination> = GameRules.findValidCombinations(hand.cards)
 
-class AIPlayer {
-    fun chooseMove(validMoves: List<Combination>): Combination {
-        return validMoves.minByOrNull { it.value } ?: validMoves.first()
+        return possibleMoves.minByOrNull { it.value } // AI chooses the lowest valid combination
     }
 }
