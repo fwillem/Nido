@@ -15,10 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.nido.data.model.Card
+import com.example.nido.ui.theme.NidoColors
+import com.example.nido.ui.views.CardView
+import com.example.nido.ui.views.DiscardPileView
 
 @Composable
 fun MatView(
@@ -42,7 +44,7 @@ fun MatView(
                 modifier = Modifier
                     .weight(3f)
                     .fillMaxHeight()
-                    .background(Color(0xFF228B22), shape = RoundedCornerShape(12.dp)),
+                    .background(NidoColors.PlaymatBackground, shape = RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 LazyRow(
@@ -64,7 +66,7 @@ fun MatView(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .background(Color.Gray, shape = RoundedCornerShape(12.dp)),
+                    .background(NidoColors.DiscardPileBackground, shape = RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 DiscardPileView(

@@ -1,4 +1,4 @@
-package com.example.nido.multiplayer
+package com.example.nido.game.multiplayer
 import com.example.nido.data.model.Combination
 import com.example.nido.utils.TestData
 
