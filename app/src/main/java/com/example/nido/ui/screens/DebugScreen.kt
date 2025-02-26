@@ -50,6 +50,7 @@ fun DebugScreen(
 
     var sortMode by remember { mutableStateOf(SortMode.FIFO) }
     var testVectorIndex by remember { mutableStateOf(0) }
+    val selectedCards = remember { mutableStateListOf<Card>() }
 
     val switchTestVector: () -> Unit = {
         testVectorIndex = (testVectorIndex + 1) % testVectors.size
@@ -153,7 +154,7 @@ fun DebugScreen(
                 .background(Color(0xFF228B22)),
             contentAlignment = Alignment.Center
         ) {
-            MatView(playmat, discardPile, CARD_WIDTH.dp, CARD_HEIGHT.dp)
+            MatView(playmat, discardPile, selectedCards = selectedCards , CARD_WIDTH.dp, CARD_HEIGHT.dp)
         }
 
         // Bottom Section: HandView (Player's Hand)
@@ -169,7 +170,17 @@ fun DebugScreen(
                 cardWidth = CARD_WIDTH.dp,
                 cardHeight = CARD_HEIGHT.dp,
                 sortMode = sortMode,
-                onDoubleClick = toggleSortMode
+                onDoubleClick = toggleSortMode,
+                onPlayCombination = { combination ->
+                    if (GameManager.isValidMove(combination)) {
+                        GameManager.playCombination(combination)
+                    } else {
+                        println("❌ Invalid move!")
+                    }
+                }           ,
+                onSelectCard = { card ->
+                    println("Selected cards: $card")
+                }
             )
         }
     }

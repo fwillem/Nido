@@ -28,7 +28,7 @@ fun NidoApp(modifier: Modifier = Modifier) {
                 modifier = modifier)
 
             "ScoreScreen" -> ScoreScreen(   // ✅ No need to pass `players`
-                onContinue = { currentScreen = "GameScreen" },
+                onContinue = { currentScreen = /* "GameScreen" */ "SetupScreen" }, // We just reset the game,
                 onEndGame = { currentScreen = "SetupScreen" }
             )
         }

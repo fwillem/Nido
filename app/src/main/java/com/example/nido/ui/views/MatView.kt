@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -26,6 +27,7 @@ import com.example.nido.ui.views.DiscardPileView
 fun MatView(
     playmat: SnapshotStateList<Card>,
     discardPile: SnapshotStateList<Card>,
+    selectedCards: SnapshotStateList<Card>,
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
@@ -39,10 +41,34 @@ fun MatView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Selected card section (40% Width)
+            Box(
+                modifier = Modifier
+                    .weight(2f)
+                    .fillMaxHeight()
+                    .background(NidoColors.PlaymatBackground, shape = RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+
+                Row(
+                    modifier = Modifier.padding(1.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    for(card in selectedCards) {
+                        CardView(
+                            card = card,
+                            modifier = Modifier
+                                .width(cardWidth).padding(4.dp)
+                                .height(cardHeight)
+                        )
+                    }
+                }
+            }
+
             // Playmat Section (75% Width)
             Box(
                 modifier = Modifier
-                    .weight(3f)
+                    .weight(2f)
                     .fillMaxHeight()
                     .background(NidoColors.PlaymatBackground, shape = RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center

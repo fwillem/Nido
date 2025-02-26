@@ -10,9 +10,8 @@ object Constants {
     const val HAND_SIZE = 9
 
     // 📏 UI Dimensions
-    const val CARD_WIDTH = 80
-    const val CARD_HEIGHT = 160
+    const val CARD_WIDTH = 50
+    const val CARD_HEIGHT = 100
 
-    // 🎭 Player Defaults
-    const val DEFAULT_PLAYER_AVATAR = 0
+
 }
