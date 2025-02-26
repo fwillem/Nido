@@ -1,16 +1,14 @@
 package com.example.nido.game
 
 import com.example.nido.data.model.Card
+import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.data.model.PlayerType
 import com.example.nido.data.repository.DeckRepository
-import com.example.nido.data.model.Combination
 import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
-import com.example.nido.game.multiplayer.NetworkManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-
 object GameManager {
     var players: List<Player> = emptyList()
     var currentTurnIndex: Int = 0
@@ -19,44 +17,15 @@ object GameManager {
 
 
 
-
-
     var playmat: SnapshotStateList<Card> = mutableStateListOf()
     var discardPile: SnapshotStateList<Card> = mutableStateListOf()
 
-
-
     var pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT
 
-    // ✅ Delegate game-over check to GameRules
-    fun isGameOver(): Boolean = GameRules.isGameOver(players, pointLimit)
-
-    // ✅ Delegate ranking calculation to GameRules
-    fun getPlayerRankings(): List<Pair<Player, Int>> = GameRules.getPlayerRankings(players)
-
-    // ✅ Delegate winner calculation to GameRules
-    fun getGameWinners(): List<Player> = GameRules.getGameWinners(players)
-
-    fun checkRoundEnd(): Boolean {
-        val roundWinner = players.firstOrNull { it.hand.isEmpty() }
-
-        if (roundWinner != null) {
-            applyRoundScores(roundWinner)
-            return true  // ✅ The round ends when someone finishes their hand
-        }
-        return false  // ✅ The round continues
-    }
-
-    private fun applyRoundScores(winner: Player) {
-        val losers = players.filter { it.hand.count() > 0 }  // ✅ Uses `count()` instead of `.cards.isNotEmpty()`
-        // 🔹 Each loser gets points equal to their remaining card values
-        for (loser in losers) {
-            loser.score += loser.hand.cards.sumOf { it.value }
-        }
-    }
-
+    /**
+     * ✅ Starts a new game by initializing players and dealing hands.
+     */
     fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
-        println("Game started with players: $selectedPlayers and point limit: $selectedPointLimit")
         players = selectedPlayers
         pointLimit = selectedPointLimit
         deck = DeckRepository.generateDeck(shuffle = true)
@@ -64,6 +33,9 @@ object GameManager {
         currentTurnIndex = 0
     }
 
+    /**
+     * ✅ Deals initial hands to players.
+     */
     private fun dealCards() {
         players.forEach { player ->
             repeat(Constants.HAND_SIZE) {
@@ -73,33 +45,143 @@ object GameManager {
         }
     }
 
+    /**
+     * ✅ Gets the current player.
+     */
     fun getCurrentPlayer(): Player = players[currentTurnIndex]
 
+    /**
+     * ✅ Moves to the next player's turn.
+     */
     fun nextTurn() {
         currentTurnIndex = (currentTurnIndex + 1) % players.size
-        if (players[currentTurnIndex].playerType == PlayerType.REMOTE) {
-            requestRemoteMove(players[currentTurnIndex])
+        val nextPlayer = players[currentTurnIndex]
+
+        if (nextPlayer.playerType == PlayerType.AI) {
+            handleAIMove(nextPlayer)
         }
     }
 
-    fun requestRemoteMove(player: Player) {
-        // TODO: Implement actual network call
-        val move = NetworkManager.receiveMove()
-        processMove(player, move)
-    }
+    fun playCombination(selectedCards: List<Card>) {
+        val currentCombination = if (playmat.isEmpty()) Combination() else Combination(playmat)
 
-    fun processMove(player: Player, move: Combination) {
-        if (isValidMove(move)) {
+
+
+
+
+        if (GameRules.isValidMove(currentCombination, Combination(selectedCards.toMutableList()))) {
+            println("✅ Valid combination played: $selectedCards")
+
             playmat.clear()
-            playmat.addAll(move.cards)
-            player.hand.removeCombination(move)
-            discardPile.addAll(playmat.drop(1)) // Player keeps one card
-            nextTurn()
+            playmat.addAll(selectedCards)
+
+            val currentPlayer = getCurrentPlayer()
+            currentPlayer.hand.removeCombination(Combination(selectedCards.toMutableList()))  // ✅ Remove from hand
+
+            // Ask player to pick one card from the combination (except first round)
+            if (playmat.isNotEmpty()) {
+                println("🔹 Pick one card to keep from: $playmat")
+                // TODO: Implement logic for choosing one card
+            }
+
+            nextTurn()  // ✅ Change turn
+        } else {
+            println("❌ Invalid combination!")
         }
     }
 
-    fun isValidMove(move: Combination): Boolean {
-        // TODO: Implement actual game rules
-        return true
+    /**
+     * ✅ Handles AI move.
+     */
+    private fun handleAIMove(aiPlayer: Player) {
+        val bestMove = aiPlayer.play(GameContext)
+        bestMove?.let { processMove(aiPlayer, it.cards) }
     }
+
+    /**
+     * ✅ Checks if the move is valid based on game rules.
+     */
+    fun isValidMove(selectedCards: List<Card>): Boolean {
+        if (selectedCards.isEmpty()) return false
+
+        val currentCombination = if (playmat.isEmpty()) Combination() else Combination(playmat)
+
+        return GameRules.isValidMove(currentCombination, Combination(selectedCards.toMutableList()))
+
+
+    }
+
+    /**
+     * ✅ Processes a move if valid, clears playmat & asks player to pick a card.
+     */
+    fun processMove(player: Player, selectedCards: List<Card>) {
+        if (!isValidMove(selectedCards)) {
+            println("❌ Invalid move: ${selectedCards.joinToString()}")
+            return
+        }
+
+        // Move cards to playmat
+        playmat.clear()
+        playmat.addAll(selectedCards)
+
+        // Remove played cards from hand
+        selectedCards.forEach { player.hand.removeCard(it) }
+
+        // If playmat was not empty, ask player to pick a card before ending turn
+        if (discardPile.isNotEmpty()) {
+            val cardToKeep = player.hand.cards.firstOrNull()
+            if (cardToKeep != null) {
+                player.hand.addCard(cardToKeep)
+                discardPile.remove(cardToKeep)
+            }
+        }
+
+        // Check if round ends
+        if (checkRoundEnd()) return
+
+        // Move to next turn
+        nextTurn()
+    }
+
+    /**
+     * ✅ Checks if a round has ended (i.e., a player emptied their hand).
+     */
+    fun checkRoundEnd(): Boolean {
+        val roundWinner = players.firstOrNull { it.hand.isEmpty() }
+
+        if (roundWinner != null) {
+            applyRoundScores(roundWinner)
+            return true  // ✅ Round ends immediately
+        }
+        return false
+    }
+
+    /**
+     * ✅ Updates scores after a round ends.
+     */
+    private fun applyRoundScores(winner: Player) {
+        val losers = players.filter { it.hand.count() > 0 }
+
+        for (loser in losers) {
+            loser.score += loser.hand.cards.sumOf { it.value }
+        }
+    }
+
+    /**
+     * ✅ Checks if the game is over (if a player reaches the point limit).
+     */
+    fun isGameOver(): Boolean = players.any { it.score >= pointLimit }
+
+    /**
+     * ✅ Gets the overall game winners (lowest score).
+     */
+    fun getGameWinners(): List<Player> {
+        val lowestScore = players.minOfOrNull { it.score } ?: return emptyList()
+        return players.filter { it.score == lowestScore }
+    }
+
+    /**
+     * ✅ Gets player rankings based on score.
+     */
+    fun getPlayerRankings(): List<Pair<Player, Int>> = GameRules.getPlayerRankings(players)
 }
