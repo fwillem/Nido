@@ -45,6 +45,13 @@ data class Hand(
         combinations.addAll(newCombinations)
     }
 
+    // Crucial: Deep copy of the Hand
+    fun copy(): Hand {
+        val newHand = Hand()
+        newHand.cards.addAll(this.cards)
+        return newHand
+    }
+
     override fun toString(): String = cards
         .joinToString(", ") { "${it.color.name} ${it.value}" }
         .ifEmpty { "The hand is empty" }

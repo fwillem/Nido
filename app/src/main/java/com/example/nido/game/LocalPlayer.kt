@@ -2,18 +2,17 @@ package com.example.nido.data.model
 
 import com.example.nido.game.GameManager
 
-class LocalPlayer(
+data class LocalPlayer(  //  data class
     override val id: Int,
     override val name: String,
     override val avatar: String,
     override var score: Int = 0,
-    override val hand: Hand = Hand() // Provide default values for data class
+    override val hand: Hand = Hand() // Provide default values
 ) : Player {
     override val playerType: PlayerType = PlayerType.LOCAL
 
     override fun play(gameManager: GameManager): Combination? {
-        // Return null, as LocalPlayer moves are triggered by UI events,
-        // not by calling play() directly.
+        // Return null, UI handles LocalPlayer moves
         return null
     }
 }
