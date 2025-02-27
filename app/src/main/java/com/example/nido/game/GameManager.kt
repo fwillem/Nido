@@ -1,5 +1,6 @@
 package com.example.nido.game
 
+import androidx.compose.runtime.MutableState
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
@@ -8,27 +9,55 @@ import com.example.nido.data.repository.DeckRepository
 import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.State  // Correct import
 
-object GameManager {
-    var players: List<Player> = emptyList()
-    var currentTurnIndex: Int = 0
-   // var deck: MutableList<Card> = mutableListOf()
+import com.example.nido.utils.Constants.REMOVED_COLORS
+import com.example.nido.game.GameScreens
+import com.example.nido.game.GameState
 
-    var playmat: SnapshotStateList<Card> = mutableStateListOf()
-    var discardPile: SnapshotStateList<Card> = mutableStateListOf()
 
-    var pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT
+class GameManager {
+
+    private val _gameState: MutableState<GameState> = mutableStateOf(GameState())
+    val gameState: State<GameState> = _gameState
+
+
 
     /**
      * ✅ Starts a new game by initializing players and dealing hands.
      */
-    fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
-        players = selectedPlayers
-        pointLimit = selectedPointLimit
-        deck = DeckRepository.generateDeck(shuffle = true)
-        dealCards()
-        currentTurnIndex = 0
+    fun initGame(numPlayers: Int, maxPoints: Int = Constants.GAME_DEFAULT_POINT_LIMIT) {
+        if (numPlayers !in Constants.GAME_MIN_PLAYERS..Constants.GAME_MAX_PLAYERS) {
+            throw IllegalArgumentException("Invalid number of players")
+        }
+
+        val removedColors = if (numPlayers <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
+            REMOVED_COLORS
+        } else {
+            emptySet()
+        }
+
+
+        // Use DeckRepository to create and shuffle the deck
+        val deck = DeckRepository.generateDeck(shuffle = true, removedColors = removedColors)
+
+
+        val players = List(numPlayers) { Player(name = "Player ${it + 1}") }
+        dealCards(deck, players) // Deal the cards
+
+        _gameState.value = GameState(
+            numberOfPlayers = numPlayers,
+            pointLimit = maxPoints,  // Corrected name
+            players = players,
+            currentPlayerIndex = 0,
+            currentCombinationOnMat = null,
+            discardPile = mutableStateListOf(),
+            screen = GameScreens.PLAYING, // Or SETUP
+            soundOn = true,
+            showConfirmExitDialog = false
+        )
     }
 
     /**

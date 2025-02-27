@@ -10,7 +10,7 @@ import com.example.nido.utils.Constants
 data class GameState(
     val screen: GameScreens = GameScreens.MENU,
     val numberOfPlayers: Int = 2,
-    val maxPointLimit: Int = Constants.DEFAULT_MAX_POINT,
+    val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     val players: List<Player> = emptyList(),
     val currentPlayerIndex: Int = 0,
     val currentCombinationOnMat: Combination? = null, // Renamed variable

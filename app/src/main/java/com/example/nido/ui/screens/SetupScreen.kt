@@ -51,7 +51,7 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit) {
         // ✅ Button to add AI players
         Button(
             onClick = {
-                if (selectedPlayers.size < 6) {  // Max 6 players (1 Human + 5 AI)
+                if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {  // Max 6 players (1 Human + 5 AI)
                     val nextAI = aiPlayers[selectedPlayers.size - 1] // Pick next AI from list
                     selectedPlayers = selectedPlayers + AIPlayer(
                         id = (selectedPlayers.size).toString(),
@@ -60,7 +60,7 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit) {
                     )
                 }
             },
-            enabled = selectedPlayers.size < 6  // Disable button if max players reached
+            enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS  // Disable button if max players reached
         ) {
             Text("Add AI Player")
         }
