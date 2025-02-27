@@ -9,13 +9,11 @@ import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+
 object GameManager {
     var players: List<Player> = emptyList()
     var currentTurnIndex: Int = 0
     var deck: MutableList<Card> = mutableListOf()
-
-
-
 
     var playmat: SnapshotStateList<Card> = mutableStateListOf()
     var discardPile: SnapshotStateList<Card> = mutableStateListOf()
@@ -62,31 +60,54 @@ object GameManager {
         }
     }
 
+    /**
+     * ✅ Plays a combination of selected cards.
+     */
     fun playCombination(selectedCards: List<Card>) {
-        val currentCombination = if (playmat.isEmpty()) Combination() else Combination(playmat)
+        if (selectedCards.isEmpty()) {
+            println("❌ playCombination: No cards selected")
+            return
+        }
 
+        val currentCombination = if (playmat.isEmpty()) Combination(mutableListOf()) else Combination(playmat.toMutableList())
+        val newCombination = Combination(selectedCards.toMutableList())
 
-
-
-
-        if (GameRules.isValidMove(currentCombination, Combination(selectedCards.toMutableList()))) {
+        if (GameRules.isValidMove(currentCombination, newCombination)) {
             println("✅ Valid combination played: $selectedCards")
 
+            // ✅ Log playmat before update
+            println("🔹 Before Update: Playmat = ${playmat.joinToString { "${it.value} ${it.color}" }}")
+
+            // ✅ Clear and update playmat
             playmat.clear()
-            playmat.addAll(selectedCards)
+            playmat.addAll(newCombination.cards)
+
+            // ✅ Log playmat after update
+            println("🔹 After Update: Playmat = ${playmat.joinToString { "${it.value} ${it.color}" }}")
 
             val currentPlayer = getCurrentPlayer()
-            currentPlayer.hand.removeCombination(Combination(selectedCards.toMutableList()))  // ✅ Remove from hand
+            currentPlayer.hand.removeCombination(newCombination)  // ✅ Remove from hand
 
             // Ask player to pick one card from the combination (except first round)
             if (playmat.isNotEmpty()) {
                 println("🔹 Pick one card to keep from: $playmat")
                 // TODO: Implement logic for choosing one card
+            } else {
+                println("🔹 No cards to keep from playmat since it's empty")
             }
 
             nextTurn()  // ✅ Change turn
         } else {
-            println("❌ Invalid combination!")
+            println("❌ Invalid combination! Move rejected.")
+        }
+    }
+
+    fun processAIMove() {
+        val currentPlayer = getCurrentPlayer()
+        if (currentPlayer.playerType == PlayerType.AI) {
+            handleAIMove(currentPlayer)
+        } else {
+            println("❌ ERROR: Not AI's turn!")
         }
     }
 
@@ -102,13 +123,30 @@ object GameManager {
      * ✅ Checks if the move is valid based on game rules.
      */
     fun isValidMove(selectedCards: List<Card>): Boolean {
-        if (selectedCards.isEmpty()) return false
+        if (selectedCards.isEmpty()) {
+            println("❌ IsValidMove: No cards selected")
+            return false
+        }
 
-        val currentCombination = if (playmat.isEmpty()) Combination() else Combination(playmat)
+        println("✅ IsValidMove: Selected Cards = ${selectedCards.joinToString { "${it.value} ${it.color}" }}")
 
-        return GameRules.isValidMove(currentCombination, Combination(selectedCards.toMutableList()))
+        val currentCombination = if (playmat.isEmpty()) {
+            println("⚠️ IsValidMove: Playmat is empty, setting initial combination.")
+            Combination(mutableListOf()) // ✅ Safe empty combination
+        } else {
+            Combination(playmat.toMutableList()) // ✅ Properly constructed combination
+        }
 
+        println("✅ IsValidMove: Current Combination = ${currentCombination.cards.joinToString { "${it.value} ${it.color}" }}")
 
+        val selectedCombination = Combination(selectedCards.toMutableList())
+        println("✅ IsValidMove: Selected Combination = ${selectedCombination.cards.joinToString { "${it.value} ${it.color}" }}")
+
+        val isValid = GameRules.isValidMove(currentCombination, selectedCombination)
+
+        println("✅ IsValidMove: Move validation result = $isValid")
+
+        return isValid
     }
 
     /**

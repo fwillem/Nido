@@ -1,9 +1,7 @@
 package com.example.nido.ui.views
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,27 +12,45 @@ import com.example.nido.data.model.Player
 import com.example.nido.data.model.PlayerType
 
 @Composable
-fun PlayersRowView(players: List<Player>, currentLocalPlayerIndex: Int) {
+fun PlayersRowView(players: List<Player>, currentTurnIndex: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
+        Text(
+            text = "Current Index : $currentTurnIndex",
+            fontSize = 16.sp,
+            color = Color.White
+        )
+
         players.forEachIndexed { index, player ->
-            val isCurrent = index == currentLocalPlayerIndex
-            val color = if (isCurrent) Color.Yellow else Color.White
+            val isCurrent = index == currentTurnIndex
+            val color = when {
+                isCurrent && player.playerType == PlayerType.LOCAL -> Color.Yellow   // Human player's turn
+                isCurrent && player.playerType == PlayerType.AI -> Color.Red         // AI player's turn
+                else -> Color.White
+            }
+            val backgroundColor = if (isCurrent) Color.DarkGray else Color.Transparent
+
             val playerTypeEmoji = when (player.playerType) {
                 PlayerType.LOCAL -> "🧑"  // Human Player
                 PlayerType.AI -> "🤖"     // AI Player
                 PlayerType.REMOTE -> "🌐" // Remote Player
             }
 
-            Text(
-                text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} cards",
-                fontSize = 16.sp,
-                color = color
-            )
+            Box(
+                modifier = Modifier
+                    .background(backgroundColor)
+                    .padding(4.dp)
+            ) {
+                Text(
+                    text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} cards",
+                    fontSize = 16.sp,
+                    color = color
+                )
+            }
         }
     }
 }

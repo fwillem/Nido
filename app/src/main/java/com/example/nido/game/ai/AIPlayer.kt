@@ -10,6 +10,13 @@ class AIPlayer(id: String, name: String, avatar: String) : Player(id, name, avat
     override fun play(gameContext: GameContext): Combination? {
         val possibleMoves: List<Combination> = GameRules.findValidCombinations(hand.cards)
 
-        return possibleMoves.minByOrNull { it.value } // AI chooses the lowest valid combination
+        val playmatCombination = gameContext.getCurrentPlaymatCombination()
+
+        if (playmatCombination != null) {
+            return possibleMoves.find { it.value > playmatCombination.value }
+        } else  {
+            return possibleMoves.minByOrNull { it.value } // AI chooses the lowest valid combination
+        }
+
     }
 }
