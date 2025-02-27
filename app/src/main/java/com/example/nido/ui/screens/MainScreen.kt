@@ -1,32 +1,38 @@
 package com.example.nido.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Card
 import com.example.nido.game.GameManager
 import com.example.nido.ui.views.ActionButtonsView
 import com.example.nido.ui.views.HandView
 import com.example.nido.ui.views.MatView
-import com.example.nido.ui.views.PlayersRowView
 import com.example.nido.utils.Constants.CARD_HEIGHT
 import com.example.nido.utils.Constants.CARD_WIDTH
 import com.example.nido.utils.SortMode
+import com.example.nido.game.GameViewModel // Import
+
 
 @Composable
 fun MainScreen(
     onEndGame: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: GameViewModel = viewModel() // Get ViewModel
 ) {
-    val currentPlayer = GameManager.getCurrentPlayer()
-    val currentHand = currentPlayer.hand
-    val playmat = GameManager.playmat
-    val discardPile = GameManager.discardPile
+    val gameState by viewModel.gameManager.gameState // Observe GameState
+
+    val currentPlayer by remember { derivedStateOf {  GameManager.getCurrentPlayer() } } // Get CurrentPlayer
+    val currentHand by remember { derivedStateOf { currentPlayer.hand } }          // Get currentHand
+    val playmat by remember { derivedStateOf<List<Card>> { gameState.currentCombinationOnMat?.cards ?: emptyList() } }     // Get cards on Playmat
+    val discardPile by remember { derivedStateOf { gameState.discardPile } }    // Get DiscardPile
 
     var sortMode by remember { mutableStateOf(SortMode.FIFO) }
     val toggleSortMode: () -> Unit = {
@@ -39,8 +45,8 @@ fun MainScreen(
 
     val selectedCards = remember { mutableStateListOf<Card>() }
 
-    val isValidMove = remember(selectedCards) {
-        GameManager.isValidMove(selectedCards)
+    val isValidMove by remember(selectedCards) {
+        mutableStateOf(GameManager.isValidMove(selectedCards)) // Observe isValidMove
     }
 
     Column(
@@ -78,8 +84,8 @@ fun MainScreen(
             contentAlignment = Alignment.Center
         ) {
             PlayersRowView(
-                players = GameManager.players,
-                currentTurnIndex = GameManager.currentTurnIndex
+                players = gameState.players, // Use gameState.players
+                currentTurnIndex = gameState.currentPlayerIndex // Use gameState.currentTurnIndex
             )
         }
 
@@ -93,13 +99,13 @@ fun MainScreen(
             contentAlignment = Alignment.Center
         ) {
             MatView(
-                playmat = playmat,
-                discardPile = discardPile,
+                playmat = playmat, // Use playmat
+                discardPile = discardPile,  // Use discardPile
                 selectedCards = selectedCards,
                 onPlayCombination = { combination ->
-                    if (GameManager.isValidMove(combination)) {
+                    if (GameManager.isValidMove(combination.cards)) {
                         println("✅ Move is valid! Playing: $combination")
-                        GameManager.playCombination(combination)  // ✅ Actually play the move!
+                        GameManager.playCombination(combination.cards)  // ✅ Actually play the move!
                         selectedCards.clear() // ✅ Clear selection after playing
                     } else {
                         println("❌ Invalid move!")
@@ -126,7 +132,11 @@ fun MainScreen(
                 sortMode = sortMode,
                 onDoubleClick = toggleSortMode,
                 onSelectCard = { card ->
-                    selectedCards.add(card)  // ✅ Fixed: Add single card at a time
+                    if (selectedCards.contains(card)) {
+                        selectedCards.remove(card)
+                    } else {
+                        selectedCards.add(card)
+                    }
                     println("selectedCards: $selectedCards")
                 }
             )
