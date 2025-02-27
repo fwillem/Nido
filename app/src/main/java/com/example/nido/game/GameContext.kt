@@ -14,7 +14,8 @@ object GameContext {
     var estimatedHands: MutableMap<Player, List<Card>> = mutableMapOf()
 
     fun getCurrentPlaymatCombination(): Combination? {
-        return if (playmat.isNotEmpty()) Combination(playmat) else null
+        return(null)
+        // return if (playmat.isNotEmpty()) Combination(playmat) else null
     }
 
     fun recordMove(player: Player, combination: Combination, duration: Long) {
