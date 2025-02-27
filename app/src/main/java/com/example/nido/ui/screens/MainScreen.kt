@@ -18,16 +18,27 @@ import com.example.nido.ui.views.MatView
 import com.example.nido.utils.Constants.CARD_HEIGHT
 import com.example.nido.utils.Constants.CARD_WIDTH
 import com.example.nido.utils.SortMode
+import androidx.lifecycle.viewmodel.compose.viewModel // Import
 import com.example.nido.game.GameViewModel // Import
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.Image
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.ui.res.painterResource
 
 
 @Composable
 fun MainScreen(
     onEndGame: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: GameViewModel = viewModel() // Get ViewModel
+    viewModel: GameViewModel
 ) {
-    val gameState by viewModel.gameManager.gameState // Observe GameState
+
+    val gameState by viewModel.gameManager.gameState // Observe the GameState
 
     val currentPlayer by remember { derivedStateOf {  GameManager.getCurrentPlayer() } } // Get CurrentPlayer
     val currentHand by remember { derivedStateOf { currentPlayer.hand } }          // Get currentHand
@@ -48,97 +59,105 @@ fun MainScreen(
     val isValidMove by remember(selectedCards) {
         mutableStateOf(GameManager.isValidMove(selectedCards)) // Observe isValidMove
     }
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Confirm") },
+            text = { Text("Are you sure you want to quit the game?") },
+            confirmButton = {
+                Button(onClick = { onEndGame() }) { // Call the lambda directly
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text("No")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF006400)),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
+    )
+    {
+        Text(text = "Current Player Index:  ${viewModel.gameManager.getCurrentPlayer().id}")
+        Text(text = "Current Player Id:  ${viewModel.gameManager.getCurrentPlayer().id}")
+        Text(text = "Current Player Id:  ${viewModel.gameManager.getCurrentPlayer().name}")
+        Text(text = "Current Player Score:  ${viewModel.gameManager.getCurrentPlayer().score}")
+        Text(text = "Current Player is of type:  ${viewModel.gameManager.getCurrentPlayer().playerType}")
+
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Cards on the Playmat", fontSize = 20.sp)
+        if (viewModel.gameManager.gameState.value.currentCombinationOnMat != null) {
+            DisplayCombination(viewModel.gameManager.gameState.value.currentCombinationOnMat!!.cards)
+        }
+        else {
+            Text("No cards on playmat for the moment")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("Cards in the Discard Pile", fontSize = 20.sp)
+        DisplayCombination(viewModel.gameManager.gameState.value.discardPile)
+
+        Spacer(modifier = Modifier.height(16.dp))
+        //Display Players Hand
+        Text(
+            text = "Player Hand:  ",
+            fontSize = 20.sp
+        )
+        DisplayCombination(viewModel.gameManager.getCurrentPlayer().hand.cards)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(text = "End Game", modifier = Modifier.clickable { showDialog = true })
+
+    }
+
+}
+
+@Composable
+fun DisplayCombination(cards: List<Card>) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
     ) {
-        // 🔹 Top Row: Action Buttons
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(20.dp)
-                .background(Color.DarkGray),
-            contentAlignment = Alignment.Center
-        ) {
-
-            // 🔹 Action Buttons (Manual AI Move)
-            ActionButtonsView(
-                mapOf(
-                    "Sort Mode: ${sortMode.name}" to { toggleSortMode() },
-                    "Quit" to { onEndGame() },
-                    "Play AI Move" to { GameManager.processAIMove() }
-                )
-            )
-
+        items(cards) { card ->
+            CardItem(card)
         }
+    }
+}
 
-        // 🔹 Player Information Row
+@Composable
+fun CardItem(card: Card) {
+    Card(
+        modifier = Modifier
+            .padding(4.dp)
+            .height(100.dp)
+            .width(65.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 10.dp
+        ),
+        shape = RoundedCornerShape(10.dp)
+
+    ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .background(Color(0xFF004000)),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(Color.White), // Background color for contrast
+            contentAlignment = Alignment.Center // Center the content inside the Box
         ) {
-            PlayersRowView(
-                players = gameState.players, // Use gameState.players
-                currentTurnIndex = gameState.currentPlayerIndex // Use gameState.currentTurnIndex
-            )
-        }
+            Image(
+                painter = painterResource(id = card.img),
+                contentDescription = "Card ${card.value} of ${card.color}",
+                modifier = Modifier
+                    .fillMaxSize()
 
-
-        // 🔹 Middle Section: MatView (Playmat + Discard Pile)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(Color(0xFF228B22)),
-            contentAlignment = Alignment.Center
-        ) {
-            MatView(
-                playmat = playmat, // Use playmat
-                discardPile = discardPile,  // Use discardPile
-                selectedCards = selectedCards,
-                onPlayCombination = { combination ->
-                    if (GameManager.isValidMove(combination.cards)) {
-                        println("✅ Move is valid! Playing: $combination")
-                        GameManager.playCombination(combination.cards)  // ✅ Actually play the move!
-                        selectedCards.clear() // ✅ Clear selection after playing
-                    } else {
-                        println("❌ Invalid move!")
-                    }
-                },
-                cardWidth = CARD_WIDTH.dp,
-                cardHeight = CARD_HEIGHT.dp
-            )
-        }
-
-
-        // 🔹 Bottom Section: HandView (Player's Hand)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(Color(0xFF006400)),
-            contentAlignment = Alignment.Center
-        ) {
-            HandView(
-                hand = currentHand,
-                cardWidth = CARD_WIDTH.dp,
-                cardHeight = CARD_HEIGHT.dp,
-                sortMode = sortMode,
-                onDoubleClick = toggleSortMode,
-                onSelectCard = { card ->
-                    if (selectedCards.contains(card)) {
-                        selectedCards.remove(card)
-                    } else {
-                        selectedCards.add(card)
-                    }
-                    println("selectedCards: $selectedCards")
-                }
             )
         }
     }

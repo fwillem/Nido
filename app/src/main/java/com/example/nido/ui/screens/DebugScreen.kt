@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,13 +36,16 @@ import com.example.nido.ui.views.MatView
 import com.example.nido.game.rules.HAND_SIZE
 import com.example.nido.game.GameManager
 import com.example.nido.data.model.Player
+import com.example.nido.game.GameViewModel
 
 
 @Composable
 fun DebugScreen(
     onEndGame: () -> Unit,
+    viewModel: GameViewModel,
     modifier: Modifier = Modifier) {
     var deck = CardRepository.generateDeck(shuffle = true)
+    val currentPlayer by remember { derivedStateOf {  GameManager.getCurrentPlayer() } } // Get CurrentPlayer
 
     val currentHand = remember { Hand() }
     val playmat = remember { mutableStateListOf<Card>() }
@@ -140,10 +144,13 @@ fun DebugScreen(
                 .background(Color(0xFF004000)),
             contentAlignment = Alignment.Center
         ) {
+            /*
             PlayersRowView(
                 players = GameManager.players,  // ✅ Pass the full list of players
                 currentTurnIndex = GameManager.currentTurnIndex // ✅ Get from GameManager
             )
+            */
+
         }
 
         // Middle Section: MatView (Playmat + Discard Pile)
