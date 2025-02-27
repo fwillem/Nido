@@ -120,7 +120,7 @@ fun MainScreen(
     }
 
 }
-
+/*
 @Composable
 fun DisplayCombination(cards: List<Card>) {
     LazyRow(
@@ -162,3 +162,4 @@ fun CardItem(card: Card) {
         }
     }
 }
+*/
