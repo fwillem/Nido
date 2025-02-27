@@ -57,12 +57,16 @@ fun MainScreen(
                 .background(Color.DarkGray),
             contentAlignment = Alignment.Center
         ) {
+
+            // 🔹 Action Buttons (Manual AI Move)
             ActionButtonsView(
                 mapOf(
                     "Sort Mode: ${sortMode.name}" to { toggleSortMode() },
-                    "Quit" to { onEndGame() }
+                    "Quit" to { onEndGame() },
+                    "Play AI Move" to { GameManager.processAIMove() }
                 )
             )
+
         }
 
         // 🔹 Player Information Row
@@ -75,7 +79,7 @@ fun MainScreen(
         ) {
             PlayersRowView(
                 players = GameManager.players,
-                currentLocalPlayerIndex = GameManager.currentTurnIndex
+                currentTurnIndex = GameManager.currentTurnIndex
             )
         }
 
@@ -92,6 +96,15 @@ fun MainScreen(
                 playmat = playmat,
                 discardPile = discardPile,
                 selectedCards = selectedCards,
+                onPlayCombination = { combination ->
+                    if (GameManager.isValidMove(combination)) {
+                        println("✅ Move is valid! Playing: $combination")
+                        GameManager.playCombination(combination)  // ✅ Actually play the move!
+                        selectedCards.clear() // ✅ Clear selection after playing
+                    } else {
+                        println("❌ Invalid move!")
+                    }
+                },
                 cardWidth = CARD_WIDTH.dp,
                 cardHeight = CARD_HEIGHT.dp
             )
@@ -112,18 +125,8 @@ fun MainScreen(
                 cardHeight = CARD_HEIGHT.dp,
                 sortMode = sortMode,
                 onDoubleClick = toggleSortMode,
-                onPlayCombination = { combination ->
-                    if (GameManager.isValidMove(combination)) {
-                        selectedCards.clear()
-                        selectedCards.addAll(combination)
-                    } else {
-                        println("❌ Invalid move!")
-                    }
-                },
                 onSelectCard = { card ->
-                    selectedCards.clear()
-                    selectedCards.addAll(card)
-
+                    selectedCards.add(card)  // ✅ Fixed: Add single card at a time
                     println("selectedCards: $selectedCards")
                 }
             )

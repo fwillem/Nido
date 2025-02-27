@@ -6,7 +6,6 @@ import com.example.nido.data.model.Player
 import com.example.nido.data.repository.DeckRepository
 
 object GameContext {
-    var playmat: MutableList<Card> = mutableListOf()
     var discardPile: MutableList<Card> = mutableListOf()
     var deck: MutableList<Card> = DeckRepository.generateDeck(shuffle = true)
     var previousMoves: MutableList<Pair<Player, Combination>> = mutableListOf()

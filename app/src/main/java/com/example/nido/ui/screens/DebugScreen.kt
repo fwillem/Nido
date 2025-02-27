@@ -142,7 +142,7 @@ fun DebugScreen(
         ) {
             PlayersRowView(
                 players = GameManager.players,  // ✅ Pass the full list of players
-                currentLocalPlayerIndex = GameManager.currentTurnIndex // ✅ Get from GameManager
+                currentTurnIndex = GameManager.currentTurnIndex // ✅ Get from GameManager
             )
         }
 
@@ -154,7 +154,18 @@ fun DebugScreen(
                 .background(Color(0xFF228B22)),
             contentAlignment = Alignment.Center
         ) {
-            MatView(playmat, discardPile, selectedCards = selectedCards , CARD_WIDTH.dp, CARD_HEIGHT.dp)
+            MatView(playmat,
+                discardPile,
+                selectedCards = selectedCards ,
+                onPlayCombination = { combination ->
+                    if (GameManager.isValidMove(combination)) {
+                        GameManager.playCombination(combination)
+                    } else {
+                        println("❌ Invalid move!")
+                    }
+                },
+                cardWidth = CARD_WIDTH.dp,
+                cardHeight = CARD_HEIGHT.dp)
         }
 
         // Bottom Section: HandView (Player's Hand)
@@ -171,13 +182,6 @@ fun DebugScreen(
                 cardHeight = CARD_HEIGHT.dp,
                 sortMode = sortMode,
                 onDoubleClick = toggleSortMode,
-                onPlayCombination = { combination ->
-                    if (GameManager.isValidMove(combination)) {
-                        GameManager.playCombination(combination)
-                    } else {
-                        println("❌ Invalid move!")
-                    }
-                }           ,
                 onSelectCard = { card ->
                     println("Selected cards: $card")
                 }

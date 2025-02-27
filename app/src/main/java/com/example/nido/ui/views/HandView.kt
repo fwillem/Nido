@@ -25,11 +25,9 @@ fun HandView(
     cardHeight: Dp,
     sortMode: SortMode,
     onDoubleClick: () -> Unit,
-    onPlayCombination: (List<Card>) -> Unit,  // ✅ Supports multiple cards (a combination)
-    onSelectCard: (List<Card>) -> Unit
+    onSelectCard: (Card) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var selectedCards = remember { mutableStateListOf<Card>() }  // ✅ Track selected combination
 
     Box(
         modifier = Modifier
@@ -66,8 +64,7 @@ fun HandView(
                                                 val removedCard = hand.removeCard(index)
                                                 if (removedCard != null) {
                                                     println("✅ Successfully selected card: ${removedCard.value}, ${removedCard.color}")
-                                                    selectedCards.add(removedCard)  // ✅ Collect selected cards
-                                                    onSelectCard(selectedCards)
+                                                    onSelectCard(removedCard)
                                                 } else {
                                                     println("❌ ERROR: Failed to select card at index: $index")
                                                 }
@@ -98,16 +95,5 @@ fun HandView(
         }
     }
 
-    // ✅ Play button for confirming selected cards
-    if (selectedCards.isNotEmpty()) {
-        Button(
-            onClick = {
-                println("▶️ Playing combination: ${selectedCards.map { "${it.value}, ${it.color}" }}")
-                onPlayCombination(selectedCards)  // ✅ Send selected combination
-                selectedCards.clear()  // ✅ Clear after playing
-            }
-        ) {
-            Text("Play Combination")
-        }
-    }
+
 }
