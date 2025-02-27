@@ -12,8 +12,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.State
-import com.example.nido.data.model.AIPlayer
-import com.example.nido.data.model.LocalPlayer
+import com.example.nido.game.ai.AIPlayer
 
 
 object GameManager {

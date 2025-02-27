@@ -8,6 +8,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nido.data.model.Player
 import com.example.nido.utils.Constants
+import com.example.nido.game.LocalPlayer
+import com.example.nido.game.ai.AIPlayer
+import com.example.nido.ui.theme.NidoTheme
+
+
 
 @Composable
 fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = Modifier) {
@@ -22,7 +27,7 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
     )
 
     // ✅ Default player: YOU (local human player)
-    var selectedPlayers by remember { mutableStateOf<List<Player>>(listOf(LocalPlayer("0", "You", "👤"))) }
+    var selectedPlayers by remember { mutableStateOf<List<Player>>(listOf(LocalPlayer(id = "0",name = "You",avatar = "👤"))) }
 
     // ✅ Game Point Limit (Slider)
     var selectedPointLimit by remember { mutableStateOf(Constants.GAME_DEFAULT_POINT_LIMIT) }

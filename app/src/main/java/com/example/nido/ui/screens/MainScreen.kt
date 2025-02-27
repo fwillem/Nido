@@ -18,6 +18,7 @@ import com.example.nido.utils.Constants.CARD_HEIGHT
 import com.example.nido.utils.Constants.CARD_WIDTH
 import com.example.nido.utils.SortMode
 import com.example.nido.game.GameViewModel
+import com.example.nido.ui.views.PlayersRowView
 
 @Composable
 fun MainScreen(
@@ -25,10 +26,20 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: GameViewModel  // Add viewModel parameter
 ) {
-    val currentPlayer = GameManager.getCurrentPlayer()
-    val currentHand = currentPlayer.hand
-    val playmat = GameManager.playmat
-    val discardPile = GameManager.discardPile
+
+
+    val gameState by viewModel.gameManager.gameState // Observe the ENTIRE GameState
+
+
+    // Use derivedStateOf for values that depend on gameState
+    val currentPlayer by remember { derivedStateOf { gameState.players[gameState.currentPlayerIndex] } }
+    val currentHand by remember { derivedStateOf { currentPlayer.hand.cards } }
+    val playmatCards by remember { derivedStateOf { gameState.currentCombinationOnMat?.cards ?: emptyList() } }
+    val discardPile by remember { derivedStateOf { gameState.discardPile } }
+    val players by remember { derivedStateOf { gameState.players } }
+    val currentTurnIndex by remember { derivedStateOf { gameState.currentPlayerIndex }}
+    val playmat by remember { derivedStateOf { gameState.currentCombinationOnMat }}
+
 
     var sortMode by remember { mutableStateOf(SortMode.FIFO) }
     val toggleSortMode: () -> Unit = {
@@ -80,8 +91,8 @@ fun MainScreen(
             contentAlignment = Alignment.Center
         ) {
             PlayersRowView(
-                players = GameManager.players,
-                currentTurnIndex = GameManager.currentTurnIndex
+                players = players,
+                currentTurnIndex = currentTurnIndex
             )
         }
 
@@ -94,23 +105,36 @@ fun MainScreen(
                 .background(Color(0xFF228B22)),
             contentAlignment = Alignment.Center
         ) {
+
+            val playmatSnapshotList = playmat?.cards?.let { cardList ->
+                mutableStateListOf<com.example.nido.data.model.Card>().apply {
+                    addAll(cardList)
+                }
+            } ?: mutableStateListOf()
+
+
             MatView(
-                playmat = playmat,
+                playmat = playmatSnapshotList,
                 discardPile = discardPile,
                 selectedCards = selectedCards,
-                onPlayCombination = { combination ->
-                    if (GameManager.isValidMove(combination.cards)) {
-                        println("✅ Move is valid! Playing: $combination")
-                        GameManager.playCombination(combination.cards)  // ✅ Actually play the move!
-                        selectedCards.clear() // ✅ Clear selection after playing
+                onPlayCombination = { playedCards ->  // ✅ Use a different name
+                    if (GameManager.isValidMove(playedCards)) {
+                        println("✅ Move is valid! Playing: $playedCards")
+                        GameManager.playCombination(playedCards)
+                        selectedCards.clear() // ✅ This now correctly refers to the outer selectedCards
                     } else {
                         println("❌ Invalid move!")
                     }
                 },
+
+
+
                 cardWidth = CARD_WIDTH.dp,
                 cardHeight = CARD_HEIGHT.dp
             )
         }
+
+
 
 
         // 🔹 Bottom Section: HandView (Player's Hand)
@@ -122,7 +146,9 @@ fun MainScreen(
             contentAlignment = Alignment.Center
         ) {
             HandView(
-                hand = currentHand,
+                hand = com.example.nido.data.model.Hand(
+                    mutableStateListOf<Card>().apply { addAll(currentHand) } // ✅ Convert List to SnapshotStateList
+                ),
                 cardWidth = CARD_WIDTH.dp,
                 cardHeight = CARD_HEIGHT.dp,
                 sortMode = sortMode,
@@ -136,6 +162,7 @@ fun MainScreen(
                     println("selectedCards: $selectedCards")
                 }
             )
+
         }
     }
 }
