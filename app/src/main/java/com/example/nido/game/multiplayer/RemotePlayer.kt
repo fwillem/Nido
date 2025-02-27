@@ -7,7 +7,7 @@ import com.example.nido.data.model.PlayerType
 import com.example.nido.game.GameManager
 
 class RemotePlayer (
-    override val id: Int,
+    override val id: String,
     override val name: String,
     override val avatar: String,
     override var score: Int = 0,

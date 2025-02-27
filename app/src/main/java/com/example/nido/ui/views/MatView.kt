@@ -25,14 +25,14 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun MatView(
-    playmat: SnapshotStateList<Card>,
+    playmat: SnapshotStateList<Card>?,
     discardPile: SnapshotStateList<Card>,
     selectedCards: SnapshotStateList<Card>,
     onPlayCombination: (List<Card>) -> Unit,  // ✅ Keep the callback!
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
-    println("🟦 MatView - Playmat contains: ${playmat.joinToString { "${it.value} ${it.color}" }}")
+    println("🟦 MatView - Playmat contains: ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}")
     println("🟥 MatView - DiscardPile contains: ${discardPile.joinToString { "${it.value} ${it.color}" }}")
 
     Box(
@@ -69,15 +69,18 @@ fun MatView(
                 modifier = Modifier.padding(8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
-                for (card in playmat) {
-                    println("🟢 Showing Playmat Card: ${card.value}, ${card.color}")
-                    CardView(
-                        card = card,
-                        modifier = Modifier
-                            .width(cardWidth)
-                            .height(cardHeight)
-                    )
+                playmat?.let { cards ->
+                    for (card in cards) {
+                        println("🟢 Showing Playmat Card: ${card.value}, ${card.color}")
+                        CardView(
+                            card = card,
+                            modifier = Modifier
+                                .width(cardWidth)
+                                .height(cardHeight)
+                        )
+                    }
                 }
+
             }
 
             // **Discard Pile**

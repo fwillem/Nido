@@ -1,14 +1,21 @@
-package com.example.nido.data.model
+package com.example.nido.game.ai
 
 import com.example.nido.game.GameManager
 import com.example.nido.game.rules.GameRules
+import com.example.nido.data.model.Player
+import com.example.nido.data.model.PlayerType
+import com.example.nido.data.model.Hand
+import com.example.nido.data.model.Combination
+
+
 
 data class AIPlayer(  // data class
-    override val id: Int,
+    override val id: String,
     override val name: String,
     override val avatar: String,
     override var score: Int = 0,
     override val hand: Hand = Hand() // Provide default values
+
 ) : Player {
     override val playerType: PlayerType = PlayerType.AI
 
