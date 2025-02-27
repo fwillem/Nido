@@ -2,7 +2,7 @@ package com.example.nido.data.model
 
 import com.example.nido.game.GameManager
 
-data class LocalPlayer(
+class LocalPlayer(
     override val id: Int,
     override val name: String,
     override val avatar: String,

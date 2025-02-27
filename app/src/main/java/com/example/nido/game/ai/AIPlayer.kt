@@ -4,7 +4,7 @@ import com.example.nido.game.GameManager
 import com.example.nido.game.rules.GameRules
 
 
-data class AIPlayer(
+class AIPlayer(
     override val id: Int,
     override val name: String,
     override val avatar: String,
