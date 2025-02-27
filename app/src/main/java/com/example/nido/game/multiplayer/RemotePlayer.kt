@@ -1,13 +1,25 @@
 package com.example.nido.game.multiplayer
 
+import com.example.nido.data.model.Combination
+import com.example.nido.data.model.Hand
 import com.example.nido.data.model.Player
 import com.example.nido.data.model.PlayerType
-import com.example.nido.game.GameContext
-import com.example.nido.data.model.Combination
+import com.example.nido.game.GameManager
 
+class RemotePlayer (
+    override val id: Int,
+    override val name: String,
+    override val avatar: String,
+    override var score: Int = 0,
+    override val hand: Hand = Hand()
+) : Player{
 
-class RemotePlayer(id: String, name: String, avatar: String) : Player(id, name, avatar, PlayerType.REMOTE) {
-    override fun play(gameContext: GameContext): Combination? {
-        return NetworkManager.receiveMove() // Waits for the move from the network
+    override val playerType: PlayerType = PlayerType.REMOTE
+
+    override fun play(gameManager: GameManager): Combination? {
+        // TODO: Implement remote player logic. This will likely involve
+        // network communication and waiting for the remote player's move.
+        // For now, return null.
+        return null
     }
 }
