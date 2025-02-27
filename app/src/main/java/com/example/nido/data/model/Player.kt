@@ -18,3 +18,4 @@ interface Player {
 
     fun play(gameManager: GameManager): Combination? // Changed parameter to GameManager
 }
+
