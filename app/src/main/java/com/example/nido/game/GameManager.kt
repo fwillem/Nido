@@ -13,7 +13,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 object GameManager {
     var players: List<Player> = emptyList()
     var currentTurnIndex: Int = 0
-    var deck: MutableList<Card> = mutableListOf()
+   // var deck: MutableList<Card> = mutableListOf()
 
     var playmat: SnapshotStateList<Card> = mutableStateListOf()
     var discardPile: SnapshotStateList<Card> = mutableStateListOf()
