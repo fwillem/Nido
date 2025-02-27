@@ -1,22 +1,27 @@
-package com.example.nido.game.ai
+package com.example.nido.data.model
 
-import com.example.nido.data.model.Combination
-import com.example.nido.data.model.Player
-import com.example.nido.data.model.PlayerType
-import com.example.nido.game.GameContext
+import com.example.nido.game.GameManager
 import com.example.nido.game.rules.GameRules
 
-class AIPlayer(id: String, name: String, avatar: String) : Player(id, name, avatar, PlayerType.AI) {
-    override fun play(gameContext: GameContext): Combination? {
+
+data class AIPlayer(
+    override val id: Int,
+    override val name: String,
+    override val avatar: String,
+    override var score: Int = 0,
+    override val hand: Hand = Hand()
+) : Player {
+    override val playerType: PlayerType = PlayerType.AI
+
+    override fun play(gameManager: GameManager): Combination? {
         val possibleMoves: List<Combination> = GameRules.findValidCombinations(hand.cards)
 
-        val playmatCombination = gameContext.getCurrentPlaymatCombination()
+        val playmatCombination = gameManager.gameState.value.currentCombinationOnMat
 
-        if (playmatCombination != null) {
-            return possibleMoves.find { it.value > playmatCombination.value }
+        return if (playmatCombination != null) {
+            possibleMoves.find { GameRules.isValidMove(playmatCombination, it) }
         } else  {
-            return possibleMoves.minByOrNull { it.value } // AI chooses the lowest valid combination
+            possibleMoves.minByOrNull { it.value } // AI chooses the lowest valid combination
         }
-
     }
 }
