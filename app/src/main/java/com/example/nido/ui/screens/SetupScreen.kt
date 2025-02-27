@@ -7,13 +7,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nido.data.model.Player
-import com.example.nido.game.ai.AIPlayer
-import com.example.nido.game.players.LocalPlayer
-import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.utils.Constants
 
 @Composable
-fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit) {
+fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = Modifier) {
     // ✅ Viking AI Players (Names + Emojis)
     val aiPlayers = listOf(
         "Thorstein" to "⚡",  // God of Thunder vibes ⚡

@@ -17,7 +17,8 @@ import com.example.nido.ui.theme.NidoColors
 @Composable
 fun ScoreScreen(
     onContinue: () -> Unit,
-    onEndGame: () -> Unit
+    onEndGame: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val rankings = GameManager.getPlayerRankings() // ✅ Now gets (Player, Rank) pairs
     val winners = GameManager.getGameWinners() // ✅ Overall winners
