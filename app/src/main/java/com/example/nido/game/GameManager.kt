@@ -1,6 +1,5 @@
 package com.example.nido.game
 
-//import androidx.compose.runtime.MutableState // Remove this for now
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
@@ -9,13 +8,9 @@ import com.example.nido.data.repository.DeckRepository
 import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 import androidx.compose.runtime.mutableStateListOf
-//import androidx.compose.runtime.mutableStateOf // Remove this for now
 import androidx.compose.runtime.snapshots.SnapshotStateList
-//import androidx.compose.runtime.State  // Keep this import, but we won't use it *yet*
 
-class GameManager {
-
-    // Keep your existing properties for now
+object GameManager { // Correct: GameManager is an object
     var players: List<Player> = emptyList()
     var currentTurnIndex: Int = 0
     var deck: MutableList<Card> = mutableListOf() // Add deck
@@ -24,57 +19,28 @@ class GameManager {
     var discardPile: SnapshotStateList<Card> = mutableStateListOf()
 
     var pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT
-    //Keep constructor
-    /*
-    private val _gameState: MutableState<GameState> = mutableStateOf(GameState())
-    val gameState: State<GameState> = _gameState
-*/
 
     /**
      * ✅ Starts a new game by initializing players and dealing hands.
      */
-    fun initGame(numPlayers: Int, maxPoints: Int = Constants.GAME_DEFAULT_POINT_LIMIT) {
-        if (numPlayers !in Constants.GAME_MIN_PLAYERS..Constants.GAME_MAX_PLAYERS) {
-            throw IllegalArgumentException("Invalid number of players")
-        }
+    fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
+        players = selectedPlayers
+        pointLimit = selectedPointLimit
 
-        val removedColors = if (numPlayers <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
+        val removedColors = if (players.size <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
             Constants.REMOVED_COLORS
         } else {
             emptySet()
         }
 
-
-        // Use DeckRepository to create and shuffle the deck
         deck = DeckRepository.generateDeck(shuffle = true, removedColors = removedColors)
-
-
-        var players: List<Player> = emptyList()
-
-        dealCards() // Deal the cards
-
-        //No more gamestate for now
-        /* _gameState.value = GameState(
-             numberOfPlayers = numPlayers,
-             pointLimit = maxPoints,  // Corrected name
-             players = players,
-             currentPlayerIndex = 0,
-             currentCombinationOnMat = null,
-             discardPile = mutableStateListOf(),
-             screen = GameScreens.PLAYING, // Or SETUP
-             soundOn = true,
-             showConfirmExitDialog = false
-         )*/
-        pointLimit = maxPoints
+        dealCards()
         currentTurnIndex = 0
-        playmat = mutableStateListOf()
-        discardPile = mutableStateListOf()
     }
 
     /**
      * ✅ Deals initial hands to players.
      */
-    //Use deck variable
     private fun dealCards() {
         players.forEach { player ->
             repeat(Constants.HAND_SIZE) {
@@ -87,13 +53,11 @@ class GameManager {
     /**
      * ✅ Gets the current player.
      */
-    //Use players variable
     fun getCurrentPlayer(): Player = players[currentTurnIndex]
 
     /**
      * ✅ Moves to the next player's turn.
      */
-    //Use players and currentTurnIndex variables
     fun nextTurn() {
         currentTurnIndex = (currentTurnIndex + 1) % players.size
         val nextPlayer = players[currentTurnIndex]
@@ -106,7 +70,6 @@ class GameManager {
     /**
      * ✅ Plays a combination of selected cards.
      */
-    //Use players, currentTurnIndex, playmat variables
     fun playCombination(selectedCards: List<Card>) {
         if (selectedCards.isEmpty()) {
             println("❌ playCombination: No cards selected")
@@ -166,7 +129,6 @@ class GameManager {
     /**
      * ✅ Checks if the move is valid based on game rules.
      */
-    //Use playmat variable
     fun isValidMove(selectedCards: List<Card>): Boolean {
         if (selectedCards.isEmpty()) {
             println("❌ IsValidMove: No cards selected")
@@ -197,7 +159,6 @@ class GameManager {
     /**
      * ✅ Processes a move if valid, clears playmat & asks player to pick a card.
      */
-    //Use playmat, discardPile and players variables
     fun processMove(player: Player, selectedCards: List<Card>) {
         if (!isValidMove(selectedCards)) {
             println("❌ Invalid move: ${selectedCards.joinToString()}")
@@ -230,7 +191,6 @@ class GameManager {
     /**
      * ✅ Checks if a round has ended (i.e., a player emptied their hand).
      */
-    //use players variable
     fun checkRoundEnd(): Boolean {
         val roundWinner = players.firstOrNull { it.hand.isEmpty() }
 
@@ -244,7 +204,6 @@ class GameManager {
     /**
      * ✅ Updates scores after a round ends.
      */
-    //use players variable
     private fun applyRoundScores(winner: Player) {
         val losers = players.filter { it.hand.count() > 0 }
 
@@ -256,13 +215,11 @@ class GameManager {
     /**
      * ✅ Checks if the game is over (if a player reaches the point limit).
      */
-    //Use players and pointLimit
     fun isGameOver(): Boolean = players.any { it.score >= pointLimit }
 
     /**
      * ✅ Gets the overall game winners (lowest score).
      */
-    //use players variable
     fun getGameWinners(): List<Player> {
         val lowestScore = players.minOfOrNull { it.score } ?: return emptyList()
         return players.filter { it.score == lowestScore }
@@ -271,6 +228,5 @@ class GameManager {
     /**
      * ✅ Gets player rankings based on score.
      */
-    //Use players variable
     fun getPlayerRankings(): List<Pair<Player, Int>> = GameRules.getPlayerRankings(players)
 }

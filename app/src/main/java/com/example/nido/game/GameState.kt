@@ -15,6 +15,7 @@ data class GameState(
     val currentPlayerIndex: Int = 0,
     val currentCombinationOnMat: Combination? = null, // Renamed variable
     val discardPile: SnapshotStateList<Card> = mutableStateListOf(),
+    val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
     val soundOn: Boolean = true,
     val showConfirmExitDialog: Boolean = false
 )
