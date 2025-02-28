@@ -14,6 +14,10 @@ class GameViewModel : ViewModel() {
 
     // Function to update GameState (example)
     fun updateGameState(newState: GameState) {
+        println("updateGameState players: ${newState.players}") // Debug log
+        println("updateGameState deck: ${newState.deck.size}") // Debug log }") // Debug log
+
         _gameState.value = newState
     }
+
 }

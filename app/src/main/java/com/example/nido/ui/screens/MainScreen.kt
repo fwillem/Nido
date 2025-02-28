@@ -30,9 +30,20 @@ fun MainScreen(
 
     val gameState by viewModel.gameManager.gameState // Observe the ENTIRE GameState
 
+    LaunchedEffect(gameState) {
+        println("MainScreen: gameState.players=${gameState.players}")
+    }
+
 
     // Use derivedStateOf for values that depend on gameState
-    val currentPlayer by remember { derivedStateOf { gameState.players[gameState.currentPlayerIndex] } }
+    val currentPlayer by remember {
+        derivedStateOf {
+            require(gameState.players.isNotEmpty()) { "GameState.players is empty – this should not happen!" }
+            gameState.players[gameState.currentPlayerIndex]
+        }
+    }
+
+
     val currentHand by remember { derivedStateOf { currentPlayer.hand.cards } }
     val playmatCards by remember { derivedStateOf { gameState.currentCombinationOnMat?.cards ?: emptyList() } }
     val discardPile by remember { derivedStateOf { gameState.discardPile } }
