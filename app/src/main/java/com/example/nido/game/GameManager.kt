@@ -49,6 +49,9 @@ object GameManager {
     }
 
     private fun dealCards(selectedPlayers: List<Player>) {
+
+        println("🔍 Checking deck before dealing cards: ${gameState.value.deck.size}") // Debugging
+
         val mutableDeck = gameState.value.deck.toMutableList()
         val mutablePlayers = selectedPlayers.toMutableList()
 
