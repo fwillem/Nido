@@ -32,6 +32,9 @@ object GameManager {
         val mutableDeck = mutableStateListOf<Card>()
         mutableDeck.addAll(deck)
 
+        println("🃏 Deck Size Before Dealing: ${mutableDeck.size}")  // ✅ Debugging line
+
+
         viewModel.updateGameState(GameState(
             players = selectedPlayers,
             pointLimit = selectedPointLimit,
@@ -42,29 +45,41 @@ object GameManager {
             screen = GameScreens.PLAYING
         ))
 
-        dealCards()
+        dealCards(selectedPlayers)  // ✅ Pass correct player list
     }
 
-    private fun dealCards() {
+    private fun dealCards(selectedPlayers: List<Player>) {
         val mutableDeck = gameState.value.deck.toMutableList()
-        val mutablePlayers = gameState.value.players.toMutableList()
+        val mutablePlayers = selectedPlayers.toMutableList()
+
+        if (mutableDeck.isEmpty()) {
+            throw IllegalStateException("❌ Deck is empty before dealing cards! This should never happen.")
+        }
+
         mutablePlayers.forEachIndexed { index, player ->
             val updatedHand = player.hand.copy()  // Deep copy of Hand
+
             repeat(Constants.HAND_SIZE) {
-                val card = mutableDeck.removeAt(0)
-                updatedHand.addCard(card)
+                if (mutableDeck.isNotEmpty()) {  // ✅ Check before removing a card
+                    val card = mutableDeck.removeFirst()  // ✅ SAFER WAY: removeFirst()
+                    updatedHand.addCard(card)
+                } else {
+                    throw IllegalStateException("❌ Not enough cards in the deck to deal hands!")
+                }
             }
-            mutablePlayers[index] = when (player) { // Use when for type checking
-                is LocalPlayer -> player.copy(hand = updatedHand) //Copy for LocalPlayer
-                is AIPlayer -> player.copy(hand = updatedHand)    //Copy for AIPlayer
+
+            mutablePlayers[index] = when (player) {
+                is LocalPlayer -> player.copy(hand = updatedHand)
+                is AIPlayer -> player.copy(hand = updatedHand)
                 else -> throw IllegalArgumentException("Unknown player type")
             }
         }
 
-        val deckSnapshotList = mutableStateListOf<Card>()
-        deckSnapshotList.addAll(mutableDeck)
+        val deckSnapshotList = mutableStateListOf<Card>().apply { addAll(mutableDeck) }
+
         viewModel.updateGameState(gameState.value.copy(deck = deckSnapshotList, players = mutablePlayers))
     }
+
 
     fun getCurrentPlayer(): Player = gameState.value.players[gameState.value.currentPlayerIndex]
 
