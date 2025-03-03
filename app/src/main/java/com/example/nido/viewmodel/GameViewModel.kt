@@ -8,16 +8,27 @@ class GameViewModel : ViewModel() {
     val gameManager: GameManager = GameManager // Access the GameManager object
 
     // Wrap GameState in MutableState for reactivity
-    private val _gameState: MutableState<GameState> = mutableStateOf(GameState())
-    val gameState: GameState
-        get() = _gameState.value // Expose a read-only version
+    val gameState: State<GameState>
+        get() = getViewModel().gameState  // ✅ Now correctly returns State<GameState>
+
 
     // Function to update GameState (example)
     fun updateGameState(newState: GameState) {
-        println("updateGameState players: ${newState.players}") // Debug log
-        println("updateGameState deck: ${newState.deck.size}") // Debug log }") // Debug log
+        println("🔄 Updating GameState: ${newState.players}")
 
-        _gameState.value = newState
+        _gameState.value = _gameState.value.copy().apply {
+            players = if (newState.players.isNotEmpty()) newState.players else players
+            deck = if (newState.deck.isNotEmpty()) newState.deck else deck
+            discardPile = newState.discardPile
+            currentPlayerIndex = newState.currentPlayerIndex
+            currentCombinationOnMat = newState.currentCombinationOnMat
+            screen = newState.screen
+            soundOn = newState.soundOn
+            showConfirmExitDialog = newState.showConfirmExitDialog
+        }
+
+        println("✅ GameState Updated Successfully: ${_gameState.value.players}")
     }
+
 
 }

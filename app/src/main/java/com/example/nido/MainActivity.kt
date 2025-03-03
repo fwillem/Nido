@@ -13,6 +13,7 @@ import com.example.nido.game.GameViewModel
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.screens.NidoApp
 import androidx.lifecycle.viewmodel.compose.viewModel // CORRECT IMPORT
+import com.example.nido.game.GameManager
 
 
 class MainActivity : ComponentActivity() {
@@ -23,6 +24,9 @@ class MainActivity : ComponentActivity() {
             NidoTheme {
                 // Get the ViewModel *here*, in the Activity
                 val viewModel: GameViewModel = viewModel()
+                GameManager.initialize(viewModel)
+
+
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     // Pass the viewModel to NidoApp
