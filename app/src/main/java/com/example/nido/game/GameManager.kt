@@ -1,6 +1,9 @@
 package com.example.nido.game
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
@@ -8,16 +11,23 @@ import com.example.nido.data.model.PlayerType
 import com.example.nido.data.repository.DeckRepository
 import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.State
-import com.example.nido.game.ai.AIPlayer
 
 object GameManager {
-    private val viewModel = GameViewModel()
-    private val _gameState: MutableState<GameState> = mutableStateOf(GameState())
+    private var gameViewModel: GameViewModel? = null // ✅ Nullable until initialized
     val gameState: State<GameState>
-        get() = _gameState
+        get() = getViewModel().gameState  // ✅ Use ViewModel’s state
+
+
+    fun initialize(viewModel: GameViewModel) {
+        if (gameViewModel != null) {
+            throw IllegalStateException("GameManager is already initialized!") // 🚨 Prevent multiple initializations
+        }
+        gameViewModel = viewModel
+    }
+
+    private fun getViewModel(): GameViewModel {
+        return gameViewModel ?: throw IllegalStateException("GameManager has not been initialized!") // 🚨 Prevent usage before initialization
+    }
 
     fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
         val removedColors = if (selectedPlayers.size <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
@@ -29,8 +39,8 @@ object GameManager {
         val deck = DeckRepository.generateDeck(shuffle = true, removedColors = removedColors)
         val mutableDeck = mutableStateListOf<Card>().apply { addAll(deck) }
 
-        val newGameState = GameState(
-            players = selectedPlayers.toMutableList(),  // ✅ Ensure mutability
+        var newGameState = GameState(
+            players = selectedPlayers,
             pointLimit = selectedPointLimit,
             deck = mutableDeck,
             currentPlayerIndex = 0,
@@ -39,16 +49,17 @@ object GameManager {
             screen = GameScreens.PLAYING
         )
 
-        dealCards(newGameState)  // ✅ Modify local state first
+        newGameState = dealCards(newGameState)
 
-        viewModel.updateGameState(newGameState)  // ✅ Save final state after dealing cards
+        gameViewModel?.updateGameState(newGameState)
+            ?: println("❌ ERROR: GameViewModel is not initialized!")
+
+        println("startNewGame : ${getViewModel().gameState}")  // ✅ Correct!
     }
 
-    private fun dealCards(state: GameState) {
+    private fun dealCards(state: GameState): GameState {
         val mutableDeck = state.deck.toMutableList()
-        val mutablePlayers = state.players.toMutableList()
-
-        mutablePlayers.forEachIndexed { index, player ->
+        val mutablePlayers = state.players.map { player ->
             val updatedHand = player.hand.copy()
             repeat(Constants.HAND_SIZE) {
                 if (mutableDeck.isNotEmpty()) {
@@ -58,18 +69,13 @@ object GameManager {
                     throw IllegalStateException("Deck is empty before dealing all cards!")
                 }
             }
-            mutablePlayers[index] = when (player) {
-                is LocalPlayer -> player.copy(hand = updatedHand)
-                is AIPlayer -> player.copy(hand = updatedHand)
-                else -> throw IllegalArgumentException("Unknown player type")
-            }
+            player.copy(hand = updatedHand)
         }
 
-        // ✅ Instead of reassigning 'val', update existing mutable lists
-        state.deck.clear()
-        state.deck.addAll(mutableDeck)
-        state.players.clear()
-        state.players.addAll(mutablePlayers)
+        return state.copy(
+            players = mutablePlayers,
+            deck = mutableStateListOf<Card>().apply { addAll(mutableDeck) }
+        )
     }
 
     private fun getCurrentPlayer(): Player = gameState.value.players[gameState.value.currentPlayerIndex]
@@ -91,11 +97,7 @@ object GameManager {
 
         val updatedHand = getCurrentPlayer().hand.copy().apply { removeCombination(newCombination) }
         val updatedPlayers = currentGameState.players.toMutableList().apply {
-            this[currentGameState.currentPlayerIndex] = when (val currentPlayer = getCurrentPlayer()) {
-                is LocalPlayer -> currentPlayer.copy(hand = updatedHand)
-                is AIPlayer -> currentPlayer.copy(hand = updatedHand)
-                else -> throw IllegalArgumentException("Unknown player type")
-            }
+            this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
         }
 
         var cardToKeep: Card? = null
@@ -115,9 +117,9 @@ object GameManager {
             discardPile = newDiscardPile
         )
 
-        viewModel.updateGameState(updatedState)
+        getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
 
-        nextTurn()  // ✅ Internally controlled turn progression
+        nextTurn()
     }
 
     private fun nextTurn() {
@@ -125,7 +127,7 @@ object GameManager {
         val nextIndex = (currentGameState.currentPlayerIndex + 1) % currentGameState.players.size
 
         val updatedState = currentGameState.copy(currentPlayerIndex = nextIndex)
-        viewModel.updateGameState(updatedState)
+        getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
 
         val nextPlayer = updatedState.players[nextIndex]
         if (nextPlayer.playerType == PlayerType.AI) {
@@ -164,11 +166,7 @@ object GameManager {
         }
 
         val updatedPlayers = currentGameState.players.toMutableList().apply {
-            this[currentGameState.currentPlayerIndex] = when (val currentPlayer = getCurrentPlayer()) {
-                is LocalPlayer -> currentPlayer.copy(hand = updatedHand)
-                is AIPlayer -> currentPlayer.copy(hand = updatedHand)
-                else -> throw IllegalArgumentException("Unknown player type")
-            }
+            this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
         }
 
         val updatedState = currentGameState.copy(
@@ -176,7 +174,7 @@ object GameManager {
             currentCombinationOnMat = Combination(newPlaymat)
         )
 
-        viewModel.updateGameState(updatedState)
+        getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
     }
 
     private fun checkRoundEnd(): Boolean {
@@ -188,5 +186,9 @@ object GameManager {
     fun getGameWinners(): List<Player> {
         val lowestScore = gameState.value.players.minOfOrNull { it.score } ?: return emptyList()
         return gameState.value.players.filter { it.score == lowestScore }
+    }
+
+    fun getPlayerRankings(): List<Pair<Player, Int>> {
+        return GameRules.getPlayerRankings(gameState.value.players)
     }
 }

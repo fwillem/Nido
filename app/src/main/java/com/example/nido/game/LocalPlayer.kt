@@ -1,25 +1,30 @@
 package com.example.nido.game
 
-import com.example.nido.game.GameManager
-import com.example.nido.data.model.Player
-import com.example.nido.data.model.PlayerType
-import com.example.nido.data.model.Hand
-import com.example.nido.data.model.Combination
+import com.example.nido.data.model.*
 
-
-
-
-data class LocalPlayer(  //  data class
+class LocalPlayer(
     override val id: String,
     override val name: String,
     override val avatar: String,
     override var score: Int = 0,
-    override val hand: Hand = Hand() // Provide default values
+    override val hand: Hand = Hand()
 ) : Player {
     override val playerType: PlayerType = PlayerType.LOCAL
 
     override fun play(gameManager: GameManager): Combination? {
-        // Return null, UI handles LocalPlayer moves
-        return null
+        return null // UI handles LocalPlayer moves
+    }
+
+    override fun copy(
+        id: String,
+        name: String,
+        avatar: String,
+        score: Int,
+        hand: Hand
+    ): Player {
+        return LocalPlayer(id, name, avatar, score, hand)
+    }
+    override fun toString(): String {
+        return "LocalPlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand)"
     }
 }

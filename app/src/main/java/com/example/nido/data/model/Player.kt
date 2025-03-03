@@ -1,10 +1,6 @@
 package com.example.nido.data.model
 
 import com.example.nido.game.GameManager
-import com.example.nido.data.model.PlayerType
-import com.example.nido.data.model.Combination
-import com.example.nido.data.model.Hand
-
 
 interface Player {
     val id: String
@@ -15,4 +11,15 @@ interface Player {
     val hand: Hand
 
     fun play(gameManager: GameManager): Combination?
+
+    fun copy(
+        id: String = this.id,
+        name: String = this.name,
+        avatar: String = this.avatar,
+        score: Int = this.score,
+        hand: Hand = this.hand
+    ): Player
+
+
+
 }

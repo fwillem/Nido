@@ -28,7 +28,10 @@ fun MainScreen(
 ) {
 
 
-    val gameState by viewModel.gameManager.gameState // Observe the ENTIRE GameState
+    val gameState by remember { derivedStateOf { viewModel.gameState } }
+
+    println("MainScreen: gameState=$gameState")
+    println("MainScreen: gameState.players=${gameState.players}")
 
     LaunchedEffect(gameState) {
         println("MainScreen: gameState.players=${gameState.players}")
@@ -63,9 +66,6 @@ fun MainScreen(
 
     val selectedCards = remember { mutableStateListOf<Card>() }
 
-    val isValidMove = remember(selectedCards) {
-        GameManager.isValidMove(selectedCards)
-    }
 
     Column(
         modifier = modifier

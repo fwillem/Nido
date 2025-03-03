@@ -18,7 +18,40 @@ data class GameState(
     val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
     val soundOn: Boolean = true,
     val showConfirmExitDialog: Boolean = false
-)
+) {
+    override fun toString(): String {
+        // 👥 Players: ${players.joinToString("\n") { "   - $it" }}
+
+        return """
+            🔍 GameState Debug Info:
+            💠 Screen: $screen
+            💠 Number of Players: $numberOfPlayers.
+            💠 Point Limit: $pointLimit
+            💠 Nb of players: ${players.size }}
+            💠 Current Player Index: $currentPlayerIndex
+            💠 Current Combination on Mat: ${currentCombinationOnMat ?: "None"}
+            💠 Discard Pile: ${discardPile.joinToString(", ") { it.toString() }}
+            💠 Deck: ${deck.joinToString(", ") { it.toString() }}
+            💠 Sound On: $soundOn
+            💠 Confirm Exit Dialog: $showConfirmExitDialog
+        """.trimIndent()
+    }
+    fun deepCopy(): GameState {
+        return GameState(
+            screen = this.screen,
+            numberOfPlayers = this.numberOfPlayers,
+            pointLimit = this.pointLimit,
+            players = this.players.map { it.copy() }, // Deep copy players
+            currentPlayerIndex = this.currentPlayerIndex,
+            currentCombinationOnMat = this.currentCombinationOnMat?.let { Combination(it.cards.toMutableList()) },
+            discardPile = mutableStateListOf<Card>().apply { addAll(this@GameState.discardPile) },
+            deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
+            soundOn = this.soundOn,
+            showConfirmExitDialog = this.showConfirmExitDialog
+        )
+    }
+
+}
 
 enum class GameScreens {
     MENU,
