@@ -13,7 +13,7 @@ data class GameState(
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     val players: List<Player> = emptyList(),
     val currentPlayerIndex: Int = 0,
-    val currentCombinationOnMat: Combination? = null, // Renamed variable
+    val currentCombinationOnMat: Combination = Combination(mutableListOf()),
     val discardPile: SnapshotStateList<Card> = mutableStateListOf(),
     val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
     val soundOn: Boolean = true,
@@ -43,7 +43,7 @@ data class GameState(
             pointLimit = this.pointLimit,
             players = this.players.map { it.copy() }, // Deep copy players
             currentPlayerIndex = this.currentPlayerIndex,
-            currentCombinationOnMat = this.currentCombinationOnMat?.let { Combination(it.cards.toMutableList()) },
+            currentCombinationOnMat = Combination(this.currentCombinationOnMat.cards.toMutableList()),
             discardPile = mutableStateListOf<Card>().apply { addAll(this@GameState.discardPile) },
             deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
             soundOn = this.soundOn,

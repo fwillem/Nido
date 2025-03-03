@@ -28,12 +28,13 @@ fun MatView(
     playmat: SnapshotStateList<Card>?,
     discardPile: SnapshotStateList<Card>,
     selectedCards: SnapshotStateList<Card>,
-    onPlayCombination: (List<Card>) -> Unit,  // ✅ Keep the callback!
+    onPlayCombination: (List<Card>, Card?) -> Unit,  // ✅ Keep the callback!
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
-    println("🟦 MatView - Playmat contains: ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}")
-    println("🟥 MatView - DiscardPile contains: ${discardPile.joinToString { "${it.value} ${it.color}" }}")
+    println("🟦 MatView - Playmat : ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}")
+    println("🟦 MatView - DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}")
+    println("🟦 MatView - SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }}")
 
     Box(
         modifier = Modifier
@@ -51,7 +52,6 @@ fun MatView(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     for (card in selectedCards) {
-                        println("🟡 Showing Selected Card: ${card.value}, ${card.color}")
                         CardView(
                             card = card,
                             modifier = Modifier
@@ -71,7 +71,6 @@ fun MatView(
             ) {
                 playmat?.let { cards ->
                     for (card in cards) {
-                        println("🟢 Showing Playmat Card: ${card.value}, ${card.color}")
                         CardView(
                             card = card,
                             modifier = Modifier
@@ -90,7 +89,6 @@ fun MatView(
                 horizontalArrangement = Arrangement.Center
             ) {
                 for (card in discardPile) {
-                    println("🟥 Showing Discard Card: ${card.value}, ${card.color}")
                     CardView(
                         card = card,
                         modifier = Modifier
@@ -103,7 +101,8 @@ fun MatView(
             // **Play Button - Only when selection is not empty**
             if (selectedCards.isNotEmpty()) {
                 Button(
-                    onClick = { onPlayCombination(selectedCards.toList()) }, // ✅ Play the combination
+                    onClick = { onPlayCombination(selectedCards.toList(), playmat?.firstOrNull()) }, // ✅ Play the combination
+                    /* TODO Here we shall ask the user the card he wants to keep */
                     modifier = Modifier.padding(8.dp)
                 ) {
                     Text("Play Combination")

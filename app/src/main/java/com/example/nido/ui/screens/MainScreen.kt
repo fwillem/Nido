@@ -30,12 +30,9 @@ fun MainScreen(
 
     val gameState by viewModel.gameState
 
-    println("MainScreen: gameState=$gameState")
-    println("MainScreen: gameState.players=${gameState.players}")
+  //  println("MainScreen: gameState=$gameState")
+  //  println("MainScreen: gameState.players=${gameState.players}")
 
-    LaunchedEffect(gameState) {
-        println("MainScreen: gameState.players=${gameState.players}")
-    }
 
 
     // Use derivedStateOf for values that depend on gameState
@@ -128,10 +125,10 @@ fun MainScreen(
                 playmat = playmatSnapshotList,
                 discardPile = discardPile,
                 selectedCards = selectedCards,
-                onPlayCombination = { playedCards ->  // ✅ Use a different name
+                onPlayCombination = { playedCards, cardToKeep ->  // ✅ Use a different name
                     if (GameManager.isValidMove(playedCards)) {
                         println("✅ Move is valid! Playing: $playedCards")
-                        GameManager.playCombination(playedCards)
+                        GameManager.playCombination(playedCards,cardToKeep)
                         selectedCards.clear() // ✅ This now correctly refers to the outer selectedCards
                     } else {
                         println("❌ Invalid move!")

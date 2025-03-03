@@ -17,11 +17,8 @@ class AIPlayer(
         val possibleMoves: List<Combination> = GameRules.findValidCombinations(hand.cards)
         val playmatCombination = gameManager.gameState.value.currentCombinationOnMat
 
-        return if (playmatCombination != null) {
-            possibleMoves.find { GameRules.isValidMove(playmatCombination, it) }
-        } else {
-            possibleMoves.minByOrNull { it.value }
-        }
+        return possibleMoves.find { GameRules.isValidMove(playmatCombination, it) }
+
     }
 
     override fun copy(
