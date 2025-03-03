@@ -11,6 +11,10 @@ import com.example.nido.data.model.PlayerType
 import com.example.nido.data.repository.DeckRepository
 import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+
+
 
 object GameManager {
     private var gameViewModel: GameViewModel? = null // ✅ Nullable until initialized
@@ -31,12 +35,27 @@ object GameManager {
 
     fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
         val removedColors = if (selectedPlayers.size <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
-            Constants.REMOVED_COLORS
+            Constants.DECK_REMOVED_COLORS
         } else {
             emptySet()
         }
 
         val deck = DeckRepository.generateDeck(shuffle = true, removedColors = removedColors)
+
+        // Appels debug corrects, en utilisant la syntaxe lambda
+        TRACE(SYSTEMATIC) { "Ceci est une trace systématique" }
+        TRACE(DETAIL1)    { "Détail niveau 1" }
+        TRACE(DETAIL2)    { "Détail niveau 2" }
+        TRACE(DETAIL3)    { "Détail niveau 3" }
+        TRACE(WARNING)    { "Attention : situation atypique" }
+        TRACE(ERROR)      { "Erreur non prévue" }
+        // Attention : ce debug va lever une exception, donc à utiliser avec précaution
+        TRACE(FATAL)      { "Erreur fatale, arrêt du programme" }
+
+        println("deckSize mon grand mec à moi : ${deck.size}")
+        println("🟦  - Deck : ${deck.joinToString { "${it.value} ${it.color}" } }")
+        println("🟦  - DeckSize : ${deck.size} }")
+
         val mutableDeck = mutableStateListOf<Card>().apply { addAll(deck) }
 
         var newGameState = GameState(
@@ -44,18 +63,19 @@ object GameManager {
             pointLimit = selectedPointLimit,
             deck = mutableDeck,
             currentPlayerIndex = 0,
-            currentCombinationOnMat = null,
+            currentCombinationOnMat = Combination(mutableListOf()),
             discardPile = mutableStateListOf(),
             screen = GameScreens.PLAYING
         )
 
+        // Deal the cards across all players and update the game state.
         newGameState = dealCards(newGameState)
-
         gameViewModel?.updateGameState(newGameState)
             ?: println("❌ ERROR: GameViewModel is not initialized!")
 
         println("startNewGame : ${getViewModel().gameState}")  // ✅ Correct!
     }
+
 
     private fun dealCards(state: GameState): GameState {
         val mutableDeck = state.deck.toMutableList()
@@ -72,6 +92,13 @@ object GameManager {
             player.copy(hand = updatedHand)
         }
 
+        // Trace each player's name and their hand
+        mutablePlayers.forEach { player ->
+            println("${player.name}'s hand: " +
+                    player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" }
+            )
+        }
+
         return state.copy(
             players = mutablePlayers,
             deck = mutableStateListOf<Card>().apply { addAll(mutableDeck) }
@@ -80,47 +107,53 @@ object GameManager {
 
     private fun getCurrentPlayer(): Player = gameState.value.players[gameState.value.currentPlayerIndex]
 
-    fun playCombination(selectedCards: List<Card>) {
+    fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) {
+        val currentGameState = gameState.value
+
         if (selectedCards.isEmpty()) {
-            println("playCombination: No cards selected")
+            println("❌ playCombination: No cards selected")
             return
         }
 
-        val currentGameState = gameState.value
-        val currentCombination = currentGameState.currentCombinationOnMat ?: Combination(mutableListOf())
+        // Create the new combination based on selected cards.
+        val currentCombination = currentGameState.currentCombinationOnMat
         val newCombination = Combination(selectedCards.toMutableList())
 
+        // Validate the move.
         if (!GameRules.isValidMove(currentCombination, newCombination)) {
-            println("Invalid combination! Move rejected.")
+            println("❌ Invalid combination! Move rejected.")
             return
         }
 
+        // Update the current player's hand by removing the played cards.
+        // For some 'Compose' recomposition reason we have to copy the whole players set
         val updatedHand = getCurrentPlayer().hand.copy().apply { removeCombination(newCombination) }
         val updatedPlayers = currentGameState.players.toMutableList().apply {
             this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
         }
 
-        var cardToKeep: Card? = null
+        // Build a new discard pile:
+        // It consists of the existing discard pile plus the cards from the current combination
+        // excluding the card chosen by the player to keep.
         val newDiscardPile = mutableStateListOf<Card>().apply {
             addAll(currentGameState.discardPile)
-            if (currentCombination.cards.isNotEmpty()) {
-                cardToKeep = currentCombination.cards.firstOrNull()
-                addAll(currentCombination.cards.drop(1))
-            }
+            addAll(currentCombination.cards.filter { it != cardToKeep })
         }
 
+        // If a card was chosen to keep, add it back to the player's hand.
         cardToKeep?.let { updatedHand.addCard(it) }
 
+        // Update the game state.
         val updatedState = currentGameState.copy(
             players = updatedPlayers,
             currentCombinationOnMat = newCombination,
             discardPile = newDiscardPile
         )
 
-        getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
-
+        getViewModel().updateGameState(updatedState)
         nextTurn()
     }
+
 
     private fun nextTurn() {
         val currentGameState = gameState.value
@@ -150,7 +183,7 @@ object GameManager {
     }
 
     fun isValidMove(selectedCards: List<Card>): Boolean {
-        val currentCombination = gameState.value.currentCombinationOnMat ?: Combination(mutableListOf())
+        val currentCombination = gameState.value.currentCombinationOnMat
         val selectedCombination = Combination(selectedCards.toMutableList())
         return GameRules.isValidMove(currentCombination, selectedCombination)
     }
