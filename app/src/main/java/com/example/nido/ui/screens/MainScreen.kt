@@ -28,7 +28,7 @@ fun MainScreen(
 ) {
 
 
-    val gameState by remember { derivedStateOf { viewModel.gameState } }
+    val gameState by viewModel.gameState
 
     println("MainScreen: gameState=$gameState")
     println("MainScreen: gameState.players=${gameState.players}")
