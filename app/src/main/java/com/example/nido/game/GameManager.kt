@@ -13,6 +13,7 @@ import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.utils.println
 
 
 
@@ -24,7 +25,7 @@ object GameManager {
 
     fun initialize(viewModel: GameViewModel) {
         if (gameViewModel != null) {
-            throw IllegalStateException("GameManager is already initialized!") // 🚨 Prevent multiple initializations
+            TRACE(FATAL) { "GameManager is already initialized!" } // 🚨 Prevent multiple initializations
         }
         gameViewModel = viewModel
     }
@@ -34,6 +35,9 @@ object GameManager {
     }
 
     fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
+
+        TRACE (INFO) { "selectedPlayers : $selectedPlayers, selectedPointLimit : $selectedPointLimit" }
+
         val removedColors = if (selectedPlayers.size <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
             Constants.DECK_REMOVED_COLORS
         } else {
@@ -42,19 +46,8 @@ object GameManager {
 
         val deck = DeckRepository.generateDeck(shuffle = true, removedColors = removedColors)
 
-        // Appels debug corrects, en utilisant la syntaxe lambda
-        TRACE(SYSTEMATIC) { "Ceci est une trace systématique" }
-        TRACE(DETAIL1)    { "Détail niveau 1" }
-        TRACE(DETAIL2)    { "Détail niveau 2" }
-        TRACE(DETAIL3)    { "Détail niveau 3" }
-        TRACE(WARNING)    { "Attention : situation atypique" }
-        TRACE(ERROR)      { "Erreur non prévue" }
-        // Attention : ce debug va lever une exception, donc à utiliser avec précaution
-        TRACE(FATAL)      { "Erreur fatale, arrêt du programme" }
 
-        println("deckSize mon grand mec à moi : ${deck.size}")
-        println("🟦  - Deck : ${deck.joinToString { "${it.value} ${it.color}" } }")
-        println("🟦  - DeckSize : ${deck.size} }")
+
 
         val mutableDeck = mutableStateListOf<Card>().apply { addAll(deck) }
 
@@ -71,9 +64,9 @@ object GameManager {
         // Deal the cards across all players and update the game state.
         newGameState = dealCards(newGameState)
         gameViewModel?.updateGameState(newGameState)
-            ?: println("❌ ERROR: GameViewModel is not initialized!")
+            ?: TRACE (ERROR) { "ERROR: GameViewModel is not initialized!" }
 
-        println("startNewGame : ${getViewModel().gameState}")  // ✅ Correct!
+        TRACE (INFO) { "Initial gameState ${getViewModel().gameState}" }
     }
 
 
@@ -86,7 +79,7 @@ object GameManager {
                     val card = mutableDeck.removeAt(0)
                     updatedHand.addCard(card)
                 } else {
-                    throw IllegalStateException("Deck is empty before dealing all cards!")
+                    TRACE (FATAL) { "Deck is empty before dealing all cards!" }
                 }
             }
             player.copy(hand = updatedHand)
@@ -94,9 +87,9 @@ object GameManager {
 
         // Trace each player's name and their hand
         mutablePlayers.forEach { player ->
-            println("${player.name}'s hand: " +
-                    player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" }
-            )
+
+            val hand = "$player.name's hand:" + player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" }
+            TRACE(INFO) { "$hand"}
         }
 
         return state.copy(
@@ -111,7 +104,7 @@ object GameManager {
         val currentGameState = gameState.value
 
         if (selectedCards.isEmpty()) {
-            println("❌ playCombination: No cards selected")
+            TRACE(ERROR) { " No cards selected" }
             return
         }
 
@@ -121,7 +114,7 @@ object GameManager {
 
         // Validate the move.
         if (!GameRules.isValidMove(currentCombination, newCombination)) {
-            println("❌ Invalid combination! Move rejected.")
+            TRACE(ERROR) { "Invalid combination! Move rejected." }
             return
         }
 
@@ -173,7 +166,7 @@ object GameManager {
         if (currentPlayer.playerType == PlayerType.AI) {
             handleAIMove(currentPlayer)
         } else {
-            println("ERROR: Not AI's turn!")
+            TRACE(ERROR) {"Not AI's turn!" }
         }
     }
 

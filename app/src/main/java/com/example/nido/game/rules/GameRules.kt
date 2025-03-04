@@ -3,6 +3,9 @@ package com.example.nido.game.rules
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.utils.println
 
 const val HAND_SIZE = 9
 
@@ -10,20 +13,20 @@ object GameRules {
 
     fun isValidMove(current: Combination, newMove: Combination): Boolean {
         return try {
-            // ✅ Prevent empty combination crashes
+            //  Prevent empty combination crashes
             if (newMove.cards.isEmpty()) {
-                println("❌ ERROR in isValidMove: New move has no cards!")
+                TRACE(ERROR) { "New move has no cards!" }
                 return false
             }
 
-            // ✅ Safe comparison
+            // Safe comparison
             val isValid = (newMove.value > current.value) && (newMove.cards.size <= current.cards.size + 1)
 
-            println("✅ isValidMove: Current = ${current.value}, New = ${newMove.value}, Card Size = ${newMove.cards.size}, Current Size = ${current.cards.size}, Allowed = $isValid")
+            TRACE(VERBOSE) { println ("isValidMove: Current = ${current.value}, New = ${newMove.value}, Card Size = ${newMove.cards.size}, Current Size = ${current.cards.size}, Allowed = $isValid") }
             isValid
 
         } catch (e: Exception) {
-            println("❌❌❌❌ FATAL ERROR in isValidMove: ${e.message}")
+            TRACE(FATAL) { "❌❌❌❌ FATAL ERROR in isValidMove: ${e.message}" }
             false  // ✅ Fail gracefully instead of crashing
         }
     }

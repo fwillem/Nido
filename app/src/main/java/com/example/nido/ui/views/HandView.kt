@@ -17,6 +17,11 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.Hand
 import com.example.nido.utils.SortMode
 import kotlinx.coroutines.launch
+import com.example.nido.ui.views.CardView
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.utils.println
+
 
 @Composable
 fun HandView(
@@ -54,7 +59,7 @@ fun HandView(
                             detectDragGestures(
                                 onDragStart = {
                                     dragging = true
-                                    println("🔹 Dragging card: ${card.value}, ${card.color}")
+                                    TRACE (VERBOSE,tag = "HandView:onDragStart") { "Dragging card: ${card.value}, ${card.color}" }
                                 },
                                 onDragEnd = {
                                     dragging = false
@@ -63,13 +68,13 @@ fun HandView(
                                             if (index < hand.cards.size) {
                                                 val removedCard = hand.removeCard(index)
                                                 if (removedCard != null) {
-                                                    println("✅ Successfully selected card: ${removedCard.value}, ${removedCard.color}")
+                                                    TRACE(VERBOSE,tag = "HandView:onDragEnd") { "✅ Successfully selected card: ${removedCard.value}, ${removedCard.color}" }
                                                     onSelectCard(removedCard)
                                                 } else {
-                                                    println("❌ ERROR: Failed to select card at index: $index")
+                                                    TRACE (ERROR) { "Failed to select card at index: $index" }
                                                 }
                                             } else {
-                                                println("❌ ERROR: Index out of bounds: $index, Hand size: ${hand.cards.size}")
+                                                TRACE (ERROR) { "Index out of bounds: $index, Hand size: ${hand.cards.size}" }
                                             }
                                         }
                                     }

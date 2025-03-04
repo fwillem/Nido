@@ -22,6 +22,10 @@ import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.views.CardView
 import com.example.nido.ui.views.DiscardPileView
 import androidx.compose.ui.graphics.Color
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.utils.println
+
 
 @Composable
 fun MatView(
@@ -32,9 +36,9 @@ fun MatView(
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
-    println("🟦 MatView - Playmat : ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}")
-    println("🟦 MatView - DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}")
-    println("🟦 MatView - SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }}")
+    TRACE (DEBUG) { "🟦 MatView - Playmat : ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}" }
+    TRACE (DEBUG) { "🟦 MatView - DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}" }
+    TRACE (DEBUG) { "🟦 MatView - SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }}" }
 
     Box(
         modifier = Modifier
