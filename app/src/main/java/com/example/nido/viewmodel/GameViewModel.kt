@@ -5,6 +5,10 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.game.GameState
+
 
 class GameViewModel : ViewModel() {
     val gameManager: GameManager = GameManager // Access the GameManager object
@@ -17,7 +21,7 @@ class GameViewModel : ViewModel() {
 
     // Function to update GameState (example)
     fun updateGameState(newState: GameState) {
-        println("🔄 Updating GameState: ${newState.players}")
+        TRACE(DEBUG) { "🔄 Updating GameState: ${newState.players}" }
 
         _gameState.value = _gameState.value.copy(
             players = if (newState.players.isNotEmpty()) newState.players else _gameState.value.players,
