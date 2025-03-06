@@ -22,7 +22,7 @@ object GameRules {
             // Safe comparison
             val isValid = (newMove.value > current.value) && (newMove.cards.size <= current.cards.size + 1)
 
-            TRACE(VERBOSE) { println ("isValidMove: Current = ${current.value}, New = ${newMove.value}, Card Size = ${newMove.cards.size}, Current Size = ${current.cards.size}, Allowed = $isValid") }
+            TRACE(VERBOSE) { "isValidMove: Current = ${current.value}, New = ${newMove.value}, Card Size = ${newMove.cards.size}, Current Size = ${current.cards.size}, Allowed = $isValid" }
             isValid
 
         } catch (e: Exception) {

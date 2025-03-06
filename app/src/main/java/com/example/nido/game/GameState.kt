@@ -16,19 +16,19 @@ data class GameState(
     val currentCombinationOnMat: Combination = Combination(mutableListOf()),
     val discardPile: SnapshotStateList<Card> = mutableStateListOf(),
     val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
+    val skipCount: Int = 0, // New property to track consecutive skips.
     val soundOn: Boolean = true,
     val showConfirmExitDialog: Boolean = false
 ) {
     override fun toString(): String {
-        // 👥 Players: ${players.joinToString("\n") { "   - $it" }}
-
         return """
             🔍 GameState Debug Info:
             💠 Screen: $screen
             💠 Number of Players: $numberOfPlayers.
             💠 Point Limit: $pointLimit
-            💠 Nb of players: ${players.size }}
+            💠 Nb of players: ${players.size}
             💠 Current Player Index: $currentPlayerIndex
+            💠 Skip Count: $skipCount
             💠 Current Combination on Mat: ${currentCombinationOnMat ?: "None"}
             💠 Discard Pile: ${discardPile.joinToString(", ") { it.toString() }}
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
@@ -36,6 +36,7 @@ data class GameState(
             💠 Confirm Exit Dialog: $showConfirmExitDialog
         """.trimIndent()
     }
+
     fun deepCopy(): GameState {
         return GameState(
             screen = this.screen,
@@ -46,11 +47,11 @@ data class GameState(
             currentCombinationOnMat = Combination(this.currentCombinationOnMat.cards.toMutableList()),
             discardPile = mutableStateListOf<Card>().apply { addAll(this@GameState.discardPile) },
             deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
+            skipCount = this.skipCount,
             soundOn = this.soundOn,
             showConfirmExitDialog = this.showConfirmExitDialog
         )
     }
-
 }
 
 enum class GameScreens {
