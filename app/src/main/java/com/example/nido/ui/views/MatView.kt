@@ -30,6 +30,10 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.println
 import com.example.nido.utils.Constants.NB_OF_DISCARDED_CARDS_TO_SHOW
+import com.example.nido.game.rules.GameRules.isValidMove
+import com.example.nido.data.model.Combination
+
+
 
 
 
@@ -39,7 +43,8 @@ fun MatView(
     playmat: SnapshotStateList<Card>?,
     discardPile: SnapshotStateList<Card>,
     selectedCards: SnapshotStateList<Card>,
-    onPlayCombination: (List<Card>, Card?) -> Unit,  // ✅ Keep the callback!
+    onPlayCombination: (List<Card>, Card?) -> Unit,
+    onWithdrawCards: (List<Card>) -> Unit,
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
@@ -117,52 +122,37 @@ fun MatView(
             }
 
             // **Play Button - Only when selection is not empty**
+            // **Play Button - Only when selection is not empty**
             if (selectedCards.isNotEmpty()) {
-                Button(
-                    onClick = { onPlayCombination(selectedCards.toList(), playmat?.firstOrNull()) }, // ✅ Play the combination
-                    /* TODO Here we shall ask the user the card he wants to keep */
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Text(
-                        "Play Combination",
-                        fontSize = 8.sp,
-                        lineHeight = 8.sp
+                // Create a temporary combination from playmat (or an empty one if playmat is null)
+                val currentCombination = if (playmat != null) Combination(playmat) else Combination(mutableListOf())
+                if (isValidMove(currentCombination, Combination(selectedCards))) {
+                    TRACE(VERBOSE) { "Valid move" }
+                    Button(
+                        onClick = { onPlayCombination(selectedCards.toList(), playmat?.firstOrNull()) }, // TODO User needs to be able to choose the cad to keep
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text(
+                            "Play Combination",
+                            fontSize = 8.sp,
+                            lineHeight = 8.sp
                         )
+                    }
+                } else {
+                    TRACE(VERBOSE) { "Move isn't valid" }
+                    Button(
+                        onClick = {
+                            selectedCards.clear() // TODO: Return cards to player's hand
+                        },
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text(
+                            "Remove Combination",
+                            fontSize = 8.sp,
+                            lineHeight = 8.sp
+                        )
+                    }
                 }
-
-
-
-/*
-
-                        @Composable
-                        fun ActionButtonsView(actions: Map<String, () -> Unit>) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(2.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                actions.forEach { (label, action) ->
-                                    Button(
-                                        onClick = action,
-                                        modifier = Modifier
-                                            .height(16.dp)
-                                            .padding(horizontal = 2.dp),
-                                        contentPadding = PaddingValues(4.dp)
-                                    ) {
-                                        Text(
-                                            label,
-                                            fontSize = 8.sp,
-                                            lineHeight = 8.sp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-
- */
-
 
             }
         }
