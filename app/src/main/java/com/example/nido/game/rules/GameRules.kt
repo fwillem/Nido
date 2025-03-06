@@ -3,6 +3,7 @@ package com.example.nido.game.rules
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
+import com.example.nido.game.GameManager.gameState
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.println
@@ -82,6 +83,12 @@ object GameRules {
         return players.any { it.score >= pointLimit }
     }
 
+
+
+    fun hasPlayerWonTheRound(player: Player): Boolean {
+        return player.hand.cards.isEmpty()
+    }
+
     fun getGameWinners(players: List<Player>): List<Player> {
         val lowestScore = players.minOfOrNull { it.score } ?: return emptyList()
         return players.filter { it.score == lowestScore }
@@ -90,6 +97,16 @@ object GameRules {
     fun getPlayerRankings(players: List<Player>): List<Pair<Player, Int>> {
         return players.sortedBy { it.score }
             .mapIndexed { index, player -> player to (index + 1) }
+    }
+
+    fun updatePlayersScores(players: List<Player>) {
+        TRACE(DEBUG) { "Updating scores" }
+        for (player in players) {
+            val scoreToAdd = player.hand.cards.size
+            val newScore = player.score + scoreToAdd
+            TRACE(DEBUG) { "Updating score for ${player.name} with ${scoreToAdd} cards, current score ${player.score} -> $newScore" }
+            player.score = newScore
+        }
     }
 
     private fun generateAllSubcombinations(cards: List<Card>): List<Combination> {

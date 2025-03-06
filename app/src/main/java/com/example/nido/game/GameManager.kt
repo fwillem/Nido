@@ -1,9 +1,7 @@
 package com.example.nido.game
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
@@ -13,7 +11,6 @@ import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
-import com.example.nido.utils.println
 import com.example.nido.data.model.PlayerActionType
 
 
@@ -36,9 +33,28 @@ object GameManager {
         return gameViewModel ?: throw IllegalStateException("GameManager has not been initialized!") // 🚨 Prevent usage before initialization
     }
 
+    fun startNewRound() {
+        val currentGameState = gameState.value
+
+        val newDeck = currentGameState.deck.shuffle()
+
+        val mutableDeck = mutableStateListOf<Card>().apply { addAll(newDeck) }
+        // Re-deal cards to players (if that’s part of your round logic)
+        var newState = currentGameState.copy(
+            deck = mutableDeck,
+            currentCombinationOnMat = Combination(mutableListOf()),
+            skipCount = 0,
+            discardPile = mutableStateListOf(),
+        )
+        newState = dealCards(newState)
+        getViewModel().updateGameState(newState)
+        TRACE(INFO) { "New round started: ${getViewModel().gameState}" }
+    }
+
+
     fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
 
-        TRACE (INFO) { "selectedPlayers : $selectedPlayers, selectedPointLimit : $selectedPointLimit" }
+        TRACE (DEBUG) { "selectedPlayers : $selectedPlayers, selectedPointLimit : $selectedPointLimit" }
 
         val removedColors = if (selectedPlayers.size <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
             Constants.DECK_REMOVED_COLORS
@@ -47,9 +63,6 @@ object GameManager {
         }
 
         val deck = DeckRepository.generateDeck(shuffle = true, removedColors = removedColors)
-
-
-
 
         val mutableDeck = mutableStateListOf<Card>().apply { addAll(deck) }
 
@@ -63,6 +76,20 @@ object GameManager {
             skipCount = 0,  // Initialize skipCount to 0
             screen = GameScreens.PLAYING
         )
+
+
+        var newGameState = GameState(
+            players = selectedPlayers,
+            pointLimit = selectedPointLimit,
+            deck = mutableDeck,
+            startingPlayerIndex = 0,
+            currentPlayerIndex = 0,
+            currentCombinationOnMat = Combination(mutableListOf()),
+            discardPile = mutableStateListOf(),
+            skipCount = 0,  // Initialize skipCount to 0
+            screen = GameScreens.PLAYING
+        )
+
 
         // Deal the cards across all players and update the game state.
         newGameState = dealCards(newGameState)
@@ -131,12 +158,16 @@ object GameManager {
             nextTurn()
         }
     }
-    fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) {
+
+    /**
+     * Play a combination of cards.Returns true if the player won.
+     */
+    fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) : Boolean {
         val currentGameState = gameState.value
 
         if (selectedCards.isEmpty()) {
             TRACE(FATAL) { " No cards selected" }
-            return
+            return false
         }
 
         // Create the new combination based on selected cards.
@@ -146,7 +177,7 @@ object GameManager {
         // Validate the move.
         if (!GameRules.isValidMove(currentCombination, newCombination)) {
             TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
-            return
+            return false
         }
 
 
@@ -159,32 +190,58 @@ object GameManager {
             this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
         }
 
-        // Build a new discard pile:
-        // It consists of the existing discard pile plus the cards from the current combination
-        // excluding the card chosen by the player to keep.
-        val discardedCards = currentCombination.cards.filter { it != cardToKeep }
+        // We need to figure out here is the player won
+        if (GameRules.hasPlayerWonTheRound(getCurrentPlayer())) {
+            TRACE(INFO) { "${getCurrentPlayer().name} is playing: $newCombination " }
+            TRACE(INFO) { "😍 ${getCurrentPlayer().name}  😎 won! " }
 
-        val newDiscardPile = mutableStateListOf<Card>().apply {
-            addAll(currentGameState.discardPile)
-            addAll(discardedCards)
+            /**
+             * The player won the round !
+             * Update the scores
+             * Understand if the game is over
+             */
+            GameRules.updatePlayersScores(updatedPlayers)
+            val gameOver = GameRules.isGameOver(updatedPlayers, currentGameState.pointLimit)
+
+            if (gameOver) {
+                TRACE(INFO) { "Game is over! 🍾" }
+            } else {
+                TRACE(INFO) { "We need to Start a new round" }
+                startNewRound()
+            }
+
+            return true
+        } else {
+            // Build a new discard pile:
+            // It consists of the existing discard pile plus the cards from the current combination
+            // excluding the card chosen by the player to keep.
+            val discardedCards = currentCombination.cards.filter { it != cardToKeep }
+
+            val newDiscardPile = mutableStateListOf<Card>().apply {
+                addAll(currentGameState.discardPile)
+                addAll(discardedCards)
+            }
+
+            TRACE(INFO) { "${getCurrentPlayer().name} is playing: $newCombination and is keeping: $cardToKeep, $discardedCards moves to discard pile" }
+
+
+            // If a card was chosen to keep, add it back to the player's hand.
+            cardToKeep?.let { updatedHand.addCard(it) }
+
+            // Update the game state.
+            val updatedState = currentGameState.copy(
+                players = updatedPlayers,
+                currentCombinationOnMat = newCombination,
+                discardPile = newDiscardPile,
+                skipCount = 0
+            )
+
+            getViewModel().updateGameState(updatedState)
+
+            nextTurn()
+
+            return false
         }
-
-        TRACE(INFO) { "${getCurrentPlayer().name} is playing: ${newCombination} and is keeping: ${cardToKeep}, ${discardedCards} moves to discard pile" }
-
-
-        // If a card was chosen to keep, add it back to the player's hand.
-        cardToKeep?.let { updatedHand.addCard(it) }
-
-        // Update the game state.
-        val updatedState = currentGameState.copy(
-            players = updatedPlayers,
-            currentCombinationOnMat = newCombination,
-            discardPile = newDiscardPile,
-            skipCount = 0
-        )
-
-        getViewModel().updateGameState(updatedState)
-        nextTurn()
     }
 
 
@@ -199,14 +256,7 @@ object GameManager {
 
         val nextPlayer = updatedState.players[nextIndex]
         TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
-/**
- * Error, shall not be done here...
- *
-        if (nextPlayer.playerType == PlayerType.AI) {
-            handleAIMove(nextPlayer)
-        }
 
- */
     }
 
     fun processAIMove() {
@@ -221,14 +271,12 @@ object GameManager {
     fun processSkip() {
         val currentPlayer = getCurrentPlayer()
         if (currentPlayer.playerType == PlayerType.AI) {
-            TRACE(FATAL) {" AI not support to skip via this function" }
+            TRACE(FATAL) {" AI not supposed to skip via this function" }
         } else {
-            TRACE(DEBUG) {"Local player ${currentPlayer.name} skips" }
+            TRACE(INFO) {"Local player ${currentPlayer.name} skips" }
             skipTurn()
         }
     }
-
-
 
     private fun handleAIMove(aiPlayer: Player) {
         val playerAction = aiPlayer.play(this)
@@ -242,7 +290,7 @@ object GameManager {
             // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
             playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
         } else {
-            TRACE(DEBUG) { "${aiPlayer.name} has no move !" }
+            TRACE(INFO) { "${aiPlayer.name} has no move !" }
             skipTurn()
         }
     }
@@ -253,37 +301,12 @@ object GameManager {
         return GameRules.isValidMove(currentCombination, selectedCombination)
     }
 
-    private fun processMove(selectedCards: List<Card>) {
-        if (!isValidMove(selectedCards)) return
-
-        val currentGameState = gameState.value
-        val newPlaymat = mutableStateListOf<Card>().apply { addAll(selectedCards) }
-
-        val updatedHand = getCurrentPlayer().hand.copy().apply {
-            selectedCards.forEach { removeCard(it) }
-        }
-
-        val updatedPlayers = currentGameState.players.toMutableList().apply {
-            this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
-        }
-
-        val updatedState = currentGameState.copy(
-            players = updatedPlayers,
-            currentCombinationOnMat = Combination(newPlaymat)
-        )
-
-        getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
+    fun isGameOver(): Boolean {
+        return GameRules.isGameOver(gameState.value.players, gameState.value.pointLimit)
     }
-
-    private fun checkRoundEnd(): Boolean {
-        return gameState.value.players.any { it.hand.isEmpty() }
-    }
-
-    fun isGameOver(): Boolean = gameState.value.players.any { it.score >= gameState.value.pointLimit }
 
     fun getGameWinners(): List<Player> {
-        val lowestScore = gameState.value.players.minOfOrNull { it.score } ?: return emptyList()
-        return gameState.value.players.filter { it.score == lowestScore }
+        return GameRules.getGameWinners(gameState.value.players)
     }
 
     fun getPlayerRankings(): List<Pair<Player, Int>> {
