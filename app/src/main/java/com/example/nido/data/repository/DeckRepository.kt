@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.CardColor
 import com.example.nido.data.model.CardResources
+import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 
 
@@ -109,8 +110,12 @@ val testDeckForAll = mutableStateListOf<Card>(
 
     object DeckRepository {
 
-    fun generateDeck(shuffle: Boolean = false, removedColors: Set<CardColor> = emptySet()): MutableList<Card> {
+    fun generateDeck(shuffle: Boolean = false, nbOfPlayers: Int) : List<Card> {
         val deck = mutableListOf<Card>()
+
+
+        val removedColors = GameRules.colorsToRemove(nbOfPlayers)
+
         for (color in CardColor.values()) {
             if (color !in removedColors) { // Add this check
                 for (value in 1..Constants.CARD_MAX_VALUE) {
@@ -132,6 +137,10 @@ val testDeckForAll = mutableStateListOf<Card>(
 
 
         return deck
+    }
+
+    fun shuffleDeck(deck: List<Card>) : List<Card> {
+        return deck.shuffled()
     }
 
     // Keep your other functions as they were

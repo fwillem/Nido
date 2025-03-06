@@ -37,6 +37,7 @@ class GameViewModel : ViewModel() {
         // Compare other fields in GameState.
         if (oldState.deck != newState.deck) changes.add("deck: ${oldState.deck} ➝ ${newState.deck}")
         if (oldState.discardPile != newState.discardPile) changes.add("discardPile: ${oldState.discardPile} ➝ ${newState.discardPile}")
+        if (oldState.startingPlayerIndex != newState.startingPlayerIndex) changes.add("startingPlayerIndex: ${oldState.startingPlayerIndex} ➝ ${newState.startingPlayerIndex}")
         if (oldState.currentPlayerIndex != newState.currentPlayerIndex) changes.add("currentPlayerIndex: ${oldState.currentPlayerIndex} ➝ ${newState.currentPlayerIndex}")
         if (oldState.currentCombinationOnMat != newState.currentCombinationOnMat) changes.add("currentCombinationOnMat: ${oldState.currentCombinationOnMat} ➝ ${newState.currentCombinationOnMat}")
         if (oldState.screen != newState.screen) changes.add("screen: ${oldState.screen} ➝ ${newState.screen}")
@@ -56,6 +57,7 @@ class GameViewModel : ViewModel() {
             players = if (newState.players.isNotEmpty()) newState.players else _gameState.value.players,
             deck = if (newState.deck.isNotEmpty()) newState.deck else _gameState.value.deck,
             discardPile = newState.discardPile,
+            startingPlayerIndex = newState.startingPlayerIndex,
             currentPlayerIndex = newState.currentPlayerIndex,
             currentCombinationOnMat = newState.currentCombinationOnMat,
             skipCount = newState.skipCount,

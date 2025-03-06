@@ -1,14 +1,13 @@
 package com.example.nido.game.rules
 
 import com.example.nido.data.model.Card
+import com.example.nido.data.model.CardColor
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
-import com.example.nido.game.GameManager.gameState
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
-import com.example.nido.utils.println
+import com.example.nido.utils.Constants
 
-const val HAND_SIZE = 9
 
 object GameRules {
 
@@ -83,6 +82,13 @@ object GameRules {
         return players.any { it.score >= pointLimit }
     }
 
+    fun colorsToRemove (nbOfPlayers: Int): Set<CardColor> {
+        return if (nbOfPlayers <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
+            Constants.DECK_REMOVED_COLORS
+        } else {
+            emptySet()
+        }
+    }
 
 
     fun hasPlayerWonTheRound(player: Player): Boolean {

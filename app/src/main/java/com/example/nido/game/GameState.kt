@@ -12,6 +12,7 @@ data class GameState(
     val numberOfPlayers: Int = 2,
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     val players: List<Player> = emptyList(),
+    val startingPlayerIndex: Int = 0,
     val currentPlayerIndex: Int = 0,
     val currentCombinationOnMat: Combination = Combination(mutableListOf()),
     val discardPile: SnapshotStateList<Card> = mutableStateListOf(),
@@ -27,6 +28,7 @@ data class GameState(
             💠 Number of Players: $numberOfPlayers.
             💠 Point Limit: $pointLimit
             💠 Nb of players: ${players.size}
+            💠 Starting Player Index: $startingPlayerIndex
             💠 Current Player Index: $currentPlayerIndex
             💠 Skip Count: $skipCount
             💠 Current Combination on Mat: ${currentCombinationOnMat ?: "None"}
@@ -43,6 +45,7 @@ data class GameState(
             numberOfPlayers = this.numberOfPlayers,
             pointLimit = this.pointLimit,
             players = this.players.map { it.copy() }, // Deep copy players
+            startingPlayerIndex = this.startingPlayerIndex,
             currentPlayerIndex = this.currentPlayerIndex,
             currentCombinationOnMat = Combination(this.currentCombinationOnMat.cards.toMutableList()),
             discardPile = mutableStateListOf<Card>().apply { addAll(this@GameState.discardPile) },

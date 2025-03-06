@@ -33,70 +33,73 @@ object GameManager {
         return gameViewModel ?: throw IllegalStateException("GameManager has not been initialized!") // 🚨 Prevent usage before initialization
     }
 
+
+    /**
+     * Overall game initialization.
+     * This function now only sets up the base state (players, point limit, deck, startingIndex) without dealing cards.
+     * Then it calls startNewRound() to handle round-specific initialization.
+     */
+    fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
+        TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit" }
+
+        //  Generate the deck
+        val deck = DeckRepository.generateDeck(shuffle = true, nbOfPlayers = selectedPlayers.size)
+
+        // Choose a random starting player.
+        // TODO For debug we will simplify, the right value is :  val startingPlayerIndex = (0 until selectedPlayers.size).random()
+        val startingPlayerIndex = 0
+
+        // Set up initial state
+        val initialState = GameState(
+            players = selectedPlayers,
+            pointLimit = selectedPointLimit,
+            deck = mutableStateListOf<Card>().apply { addAll(deck) },
+            startingPlayerIndex = startingPlayerIndex,
+            currentPlayerIndex = startingPlayerIndex,
+            currentCombinationOnMat = Combination(mutableListOf()),
+            discardPile = mutableStateListOf(),
+            skipCount = 0,
+            screen = GameScreens.PLAYING
+        )
+
+        // Update the state without dealing.
+        getViewModel().updateGameState(initialState)
+        TRACE(INFO) { "Initial gameState set: ${getViewModel().gameState}" }
+
+        // Start the first round (this will shuffle the deck and deal cards).
+        startNewRound()
+    }
+
+    /**
+     * Starts a new round.
+     * 🔄 Reshuffles the existing deck (no need to re-create it) and deals cards to each player.
+     * 🏁 Updates startingIndex to be the next player after the one who started the previous round.
+     */
     fun startNewRound() {
-        val currentGameState = gameState.value
+        val currentState = gameState.value
 
-        val newDeck = currentGameState.deck.shuffle()
+        // Reshuffle the existing deck.
+        val reshuffledDeck = DeckRepository.shuffleDeck(currentState.deck.toMutableList())
+        val mutableDeck = mutableStateListOf<Card>().apply { addAll(reshuffledDeck) }
 
-        val mutableDeck = mutableStateListOf<Card>().apply { addAll(newDeck) }
-        // Re-deal cards to players (if that’s part of your round logic)
-        var newState = currentGameState.copy(
+        // Calculate new starting index: next player after previous starting player.
+        val newStartingPlayerIndex = (currentState.startingPlayerIndex + 1) % currentState.players.size
+
+        // Reset round-specific state.
+        var newState = currentState.copy(
             deck = mutableDeck,
             currentCombinationOnMat = Combination(mutableListOf()),
-            skipCount = 0,
             discardPile = mutableStateListOf(),
+            skipCount = 0,
+            startingPlayerIndex = newStartingPlayerIndex, // 🏁 Update starting index.
+            currentPlayerIndex = newStartingPlayerIndex,
+            screen = GameScreens.PLAYING
         )
+
+        // Deal cards for the new round.
         newState = dealCards(newState)
         getViewModel().updateGameState(newState)
         TRACE(INFO) { "New round started: ${getViewModel().gameState}" }
-    }
-
-
-    fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
-
-        TRACE (DEBUG) { "selectedPlayers : $selectedPlayers, selectedPointLimit : $selectedPointLimit" }
-
-        val removedColors = if (selectedPlayers.size <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
-            Constants.DECK_REMOVED_COLORS
-        } else {
-            emptySet()
-        }
-
-        val deck = DeckRepository.generateDeck(shuffle = true, removedColors = removedColors)
-
-        val mutableDeck = mutableStateListOf<Card>().apply { addAll(deck) }
-
-        var newGameState = GameState(
-            players = selectedPlayers,
-            pointLimit = selectedPointLimit,
-            deck = mutableDeck,
-            currentPlayerIndex = 0,
-            currentCombinationOnMat = Combination(mutableListOf()),
-            discardPile = mutableStateListOf(),
-            skipCount = 0,  // Initialize skipCount to 0
-            screen = GameScreens.PLAYING
-        )
-
-
-        var newGameState = GameState(
-            players = selectedPlayers,
-            pointLimit = selectedPointLimit,
-            deck = mutableDeck,
-            startingPlayerIndex = 0,
-            currentPlayerIndex = 0,
-            currentCombinationOnMat = Combination(mutableListOf()),
-            discardPile = mutableStateListOf(),
-            skipCount = 0,  // Initialize skipCount to 0
-            screen = GameScreens.PLAYING
-        )
-
-
-        // Deal the cards across all players and update the game state.
-        newGameState = dealCards(newGameState)
-        gameViewModel?.updateGameState(newGameState)
-            ?: TRACE (ERROR) { "ERROR: GameViewModel is not initialized!" }
-
-        TRACE (INFO) { "Initial gameState ${getViewModel().gameState}" }
     }
 
 
