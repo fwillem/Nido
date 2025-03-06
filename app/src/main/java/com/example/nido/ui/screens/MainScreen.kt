@@ -134,10 +134,10 @@ fun MainScreen(
                     }
                 },
                 onWithdrawCards = { cardsToWithdraw ->
+                    TRACE(DEBUG) { "Withdraw Cards: $cardsToWithdraw" }
+
                     // Remove cards from selected cards
                     selectedCards.removeAll(cardsToWithdraw)
-
-                    println("!!!!!!!!!Withdraw Cards: $cardsToWithdraw")
 
                     // This is just a trick to manually refresh the current Hand in HandVIew very sorry to do that..
                     // TODO Find the right way to do that
