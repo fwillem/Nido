@@ -148,7 +148,7 @@ fun MatView(
                         onClick = { onWithdrawCards(selectedCards.toList()) },
                         modifier = Modifier.padding(8.dp)
                     ) {
-                        Text("Remove Combination", fontSize = 8.sp, lineHeight = 8.sp)
+                        Text("Remove Combination :", fontSize = 8.sp, lineHeight = 8.sp)
                     }
                 }
             }
