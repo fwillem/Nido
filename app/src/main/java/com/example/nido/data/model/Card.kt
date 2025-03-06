@@ -1,7 +1,7 @@
 package com.example.nido.data.model
 
 import androidx.annotation.DrawableRes
-import com.example.nido.game.rules.HAND_SIZE
+import com.example.nido.utils.Constants.HAND_SIZE
 import com.example.nido.data.model.CardColor
 import com.example.nido.data.model.CardResources
 
