@@ -3,65 +3,58 @@ package com.example.nido.ui.views
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.nido.data.model.Card
-import com.example.nido.ui.theme.NidoColors
-import com.example.nido.ui.views.CardView
-import com.example.nido.ui.views.DiscardPileView
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nido.data.model.Card
+import com.example.nido.data.model.Combination
+import com.example.nido.data.model.CardColor // Merged enum with uiColor property
+import com.example.nido.game.rules.GameRules.isValidMove
+import com.example.nido.utils.Constants.NB_OF_DISCARDED_CARDS_TO_SHOW
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
-import com.example.nido.utils.println
-import com.example.nido.utils.Constants.NB_OF_DISCARDED_CARDS_TO_SHOW
-import com.example.nido.game.rules.GameRules.isValidMove
-import com.example.nido.data.model.Combination
-
-
-
-
-
 
 @Composable
 fun MatView(
     playmat: SnapshotStateList<Card>?,
     discardPile: SnapshotStateList<Card>,
     selectedCards: SnapshotStateList<Card>,
-    onPlayCombination: (List<Card>, Card?) -> Unit,
-    onWithdrawCards: (List<Card>) -> Unit,
+    onPlayCombination: (List<Card>, Card?) -> Unit,  // Callback for committing a move
+    onWithdrawCards: (List<Card>) -> Unit,             // Callback for withdrawing cards
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
+    // State to control whether the card selection dialog is shown.
+    var showCardSelectionDialog by remember { mutableStateOf(false) }
+
     TRACE(DEBUG) {
         "🟦 Recomposing MatView : \n" +
                 "Playmat : ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}\n" +
                 "DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}\n" +
-                "SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }} \n" }
+                "SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }} \n"
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-        ) {
+        Row(modifier = Modifier.fillMaxSize()) {
             // **Selected Cards Row**
             if (selectedCards.isNotEmpty()) {
                 Row(
@@ -96,7 +89,6 @@ fun MatView(
                         )
                     }
                 }
-
             }
 
             // **Discard Pile**
@@ -105,7 +97,7 @@ fun MatView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text("Discard Pile:", color = Color.Red)
-                Text("${discardPile.size}",color = Color.Red)
+                Text("${discardPile.size}", color = Color.Red)
             }
             Row(
                 modifier = Modifier.padding(8.dp),
@@ -122,35 +114,86 @@ fun MatView(
             }
 
             // **Play Button - Only when selection is not empty**
-            // **Play Button - Only when selection is not empty**
             if (selectedCards.isNotEmpty()) {
-                // Create a temporary combination from playmat (or an empty one if playmat is null)
+                // Create a temporary combination from playmat (or empty if playmat is null)
                 val currentCombination = if (playmat != null) Combination(playmat) else Combination(mutableListOf())
                 if (isValidMove(currentCombination, Combination(selectedCards))) {
                     Button(
-                        onClick = { onPlayCombination(selectedCards.toList(), playmat?.firstOrNull()) }, // TODO User needs to be able to choose the cad to keep
+                        onClick = {
+                            // Determine candidate cards from the playmat.
+                            val candidateCards = playmat?.toList() ?: emptyList()
+                            when {
+                                candidateCards.isEmpty() -> {
+                                    // If no candidate cards, commit move with no card to keep.
+                                    onPlayCombination(selectedCards.toList(), null)
+                                    selectedCards.clear()
+                                }
+                                candidateCards.size == 1 -> {
+                                    // If only one candidate, commit immediately.
+                                    onPlayCombination(selectedCards.toList(), candidateCards.first())
+                                    selectedCards.clear()
+                                }
+                                else -> {
+                                    // More than one candidate: show the selection dialog.
+                                    showCardSelectionDialog = true
+                                }
+                            }
+                        },
                         modifier = Modifier.padding(8.dp)
                     ) {
-                        Text(
-                            "Play Combination",
-                            fontSize = 8.sp,
-                            lineHeight = 8.sp
-                        )
+                        Text("Play Combination", fontSize = 8.sp, lineHeight = 8.sp)
                     }
                 } else {
                     Button(
-                        onClick = { onWithdrawCards (selectedCards.toList())},
+                        onClick = { onWithdrawCards(selectedCards.toList()) },
                         modifier = Modifier.padding(8.dp)
                     ) {
-                        Text(
-                            "Remove Combination",
-                            fontSize = 8.sp,
-                            lineHeight = 8.sp
-                        )
+                        Text("Remove Combination", fontSize = 8.sp, lineHeight = 8.sp)
                     }
                 }
-
             }
         }
+    }
+
+    // Show a transparent AlertDialog if multiple candidate cards are available.
+    if (showCardSelectionDialog) {
+        val candidateCards = playmat?.toList() ?: emptyList()
+        AlertDialog(
+            onDismissRequest = { showCardSelectionDialog = false },
+            title = { Text("Select Card to Keep") },
+            text = {
+                Column {
+                    candidateCards.forEach { card ->
+                        Button(
+                            onClick = {
+                                onPlayCombination(selectedCards.toList(), card)
+                                selectedCards.clear()
+                                showCardSelectionDialog = false
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = card.color.uiColor.copy(alpha = 0.3f), // 30% opacity background
+                                contentColor = card.color.uiColor // full opacity text color
+                            ),
+                            modifier = Modifier.padding(4.dp)
+                        ) {
+                            Text("${card.value} ${card.color}", fontSize = 12.sp)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showCardSelectionDialog = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.Gray
+                    ),
+                    modifier = Modifier.padding(4.dp)
+                ) {
+                    Text("Cancel", fontSize = 12.sp)
+                }
+            },
+            containerColor = Color.Transparent
+        )
     }
 }
