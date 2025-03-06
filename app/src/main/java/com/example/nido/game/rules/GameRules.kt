@@ -12,11 +12,30 @@ import com.example.nido.data.model.Hand
 
 object GameRules {
 
+    fun isValidCombination(combination: Combination): Boolean {
+        // A valid combination is either cards of the same color of cards of the same value
+        if (combination.cards.isEmpty()) {
+            return false
+        }
+
+        val firstCard = combination.cards.first()
+        val allSameColor = combination.cards.all { it.color == firstCard.color }
+        val allSameValue = combination.cards.all { it.value == firstCard.value }
+
+        return allSameColor || allSameValue
+    }
+
     fun isValidMove(current: Combination, newMove: Combination): Boolean {
         return try {
             //  Prevent empty combination crashes
             if (newMove.cards.isEmpty()) {
-                TRACE(DEBUG) { "New move has no cards!" }
+                TRACE(VERBOSE) { "New move has no cards!" }
+                return false
+            }
+
+            // First we need to test that the given combination is valid
+            if (!isValidCombination(newMove)) {
+                TRACE(VERBOSE) { "New move is not valid!" }
                 return false
             }
 

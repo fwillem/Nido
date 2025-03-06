@@ -55,7 +55,8 @@ fun MainScreen(
         }
     }
 
-    val selectedCards = remember { mutableStateListOf<Card>() }
+    // We now use the one from GameState.
+    val selectedCards = gameState.selectedCards
 
     TRACE(VERBOSE) { "Recomposing MainScreen : current player is ${currentPlayer.name}" }
 
@@ -133,7 +134,19 @@ fun MainScreen(
                     }
                 },
                 onWithdrawCards = { cardsToWithdraw ->
-                    GameManager.withdrawCardsFromMat(cardsToWithdraw)
+                    // Remove cards from selected cards
+                    selectedCards.removeAll(cardsToWithdraw)
+
+                    println("!!!!!!!!!Withdraw Cards: $cardsToWithdraw")
+
+                    // This is just a trick to manually refresh the current Hand in HandVIew very sorry to do that..
+                    // TODO Find the right way to do that
+                    val updatedHand = currentPlayer.hand.copy()
+
+                    currentPlayer.hand.cards.clear()
+                    currentPlayer.hand.cards.addAll(updatedHand.cards)
+
+                    // GameManager.addCardsToHand(cardsToWithdraw)
                 },
                 cardWidth = CARD_WIDTH.dp,
                 cardHeight = CARD_HEIGHT.dp

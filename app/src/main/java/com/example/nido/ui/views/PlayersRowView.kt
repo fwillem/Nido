@@ -19,11 +19,6 @@ fun PlayersRowView(players: List<Player>, currentTurnIndex: Int) {
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        Text(
-            text = "Current Index : $currentTurnIndex",
-            fontSize = 16.sp,
-            color = Color.White
-        )
 
         players.forEachIndexed { index, player ->
             val isCurrent = index == currentTurnIndex
@@ -46,7 +41,7 @@ fun PlayersRowView(players: List<Player>, currentTurnIndex: Int) {
                     .padding(4.dp)
             ) {
                 Text(
-                    text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} cards(${player.score})",
+                    text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} cards - ${player.score} points",
                     fontSize = 16.sp,
                     color = color
                 )
