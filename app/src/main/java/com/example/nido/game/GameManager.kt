@@ -12,19 +12,20 @@ import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.data.model.PlayerActionType
-
-
+import com.example.nido.data.model.Hand
 
 
 object GameManager {
-    private var gameViewModel: GameViewModel? = null // ✅ Nullable until initialized
+    private var gameViewModel: GameViewModel? = null
     val gameState: State<GameState>
-        get() = getViewModel().gameState  // ✅ Use ViewModel’s state
+        get() = getViewModel().gameState
 
 
     fun initialize(viewModel: GameViewModel) {
         if (gameViewModel != null) {
-            TRACE(FATAL) { "GameManager is already initialized!" } // 🚨 Prevent multiple initializations
+            // Already initialized; the user may have changed the orientation of the phone or moved the app in background
+            TRACE(DEBUG) { "GameManager already initialized; reattaching." }
+            return
         }
         gameViewModel = viewModel
     }
@@ -47,7 +48,7 @@ object GameManager {
 
         // Choose a random starting player.
         // TODO For debug we will simplify, the right value is :  val startingPlayerIndex = (0 until selectedPlayers.size).random()
-        val startingPlayerIndex = 0
+        val startingPlayerIndex = -1
 
         // Set up initial state
         val initialState = GameState(
@@ -85,13 +86,19 @@ object GameManager {
         // Calculate new starting index: next player after previous starting player.
         val newStartingPlayerIndex = (currentState.startingPlayerIndex + 1) % currentState.players.size
 
+        // Clear all players' hands.
+        val clearedPlayers = currentState.players.map { player ->
+            player.copy(hand = Hand())  // Assuming Hand() creates an empty hand.
+        }
+
         // Reset round-specific state.
         var newState = currentState.copy(
+            players = clearedPlayers,
             deck = mutableDeck,
             currentCombinationOnMat = Combination(mutableListOf()),
             discardPile = mutableStateListOf(),
             skipCount = 0,
-            startingPlayerIndex = newStartingPlayerIndex, // 🏁 Update starting index.
+            startingPlayerIndex = newStartingPlayerIndex,
             currentPlayerIndex = newStartingPlayerIndex,
             screen = GameScreens.PLAYING
         )
@@ -194,7 +201,7 @@ object GameManager {
         }
 
         // We need to figure out here is the player won
-        if (GameRules.hasPlayerWonTheRound(getCurrentPlayer())) {
+        if (GameRules.hasPlayerWonTheRound(updatedHand)) {
             TRACE(INFO) { "${getCurrentPlayer().name} is playing: $newCombination " }
             TRACE(INFO) { "😍 ${getCurrentPlayer().name}  😎 won! " }
 

@@ -7,6 +7,7 @@ import com.example.nido.data.model.Player
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.Constants
+import com.example.nido.data.model.Hand
 
 
 object GameRules {
@@ -91,8 +92,8 @@ object GameRules {
     }
 
 
-    fun hasPlayerWonTheRound(player: Player): Boolean {
-        return player.hand.cards.isEmpty()
+    fun hasPlayerWonTheRound(hand: Hand): Boolean {
+        return hand.cards.isEmpty()
     }
 
     fun getGameWinners(players: List<Player>): List<Player> {
