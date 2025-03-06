@@ -325,24 +325,38 @@ object GameManager {
 
     fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
         val currentGameState = gameState.value
-        // We need here to remove the selected card from selectedCards and put them back in Payer's Hand
-        val updatedPlayers = currentGameState.players
-        val updatedHand = getCurrentPlayer().hand.copy().apply {  }
-        cardsToWithdraw.forEach {
-            updatedHand.addCard(it)
+        val currentPlayer = getCurrentPlayer()
+
+        TRACE(DEBUG) { "Withdrawing cards $cardsToWithdraw from ${currentPlayer.name}'s hand." }
+
+        // Create a copy of the current player's hand and add back the withdrawn cards.
+        val updatedHand = currentPlayer.hand.copy()
+        cardsToWithdraw.forEach { card ->
+            updatedHand.addCard(card)
         }
-        val updatedPlayer = getCurrentPlayer().copy(hand = updatedHand)
+        val updatedPlayer = currentPlayer.copy(hand = updatedHand)
+
+        // Update the players list with the updated player.
         val updatedPlayers = currentGameState.players.toMutableList().apply {
             this[currentGameState.currentPlayerIndex] = updatedPlayer
         }
 
-        // No we need to withdraw the cards from selectedCards
-        val updateSelectedCards = currentGameStete.selectedCards.copy().apply { removeAll(cardsToWithdraw) }
+        // Withdraw the cards from selectedCards.
+        // We create a new mutable list and remove the withdrawn cards.
+        val updatedSelectedCards = mutableStateListOf<Card>().apply {
+            addAll(currentGameState.selectedCards)
+        }
+        updatedSelectedCards.removeAll(cardsToWithdraw)
 
+        // Create the new game state with the updated players and selectedCards.
         val updatedState = currentGameState.copy(
             players = updatedPlayers,
-            selectedCards = updateSelectedCards)
+            selectedCards = updatedSelectedCards
+        )
 
         getViewModel().updateGameState(updatedState)
+        TRACE(DEBUG) { "Withdrawn cards ${cardsToWithdraw.joinToString()} returned to ${currentPlayer.name}'s hand." }
     }
+
+
 }

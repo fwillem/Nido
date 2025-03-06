@@ -127,7 +127,6 @@ fun MatView(
                 // Create a temporary combination from playmat (or an empty one if playmat is null)
                 val currentCombination = if (playmat != null) Combination(playmat) else Combination(mutableListOf())
                 if (isValidMove(currentCombination, Combination(selectedCards))) {
-                    TRACE(VERBOSE) { "Valid move" }
                     Button(
                         onClick = { onPlayCombination(selectedCards.toList(), playmat?.firstOrNull()) }, // TODO User needs to be able to choose the cad to keep
                         modifier = Modifier.padding(8.dp)
@@ -139,11 +138,8 @@ fun MatView(
                         )
                     }
                 } else {
-                    TRACE(VERBOSE) { "Move isn't valid" }
                     Button(
-                        onClick = {
-                            selectedCards.clear() // TODO: Return cards to player's hand
-                        },
+                        onClick = { onWithdrawCards (selectedCards.toList())},
                         modifier = Modifier.padding(8.dp)
                     ) {
                         Text(
