@@ -46,7 +46,7 @@ fun PlayersRowView(players: List<Player>, currentTurnIndex: Int) {
                     .padding(4.dp)
             ) {
                 Text(
-                    text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} cards",
+                    text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} cards(${player.score})",
                     fontSize = 16.sp,
                     color = color
                 )

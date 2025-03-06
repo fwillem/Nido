@@ -140,7 +140,9 @@ val testDeckForAll = mutableStateListOf<Card>(
     }
 
     fun shuffleDeck(deck: List<Card>) : List<Card> {
-        return deck.shuffled()
+        // TODO Implement shuffle return(deck.shuffled())
+        return(deck)
+        // return deck.shuffled()
     }
 
     // Keep your other functions as they were
