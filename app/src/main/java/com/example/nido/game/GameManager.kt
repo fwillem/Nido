@@ -1,6 +1,7 @@
 package com.example.nido.game
 
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.State
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
@@ -8,264 +9,354 @@ import com.example.nido.data.model.PlayerType
 import com.example.nido.data.repository.DeckRepository
 import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.State
-import com.example.nido.game.ai.AIPlayer
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.data.model.PlayerActionType
+import com.example.nido.data.model.Hand
 
 
 object GameManager {
-    private val viewModel = GameViewModel()
-    private val _gameState: MutableState<GameState> = mutableStateOf(GameState())
+    private var gameViewModel: GameViewModel? = null
     val gameState: State<GameState>
-        get() = _gameState
+        get() = getViewModel().gameState
 
-    fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
-        val removedColors = if (selectedPlayers.size <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
-            Constants.REMOVED_COLORS
-        } else {
-            emptySet()
-        }
 
-        val deck = DeckRepository.generateDeck(shuffle = true, removedColors = removedColors)
-        val mutableDeck = mutableStateListOf<Card>()
-        mutableDeck.addAll(deck)
-
-        viewModel.updateGameState(GameState(
-            players = selectedPlayers,
-            pointLimit = selectedPointLimit,
-            deck = mutableDeck,
-            currentPlayerIndex = 0,
-            currentCombinationOnMat = null,
-            discardPile = mutableStateListOf(),
-            screen = GameScreens.PLAYING
-        ))
-
-        dealCards()
-    }
-
-    private fun dealCards() {
-        val mutableDeck = gameState.value.deck.toMutableList()
-        val mutablePlayers = gameState.value.players.toMutableList()
-        mutablePlayers.forEachIndexed { index, player ->
-            val updatedHand = player.hand.copy()  // Deep copy of Hand
-            repeat(Constants.HAND_SIZE) {
-                val card = mutableDeck.removeAt(0)
-                updatedHand.addCard(card)
-            }
-            mutablePlayers[index] = when (player) { // Use when for type checking
-                is LocalPlayer -> player.copy(hand = updatedHand) //Copy for LocalPlayer
-                is AIPlayer -> player.copy(hand = updatedHand)    //Copy for AIPlayer
-                else -> throw IllegalArgumentException("Unknown player type")
-            }
-        }
-
-        val deckSnapshotList = mutableStateListOf<Card>()
-        deckSnapshotList.addAll(mutableDeck)
-        viewModel.updateGameState(gameState.value.copy(deck = deckSnapshotList, players = mutablePlayers))
-    }
-
-    fun getCurrentPlayer(): Player = gameState.value.players[gameState.value.currentPlayerIndex]
-
-    fun nextTurn() {
-        val nextIndex = (gameState.value.currentPlayerIndex + 1) % gameState.value.numberOfPlayers
-        viewModel.updateGameState(gameState.value.copy(currentPlayerIndex = nextIndex))
-
-        val nextPlayer = gameState.value.players[gameState.value.currentPlayerIndex]
-        if (nextPlayer.playerType == PlayerType.AI) {
-            handleAIMove(nextPlayer)
-        }
-    }
-
-    fun playCombination(selectedCards: List<Card>) {
-        if (selectedCards.isEmpty()) {
-            println("playCombination: No cards selected")
+    fun initialize(viewModel: GameViewModel) {
+        if (gameViewModel != null) {
+            // Already initialized; the user may have changed the orientation of the phone or moved the app in background
+            TRACE(DEBUG) { "GameManager already initialized; reattaching." }
             return
         }
+        gameViewModel = viewModel
+    }
 
-        val currentCombination = gameState.value.currentCombinationOnMat ?: Combination(mutableListOf())
+    private fun getViewModel(): GameViewModel {
+        return gameViewModel ?: throw IllegalStateException("GameManager has not been initialized!") // 🚨 Prevent usage before initialization
+    }
+
+
+    /**
+     * Overall game initialization.
+     * This function now only sets up the base state (players, point limit, deck, startingIndex) without dealing cards.
+     * Then it calls startNewRound() to handle round-specific initialization.
+     */
+    fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
+        TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit" }
+
+        //  Generate the deck
+        val deck = DeckRepository.generateDeck(shuffle = true, nbOfPlayers = selectedPlayers.size)
+
+        // Choose a random starting player.
+        // TODO For debug we will simplify, the right value is :  val startingPlayerIndex = (0 until selectedPlayers.size).random()
+        val startingPlayerIndex = -1
+
+        // Set up initial state
+        val initialState = GameState(
+            players = selectedPlayers,
+            pointLimit = selectedPointLimit,
+            deck = mutableStateListOf<Card>().apply { addAll(deck) },
+            startingPlayerIndex = startingPlayerIndex,
+            currentPlayerIndex = startingPlayerIndex,
+            currentCombinationOnMat = Combination(mutableListOf()),
+            discardPile = mutableStateListOf(),
+            skipCount = 0,
+            screen = GameScreens.PLAYING
+        )
+
+        // Update the state without dealing.
+        getViewModel().updateGameState(initialState)
+        TRACE(INFO) { "Initial gameState set: ${getViewModel().gameState}" }
+
+        // Start the first round (this will shuffle the deck and deal cards).
+        startNewRound()
+    }
+
+    /**
+     * Starts a new round.
+     * 🔄 Reshuffles the existing deck (no need to re-create it) and deals cards to each player.
+     * 🏁 Updates startingIndex to be the next player after the one who started the previous round.
+     */
+    fun startNewRound() {
+        val currentState = gameState.value
+
+        // Reshuffle the existing deck.
+        val reshuffledDeck = DeckRepository.shuffleDeck(currentState.deck.toMutableList())
+        val mutableDeck = mutableStateListOf<Card>().apply { addAll(reshuffledDeck) }
+
+        // Calculate new starting index: next player after previous starting player.
+        val newStartingPlayerIndex = (currentState.startingPlayerIndex + 1) % currentState.players.size
+
+        // Clear all players' hands.
+        val clearedPlayers = currentState.players.map { player ->
+            player.copy(hand = Hand())  // Assuming Hand() creates an empty hand.
+        }
+
+        // Reset round-specific state.
+        var newState = currentState.copy(
+            players = clearedPlayers,
+            deck = mutableDeck,
+            currentCombinationOnMat = Combination(mutableListOf()),
+            discardPile = mutableStateListOf(),
+            skipCount = 0,
+            startingPlayerIndex = newStartingPlayerIndex,
+            currentPlayerIndex = newStartingPlayerIndex,
+            screen = GameScreens.PLAYING
+        )
+
+        // Deal cards for the new round.
+        newState = dealCards(newState)
+        getViewModel().updateGameState(newState)
+        TRACE(INFO) { "New round started: ${getViewModel().gameState}" }
+    }
+
+
+    private fun dealCards(state: GameState): GameState {
+        val mutableDeck = state.deck.toMutableList()
+        val mutablePlayers = state.players.map { player ->
+            val updatedHand = player.hand.copy()
+            repeat(Constants.HAND_SIZE) {
+                if (mutableDeck.isNotEmpty()) {
+                    val card = mutableDeck.removeAt(0)
+                    updatedHand.addCard(card)
+                } else {
+                    TRACE (FATAL) { "Deck is empty before dealing all cards!" }
+                }
+            }
+            player.copy(hand = updatedHand)
+        }
+
+        // Trace each player's name and their hand
+        mutablePlayers.forEach { player ->
+
+            TRACE(INFO) { "$player.name's hand:" + player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" } }
+        }
+
+        return state.copy(
+            players = mutablePlayers,
+            deck = mutableStateListOf<Card>().apply { addAll(mutableDeck) }
+        )
+    }
+
+    private fun getCurrentPlayer(): Player = gameState.value.players[gameState.value.currentPlayerIndex]
+
+    fun skipTurn() {
+        TRACE(DEBUG) { "${getCurrentPlayer().name} is skipping turn" }
+        val currentGameState = gameState.value
+        val newSkipCount = currentGameState.skipCount + 1
+
+        if (newSkipCount >= currentGameState.players.size) {
+            // All players have skipped: discard the current playmat and allow the same player to replay.
+            TRACE(INFO) { "All players skipped! Discarding current playmat and allowing ${getCurrentPlayer().name} to replay." }
+            val discardedCards = currentGameState.currentCombinationOnMat.cards
+            val newDiscardPile = mutableStateListOf<Card>().apply {
+                addAll(currentGameState.discardPile)
+                addAll(discardedCards)
+            }
+            // Reset currentCombinationOnMat and skipCount, but keep currentPlayerIndex unchanged.
+            val updatedState = currentGameState.copy(
+                currentCombinationOnMat = Combination(mutableListOf()),
+                discardPile = newDiscardPile,
+                skipCount = 0
+            )
+            getViewModel().updateGameState(updatedState)
+        } else {
+            // Just update the skip count and move on to the next player's turn.
+            TRACE(VERBOSE) { "updating skip count to $newSkipCount" }
+
+            val updatedState = currentGameState.copy(skipCount = newSkipCount)
+            getViewModel().updateGameState(updatedState)
+            nextTurn()
+        }
+    }
+
+    /**
+     * Play a combination of cards.Returns true if the player won.
+     */
+    fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) : Boolean {
+        val currentGameState = gameState.value
+
+        if (selectedCards.isEmpty()) {
+            TRACE(FATAL) { " No cards selected" }
+            return false
+        }
+
+        // Create the new combination based on selected cards.
+        val currentCombination = currentGameState.currentCombinationOnMat
         val newCombination = Combination(selectedCards.toMutableList())
 
-        if (GameRules.isValidMove(currentCombination, newCombination)) {
-            println("Valid combination played: $selectedCards")
-            println("Before Update: Playmat = ${gameState.value.currentCombinationOnMat?.cards?.joinToString { "${it.value} ${it.color}" }}")
+        // Validate the move.
+        if (!GameRules.isValidMove(currentCombination, newCombination)) {
+            TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
+            return false
+        }
 
-            val updatedHand = getCurrentPlayer().hand.copy() // Deep copy of Hand
-            updatedHand.removeCombination(newCombination)
-            val updatedPlayers = gameState.value.players.toMutableList()
-            val currentPlayer = getCurrentPlayer()
-            updatedPlayers[gameState.value.currentPlayerIndex] = when (currentPlayer){ // Use when for type checking
-                is LocalPlayer -> currentPlayer.copy(hand = updatedHand)
-                is AIPlayer -> currentPlayer.copy(hand = updatedHand)
-                else -> throw IllegalArgumentException("Unknown player type")
+
+        /**
+         * Update the current player's hand by removing the played cards (note that for human players, card has already been removed by HandView)
+         */
+
+        val updatedHand = getCurrentPlayer().hand.copy().apply { removeCombination(newCombination) }
+        val updatedPlayers = currentGameState.players.toMutableList().apply {
+            this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
+        }
+
+        // We need to figure out here is the player won
+        if (GameRules.hasPlayerWonTheRound(updatedHand)) {
+            TRACE(INFO) { "${getCurrentPlayer().name} is playing: $newCombination " }
+            TRACE(INFO) { "😍 ${getCurrentPlayer().name}  😎 won! " }
+
+            /**
+             * The player won the round !
+             * Update the scores
+             * Understand if the game is over
+             */
+            GameRules.updatePlayersScores(updatedPlayers)
+            val gameOver = GameRules.isGameOver(updatedPlayers, currentGameState.pointLimit)
+
+            if (gameOver) {
+                TRACE(INFO) { "Game is over! 🍾" }
+            } else {
+                TRACE(INFO) { "We need to Start a new round" }
+                startNewRound()
             }
 
-            var cardToKeep : Card? = null
-            val newDiscardPile: SnapshotStateList<Card> = if (currentCombination.cards.isNotEmpty()) {
-                println("Pick one card to keep from: $currentCombination")
-                cardToKeep = currentCombination.cards.firstOrNull() // TODO: Implement choice logic
-                mutableStateListOf<Card>().also {
-                    it.addAll(gameState.value.discardPile)
-                    it.addAll(currentCombination.cards.subList(1,currentCombination.cards.size))
-                }
-            } else{
-                println("No cards to keep from playmat since it's empty")
-                gameState.value.discardPile
+            return true
+        } else {
+            // Build a new discard pile:
+            // It consists of the existing discard pile plus the cards from the current combination
+            // excluding the card chosen by the player to keep.
+            val discardedCards = currentCombination.cards.filter { it != cardToKeep }
+
+            val newDiscardPile = mutableStateListOf<Card>().apply {
+                addAll(currentGameState.discardPile)
+                addAll(discardedCards)
             }
 
-            viewModel.updateGameState(gameState.value.copy(
+            TRACE(INFO) { "${getCurrentPlayer().name} is playing: $newCombination and is keeping: $cardToKeep, $discardedCards moves to discard pile" }
+
+
+            // If a card was chosen to keep, add it back to the player's hand.
+            cardToKeep?.let { updatedHand.addCard(it) }
+
+            // Update the game state.
+            val updatedState = currentGameState.copy(
                 players = updatedPlayers,
                 currentCombinationOnMat = newCombination,
-                discardPile = newDiscardPile
-            ))
+                discardPile = newDiscardPile,
+                skipCount = 0
+            )
 
-            val updatedHandAfterPick = getCurrentPlayer().hand.copy()
-            cardToKeep?.let{updatedHandAfterPick.addCard(it)}
-            val index = gameState.value.currentPlayerIndex
-            updatedPlayers[index] = when (val p = updatedPlayers[index]){ // Use when for type checking
-                is LocalPlayer -> p.copy(hand = updatedHandAfterPick)
-                is AIPlayer -> p.copy(hand = updatedHandAfterPick)
-                else -> throw IllegalArgumentException("Unknown player type")
-            }
-            viewModel.updateGameState(gameState.value.copy(players = updatedPlayers))
-            println("After Update: Playmat = ${gameState.value.currentCombinationOnMat?.cards?.joinToString { "${it.value} ${it.color}" }}")
+            getViewModel().updateGameState(updatedState)
 
             nextTurn()
-        } else {
-            println("Invalid combination! Move rejected.")
+
+            return false
         }
+    }
+
+
+    private fun nextTurn() {
+        val currentGameState = gameState.value
+        val nextIndex = (currentGameState.currentPlayerIndex + 1) % currentGameState.players.size
+
+        val updatedState = currentGameState.copy(currentPlayerIndex = nextIndex)
+
+
+        getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
+
+        val nextPlayer = updatedState.players[nextIndex]
+        TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
+
     }
 
     fun processAIMove() {
         val currentPlayer = getCurrentPlayer()
         if (currentPlayer.playerType == PlayerType.AI) {
+            TRACE(DEBUG) {"AI is playing (${currentPlayer.name})" }
             handleAIMove(currentPlayer)
         } else {
-            println("ERROR: Not AI's turn!")
+            TRACE(ERROR) {"Not AI's turn!" }
+        }
+    }
+    fun processSkip() {
+        val currentPlayer = getCurrentPlayer()
+        if (currentPlayer.playerType == PlayerType.AI) {
+            TRACE(FATAL) {" AI not supposed to skip via this function" }
+        } else {
+            TRACE(INFO) {"Local player ${currentPlayer.name} skips" }
+            skipTurn()
         }
     }
 
     private fun handleAIMove(aiPlayer: Player) {
-        val bestMove = aiPlayer.play(this) // Pass GameManager instance
-        bestMove?.let { processMove(it.cards) }
+        val playerAction = aiPlayer.play(this)
+
+        if (playerAction.actionType == PlayerActionType.PLAY) {
+            // Check if combination is null; if so, log a fatal error.
+            if (playerAction.combination == null) {
+                TRACE(FATAL) { "Combination cannot be null when actionType is PLAY for ${aiPlayer.name}" }
+            }
+            TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
+            // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
+            playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
+        } else {
+            TRACE(INFO) { "${aiPlayer.name} has no move !" }
+            skipTurn()
+        }
     }
 
     fun isValidMove(selectedCards: List<Card>): Boolean {
-        if (selectedCards.isEmpty()) {
-            println("IsValidMove: No cards selected")
-            return false
-        }
-
-        println("IsValidMove: Selected Cards = ${selectedCards.joinToString { "${it.value} ${it.color}" }}")
-
-        val currentCombination = gameState.value.currentCombinationOnMat ?: Combination(mutableListOf())
-
-        println("IsValidMove: Current Combination = ${currentCombination.cards?.joinToString { "${it.value} ${it.color}" }}")
-
+        val currentCombination = gameState.value.currentCombinationOnMat
         val selectedCombination = Combination(selectedCards.toMutableList())
-        println("IsValidMove: Selected Combination = ${selectedCombination.cards?.joinToString { "${it.value} ${it.color}" }}")
-
         return GameRules.isValidMove(currentCombination, selectedCombination)
     }
 
-    fun processMove(selectedCards: List<Card>) {
-        if (!isValidMove(selectedCards)) {
-            println("Invalid move: ${selectedCards.joinToString()}")
-            return
-        }
-
-        // Update playmat
-        val newPlaymat = mutableStateListOf<Card>()
-        newPlaymat.addAll(selectedCards)
-
-        // Remove played cards from hand
-        val updatedHand = getCurrentPlayer().hand.copy() // Deep copy of Hand
-        selectedCards.forEach { updatedHand.removeCard(it) }
-
-        val updatedPlayers = gameState.value.players.toMutableList()
-        val currentPlayer = getCurrentPlayer()
-        updatedPlayers[gameState.value.currentPlayerIndex] = when (currentPlayer){ // Use when for type checking
-            is LocalPlayer -> currentPlayer.copy(hand = updatedHand)
-            is AIPlayer -> currentPlayer.copy(hand = updatedHand)
-            else -> throw IllegalArgumentException("Unknown player type")
-        }
-
-        // If playmat was not empty, ask player to pick a card before ending turn, we add it in current player hand
-        //In this first implementation we always take first card
-        val newDiscardPile = mutableStateListOf<Card>()
-        newDiscardPile.addAll(gameState.value.discardPile)
-        gameState.value.currentCombinationOnMat?.cards?.let{
-            if (it.isNotEmpty()) {
-                val cardToKeep = it.firstOrNull()
-                val updatedHandAfterPick = getCurrentPlayer().hand.copy()
-                cardToKeep?.let { updatedHandAfterPick.addCard(it) }
-                val index = gameState.value.currentPlayerIndex
-                updatedPlayers[index] = when (val p = updatedPlayers[index]){ // Use when for type checking
-                    is LocalPlayer -> p.copy(hand = updatedHandAfterPick)
-                    is AIPlayer -> p.copy(hand = updatedHandAfterPick)
-                    else -> throw IllegalArgumentException("Unknown player type")
-                }
-                newDiscardPile.addAll(it.subList(1, it.size))
-            }
-        }
-
-        viewModel.updateGameState(gameState.value.copy(
-            players = updatedPlayers,
-            currentCombinationOnMat = Combination(newPlaymat),
-            discardPile = newDiscardPile
-        ))
-
-        if (checkRoundEnd()) return
-
-        nextTurn()
+    fun isGameOver(): Boolean {
+        return GameRules.isGameOver(gameState.value.players, gameState.value.pointLimit)
     }
-
-    fun checkRoundEnd(): Boolean {
-        val roundWinner = gameState.value.players.firstOrNull { it.hand.isEmpty() }
-
-        if (roundWinner != null) {
-            applyRoundScores(roundWinner)
-            return true
-        }
-        return false
-    }
-
-    private fun applyRoundScores(winner: Player) {
-        val updatedPlayers = gameState.value.players.map { player ->
-            if (player.hand.cards.isNotEmpty()) {
-                val newScore = player.score + player.hand.cards.sumOf { it.value }
-                when (player) { // Use when for type checking
-                    is LocalPlayer -> player.copy(score = newScore)
-                    is AIPlayer -> player.copy(score = newScore)
-                    else -> throw IllegalArgumentException("Unknown player type")
-                }
-            } else {
-                when (player) {
-                    is LocalPlayer -> player.copy() //Still using copy
-                    is AIPlayer -> player.copy() //Still using copy
-                    else -> throw IllegalArgumentException("Unknown player type")
-                }
-            }
-        }
-        viewModel.updateGameState(gameState.value.copy(players = updatedPlayers))
-    }
-
-    fun isGameOver(): Boolean = gameState.value.players.any { it.score >= gameState.value.pointLimit }
 
     fun getGameWinners(): List<Player> {
-        val lowestScore = gameState.value.players.minOfOrNull { it.score } ?: return emptyList()
-        return gameState.value.players.filter { it.score == lowestScore }
+        return GameRules.getGameWinners(gameState.value.players)
     }
 
-    fun getPlayerRankings(): List<Pair<Player, Int>> = GameRules.getPlayerRankings(gameState.value.players)
+    fun getPlayerRankings(): List<Pair<Player, Int>> {
+        return GameRules.getPlayerRankings(gameState.value.players)
+    }
 
-    fun resetPlaymat() {
-        val newDiscardPile = mutableStateListOf<Card>()
-        newDiscardPile.addAll(gameState.value.discardPile)
-        gameState.value.currentCombinationOnMat?.let {
-            newDiscardPile.addAll(it.cards)
+    fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
+        val currentGameState = gameState.value
+        val currentPlayer = getCurrentPlayer()
+
+        TRACE(DEBUG) { "Withdrawing cards $cardsToWithdraw from ${currentPlayer.name}'s hand." }
+
+        // Create a copy of the current player's hand and add back the withdrawn cards.
+        val updatedHand = currentPlayer.hand.copy()
+        cardsToWithdraw.forEach { card ->
+            updatedHand.addCard(card)
         }
-        viewModel.updateGameState(gameState.value.copy(currentCombinationOnMat = null, discardPile = newDiscardPile))
+        val updatedPlayer = currentPlayer.copy(hand = updatedHand)
+
+        // Update the players list with the updated player.
+        val updatedPlayers = currentGameState.players.toMutableList().apply {
+            this[currentGameState.currentPlayerIndex] = updatedPlayer
+        }
+
+        // Withdraw the cards from selectedCards.
+        // We create a new mutable list and remove the withdrawn cards.
+        val updatedSelectedCards = mutableStateListOf<Card>().apply {
+            addAll(currentGameState.selectedCards)
+        }
+        updatedSelectedCards.removeAll(cardsToWithdraw)
+
+        // Create the new game state with the updated players and selectedCards.
+        val updatedState = currentGameState.copy(
+            players = updatedPlayers,
+            selectedCards = updatedSelectedCards
+        )
+
+        getViewModel().updateGameState(updatedState)
+        TRACE(DEBUG) { "Withdrawn cards ${cardsToWithdraw.joinToString()} returned to ${currentPlayer.name}'s hand." }
     }
+
+
 }

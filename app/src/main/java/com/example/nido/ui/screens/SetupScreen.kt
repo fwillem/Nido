@@ -27,7 +27,7 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
     )
 
     // ✅ Default player: YOU (local human player)
-    var selectedPlayers by remember { mutableStateOf<List<Player>>(listOf(LocalPlayer(id = "0",name = "You",avatar = "👤"))) }
+    var selectedPlayers by remember { mutableStateOf<List<Player>>(listOf(LocalPlayer(id = "0",name = "Bibi",avatar = "👤"))) }
 
     // ✅ Game Point Limit (Slider)
     var selectedPointLimit by remember { mutableStateOf(Constants.GAME_DEFAULT_POINT_LIMIT) }

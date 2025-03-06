@@ -1,29 +1,52 @@
 package com.example.nido.game.rules
 
 import com.example.nido.data.model.Card
+import com.example.nido.data.model.CardColor
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.utils.Constants
+import com.example.nido.data.model.Hand
 
-const val HAND_SIZE = 9
 
 object GameRules {
 
+    fun isValidCombination(combination: Combination): Boolean {
+        // A valid combination is either cards of the same color of cards of the same value
+        if (combination.cards.isEmpty()) {
+            return false
+        }
+
+        val firstCard = combination.cards.first()
+        val allSameColor = combination.cards.all { it.color == firstCard.color }
+        val allSameValue = combination.cards.all { it.value == firstCard.value }
+
+        return allSameColor || allSameValue
+    }
+
     fun isValidMove(current: Combination, newMove: Combination): Boolean {
         return try {
-            // ✅ Prevent empty combination crashes
+            //  Prevent empty combination crashes
             if (newMove.cards.isEmpty()) {
-                println("❌ ERROR in isValidMove: New move has no cards!")
+                TRACE(VERBOSE) { "New move has no cards!" }
                 return false
             }
 
-            // ✅ Safe comparison
+            // First we need to test that the given combination is valid
+            if (!isValidCombination(newMove)) {
+                TRACE(VERBOSE) { "New move is not valid!" }
+                return false
+            }
+
+            // Safe comparison
             val isValid = (newMove.value > current.value) && (newMove.cards.size <= current.cards.size + 1)
 
-            println("✅ isValidMove: Current = ${current.value}, New = ${newMove.value}, Card Size = ${newMove.cards.size}, Current Size = ${current.cards.size}, Allowed = $isValid")
+            TRACE(VERBOSE) { "isValidMove: Current = ${current.value}, New = ${newMove.value}, Card Size = ${newMove.cards.size}, Current Size = ${current.cards.size}, Allowed = $isValid" }
             isValid
 
         } catch (e: Exception) {
-            println("❌❌❌❌ FATAL ERROR in isValidMove: ${e.message}")
+            TRACE(FATAL) { "❌❌❌❌ FATAL ERROR in isValidMove: ${e.message}" }
             false  // ✅ Fail gracefully instead of crashing
         }
     }
@@ -79,6 +102,19 @@ object GameRules {
         return players.any { it.score >= pointLimit }
     }
 
+    fun colorsToRemove (nbOfPlayers: Int): Set<CardColor> {
+        return if (nbOfPlayers <= Constants.GAME_REDUCED_COLOR_THRESHOLD) {
+            Constants.DECK_REMOVED_COLORS
+        } else {
+            emptySet()
+        }
+    }
+
+
+    fun hasPlayerWonTheRound(hand: Hand): Boolean {
+        return hand.cards.isEmpty()
+    }
+
     fun getGameWinners(players: List<Player>): List<Player> {
         val lowestScore = players.minOfOrNull { it.score } ?: return emptyList()
         return players.filter { it.score == lowestScore }
@@ -87,6 +123,16 @@ object GameRules {
     fun getPlayerRankings(players: List<Player>): List<Pair<Player, Int>> {
         return players.sortedBy { it.score }
             .mapIndexed { index, player -> player to (index + 1) }
+    }
+
+    fun updatePlayersScores(players: List<Player>) {
+        TRACE(DEBUG) { "Updating scores" }
+        for (player in players) {
+            val scoreToAdd = player.hand.cards.size
+            val newScore = player.score + scoreToAdd
+            TRACE(DEBUG) { "Updating score for ${player.name} with ${scoreToAdd} cards, current score ${player.score} -> $newScore" }
+            player.score = newScore
+        }
     }
 
     private fun generateAllSubcombinations(cards: List<Card>): List<Combination> {

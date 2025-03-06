@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 fun ActionButtonsView(actions: Map<String, () -> Unit>) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
+          //  .fillMaxWidth()
             .padding(2.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

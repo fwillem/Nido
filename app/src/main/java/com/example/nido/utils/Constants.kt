@@ -14,15 +14,20 @@ object Constants {
     const val GAME_MAX_PLAYERS = 6
     const val GAME_REDUCED_COLOR_THRESHOLD = 2 // If number of players is less or equal to this value, we use a reduced set of colors
 
-    val REMOVED_COLORS: Set<CardColor> = setOf( // Corrected: Use setOf
+    val DECK_REMOVED_COLORS: Set<CardColor> = setOf( // Corrected: Use setOf
         CardColor.RED,  // Corrected: Use enum constants
         CardColor.ORANGE
     )
+
+    const val CARD_MAX_VALUE = 9
 
     const val HAND_SIZE = 9
 
     // 📏 UI Dimensions
     const val CARD_WIDTH = 50
     const val CARD_HEIGHT = 100
+
+    // UI General
+    const val NB_OF_DISCARDED_CARDS_TO_SHOW = 4
 
 }
