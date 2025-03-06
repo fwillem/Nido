@@ -16,7 +16,7 @@ object GameRules {
         return try {
             //  Prevent empty combination crashes
             if (newMove.cards.isEmpty()) {
-                TRACE(ERROR) { "New move has no cards!" }
+                TRACE(DEBUG) { "New move has no cards!" }
                 return false
             }
 

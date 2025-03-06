@@ -132,6 +132,9 @@ fun MainScreen(
                         TRACE(FATAL, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
                     }
                 },
+                onWithdrawCards = { cardsToWithdraw ->
+                    GameManager.withdrawCardsFromMat(cardsToWithdraw)
+                },
                 cardWidth = CARD_WIDTH.dp,
                 cardHeight = CARD_HEIGHT.dp
             )

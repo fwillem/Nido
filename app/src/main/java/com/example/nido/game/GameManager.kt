@@ -322,4 +322,27 @@ object GameManager {
     fun getPlayerRankings(): List<Pair<Player, Int>> {
         return GameRules.getPlayerRankings(gameState.value.players)
     }
+
+    fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
+        val currentGameState = gameState.value
+        // We need here to remove the selected card from selectedCards and put them back in Payer's Hand
+        val updatedPlayers = currentGameState.players
+        val updatedHand = getCurrentPlayer().hand.copy().apply {  }
+        cardsToWithdraw.forEach {
+            updatedHand.addCard(it)
+        }
+        val updatedPlayer = getCurrentPlayer().copy(hand = updatedHand)
+        val updatedPlayers = currentGameState.players.toMutableList().apply {
+            this[currentGameState.currentPlayerIndex] = updatedPlayer
+        }
+
+        // No we need to withdraw the cards from selectedCards
+        val updateSelectedCards = currentGameStete.selectedCards.copy().apply { removeAll(cardsToWithdraw) }
+
+        val updatedState = currentGameState.copy(
+            players = updatedPlayers,
+            selectedCards = updateSelectedCards)
+
+        getViewModel().updateGameState(updatedState)
+    }
 }
