@@ -129,7 +129,7 @@ fun MainScreen(
                         GameManager.playCombination(playedCards, cardToKeep)
                         selectedCards.clear() // Clear selection after a valid move.
                     } else {
-                        TRACE(ERROR, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
+                        TRACE(FATAL, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
                     }
                 },
                 cardWidth = CARD_WIDTH.dp,

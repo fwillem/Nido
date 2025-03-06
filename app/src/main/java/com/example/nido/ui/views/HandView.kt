@@ -48,9 +48,8 @@ fun HandView(
         ) {
             val currentHand = hand.cards.toList()
 
-            println("HandView:currentHand ??? = $currentHand")
             currentHand.indices.forEach { index ->
-                val card = currentHand[index]
+                val card = currentHand[index] // 🔄 Capturing card from currentHand once here
                 var offsetY by remember { mutableStateOf(0f) }
                 var dragging by remember { mutableStateOf(false) }
 
@@ -58,48 +57,48 @@ fun HandView(
                     modifier = Modifier
                         .shadow(if (dragging) 8.dp else 0.dp)
                         .offset(y = offsetY.dp)
-                        .pointerInput(Unit) {
+                        .pointerInput(card) { // 🔄 Changed key from Unit to card so the lambda updates when card changes
                             detectDragGestures(
                                 onDragStart = {
                                     dragging = true
-                                    TRACE (VERBOSE,tag = "HandView:onDragStart1") { "Dragging card: ${card.value}, ${card.color}, index = $index" }
-                                    TRACE (VERBOSE,tag = "HandView:onDragStart2") { "Dragging card: ${hand.cards[index].value}, ${hand.cards[index].color}, index = $index" }
+                                    // 🔄 Using the captured 'card' rather than reading from hand.cards[index]
+                                    TRACE(VERBOSE, tag = "HandView:onDragStart1") { "Dragging card: ${card.value}, ${card.color}, index = $index" }
+                                    // 🔄 Removed redundant log that accessed hand.cards[index]
                                 },
                                 onDragEnd = {
                                     dragging = false
-                                    TRACE (VERBOSE,tag = "HandView:onDragEnd") { "Drag End card: ${card.value}, ${card.color}, index = $index" }
+                                    TRACE(VERBOSE, tag = "HandView:onDragEnd") { "Drag End card: ${card.value}, ${card.color}, index = $index" }
 
                                     if (offsetY < -cardHeight.toPx() / 2) {  // ✅ Drag threshold reached
                                         coroutineScope.launch {
-                                            if (index < hand.cards.size) {
-                                                val removedCard = hand.removeCard(index)
-                                                if (removedCard != null) {
-                                                    TRACE(DEBUG,tag = "HandView:onDragEnd") { "✅ Successfully selected card: ${removedCard.value}, ${removedCard.color}" }
-                                                    onSelectCard(removedCard)
+                                            // 🔄 Removing the card using the captured card instance instead of by index
+                                            if (hand.cards.contains(card)) {
+                                                val removed = hand.removeCard(card)
+                                                if (removed) {
+                                                    TRACE(DEBUG, tag = "HandView:onDragEnd") { "✅ Successfully selected card: ${card.value}, ${card.color}" }
+                                                    onSelectCard(card)
                                                 } else {
-                                                    TRACE (ERROR,tag = "HandView:onDragEnd") { "Failed to select card at index: $index" }
+                                                    TRACE(ERROR, tag = "HandView:onDragEnd") { "Failed to remove card: ${card.value}, ${card.color}" }
                                                 }
                                             } else {
-                                                TRACE (ERROR,tag = "HandView:onDragEnd") { "Index out of bounds: $index, Hand size: ${hand.cards.size}" }
+                                                TRACE(ERROR, tag = "HandView:onDragEnd") { "Card not found in hand: ${card.value}, ${card.color}" }
                                             }
                                         }
-                                    }
-                                    else {
-                                        TRACE (VERBOSE,tag = "HandView:onDragEnd") { "Drag threshold not reached" }
+                                    } else {
+                                        TRACE(VERBOSE, tag = "HandView:onDragEnd") { "Drag threshold not reached" }
                                     }
                                     offsetY = 0f
                                 },
                                 onDragCancel = {
-                                    TRACE (VERBOSE,tag = "HandView:onDragCancel") { "Drag canceled" }
-
+                                    TRACE(VERBOSE, tag = "HandView:onDragCancel") { "Drag canceled" }
                                     dragging = false
                                     offsetY = 0f
                                 },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
                                     offsetY += dragAmount.y
-                                    TRACE (VERBOSE,tag = "HandView:onDragCancel") { "dragAmount: $dragAmount" }
-
+                                    // 🔄 Changed tag to "onDrag" for clarity
+                                    TRACE(VERBOSE, tag = "HandView:onDrag") { "dragAmount: $dragAmount" }
                                 }
                             )
                         }
@@ -112,6 +111,5 @@ fun HandView(
             }
         }
     }
-
-
 }
+

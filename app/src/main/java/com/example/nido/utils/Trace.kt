@@ -116,6 +116,6 @@ fun println(message: String): String {
 /**
  * Spare: Emoji bank.
  */
-object TraceEmojis {
-    val emojis = arrayOf("😀", "😂", "😎", "😍", "🥳", "🟢", "🟡", "🟥", "🟦", "🟨", "🔹", "❌", "✅", "🔄")
+object TraceEmojisBank {
+    val emojis = arrayOf("😀", "😂", "😎", "😍", "🥳", "🟢", "🟡", "🟥", "🟦", "🟨", "🔹", "❌", "✅", "🔄","🍾","⭐","🔥","✨")
 }
