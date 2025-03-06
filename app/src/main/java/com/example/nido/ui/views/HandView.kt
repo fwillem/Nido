@@ -21,7 +21,7 @@ import com.example.nido.ui.views.CardView
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.println
-
+import com.example.nido.data.model.CardResources.backCoverCard
 
 @Composable
 fun HandView(
@@ -33,6 +33,8 @@ fun HandView(
     onSelectCard: (Card) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+
+    TRACE(VERBOSE) { "Recomposing HandView : ${hand.cards}" }
 
     Box(
         modifier = Modifier
@@ -46,6 +48,7 @@ fun HandView(
         ) {
             val currentHand = hand.cards.toList()
 
+            println("HandView:currentHand ??? = $currentHand")
             currentHand.indices.forEach { index ->
                 val card = currentHand[index]
                 var offsetY by remember { mutableStateOf(0f) }
@@ -59,34 +62,44 @@ fun HandView(
                             detectDragGestures(
                                 onDragStart = {
                                     dragging = true
-                                    TRACE (VERBOSE,tag = "HandView:onDragStart") { "Dragging card: ${card.value}, ${card.color}" }
+                                    TRACE (VERBOSE,tag = "HandView:onDragStart1") { "Dragging card: ${card.value}, ${card.color}, index = $index" }
+                                    TRACE (VERBOSE,tag = "HandView:onDragStart2") { "Dragging card: ${hand.cards[index].value}, ${hand.cards[index].color}, index = $index" }
                                 },
                                 onDragEnd = {
                                     dragging = false
+                                    TRACE (VERBOSE,tag = "HandView:onDragEnd") { "Drag End card: ${card.value}, ${card.color}, index = $index" }
+
                                     if (offsetY < -cardHeight.toPx() / 2) {  // ✅ Drag threshold reached
                                         coroutineScope.launch {
                                             if (index < hand.cards.size) {
                                                 val removedCard = hand.removeCard(index)
                                                 if (removedCard != null) {
-                                                    TRACE(VERBOSE,tag = "HandView:onDragEnd") { "✅ Successfully selected card: ${removedCard.value}, ${removedCard.color}" }
+                                                    TRACE(DEBUG,tag = "HandView:onDragEnd") { "✅ Successfully selected card: ${removedCard.value}, ${removedCard.color}" }
                                                     onSelectCard(removedCard)
                                                 } else {
-                                                    TRACE (ERROR) { "Failed to select card at index: $index" }
+                                                    TRACE (ERROR,tag = "HandView:onDragEnd") { "Failed to select card at index: $index" }
                                                 }
                                             } else {
-                                                TRACE (ERROR) { "Index out of bounds: $index, Hand size: ${hand.cards.size}" }
+                                                TRACE (ERROR,tag = "HandView:onDragEnd") { "Index out of bounds: $index, Hand size: ${hand.cards.size}" }
                                             }
                                         }
+                                    }
+                                    else {
+                                        TRACE (VERBOSE,tag = "HandView:onDragEnd") { "Drag threshold not reached" }
                                     }
                                     offsetY = 0f
                                 },
                                 onDragCancel = {
+                                    TRACE (VERBOSE,tag = "HandView:onDragCancel") { "Drag canceled" }
+
                                     dragging = false
                                     offsetY = 0f
                                 },
                                 onDrag = { change, dragAmount ->
                                     change.consume()
                                     offsetY += dragAmount.y
+                                    TRACE (VERBOSE,tag = "HandView:onDragCancel") { "dragAmount: $dragAmount" }
+
                                 }
                             )
                         }

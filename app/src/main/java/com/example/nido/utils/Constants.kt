@@ -27,4 +27,7 @@ object Constants {
     const val CARD_WIDTH = 50
     const val CARD_HEIGHT = 100
 
+    // UI General
+    const val NB_OF_DISCARDED_CARDS_TO_SHOW = 4
+
 }

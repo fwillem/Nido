@@ -3,8 +3,10 @@ package com.example.nido.ui.views
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -22,9 +24,14 @@ import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.views.CardView
 import com.example.nido.ui.views.DiscardPileView
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.println
+import com.example.nido.utils.Constants.NB_OF_DISCARDED_CARDS_TO_SHOW
+
+
 
 
 @Composable
@@ -36,9 +43,11 @@ fun MatView(
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
-    TRACE (DEBUG) { "🟦 MatView - Playmat : ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}" }
-    TRACE (DEBUG) { "🟦 MatView - DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}" }
-    TRACE (DEBUG) { "🟦 MatView - SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }}" }
+    TRACE(DEBUG) {
+        "🟦 Recomposing MatView : \n" +
+                "Playmat : ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}\n" +
+                "DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}\n" +
+                "SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }} \n" }
 
     Box(
         modifier = Modifier
@@ -50,7 +59,6 @@ fun MatView(
         ) {
             // **Selected Cards Row**
             if (selectedCards.isNotEmpty()) {
-                Text("Selected Combination:", color = Color.Yellow)
                 Row(
                     modifier = Modifier.padding(8.dp),
                     horizontalArrangement = Arrangement.Center
@@ -68,7 +76,7 @@ fun MatView(
             }
 
             // **Playmat Row**
-            Text("Current Playmat:", color = Color.White)
+            Text("Playmat:", color = Color.White)
             Row(
                 modifier = Modifier.padding(8.dp),
                 horizontalArrangement = Arrangement.Center
@@ -87,12 +95,18 @@ fun MatView(
             }
 
             // **Discard Pile**
-            Text("Discard Pile:", color = Color.Red)
+            Column(
+                modifier = Modifier,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Discard Pile:", color = Color.Red)
+                Text("${discardPile.size}",color = Color.Red)
+            }
             Row(
                 modifier = Modifier.padding(8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
-                for (card in discardPile) {
+                for (card in discardPile.takeLast(NB_OF_DISCARDED_CARDS_TO_SHOW)) {
                     CardView(
                         card = card,
                         modifier = Modifier
@@ -109,8 +123,47 @@ fun MatView(
                     /* TODO Here we shall ask the user the card he wants to keep */
                     modifier = Modifier.padding(8.dp)
                 ) {
-                    Text("Play Combination")
+                    Text(
+                        "Play Combination",
+                        fontSize = 8.sp,
+                        lineHeight = 8.sp
+                        )
                 }
+
+
+
+/*
+
+                        @Composable
+                        fun ActionButtonsView(actions: Map<String, () -> Unit>) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(2.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                actions.forEach { (label, action) ->
+                                    Button(
+                                        onClick = action,
+                                        modifier = Modifier
+                                            .height(16.dp)
+                                            .padding(horizontal = 2.dp),
+                                        contentPadding = PaddingValues(4.dp)
+                                    ) {
+                                        Text(
+                                            label,
+                                            fontSize = 8.sp,
+                                            lineHeight = 8.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+
+ */
+
+
             }
         }
     }

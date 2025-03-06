@@ -1,6 +1,9 @@
 package com.example.nido.game
 
 import com.example.nido.data.model.*
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+
 
 class LocalPlayer(
     override val id: String,
@@ -11,8 +14,15 @@ class LocalPlayer(
 ) : Player {
     override val playerType: PlayerType = PlayerType.LOCAL
 
-    override fun play(gameManager: GameManager): Combination? {
-        return null // UI handles LocalPlayer moves
+    override fun play(gameManager: GameManager): PlayerAction {
+        // For LocalPlayer, the UI handles moves.
+        // Return a default SKIP action
+        TRACE(FATAL) { "LocalPlayer.play() should not be called!" }
+
+        return PlayerAction(
+            actionType = PlayerActionType.SKIP,
+            comment = "Local move is handled by UI"
+        )
     }
 
     override fun copy(
@@ -24,6 +34,7 @@ class LocalPlayer(
     ): Player {
         return LocalPlayer(id, name, avatar, score, hand)
     }
+
     override fun toString(): String {
         return "LocalPlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand)"
     }

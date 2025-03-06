@@ -2,6 +2,10 @@ package com.example.nido.game.multiplayer
 
 import com.example.nido.data.model.*
 import com.example.nido.game.GameManager
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+
+
 
 class RemotePlayer(
     override val id: String,
@@ -12,9 +16,17 @@ class RemotePlayer(
 ) : Player {
     override val playerType: PlayerType = PlayerType.REMOTE
 
-    override fun play(gameManager: GameManager): Combination? {
-        return null // Network-based play implementation will be added later
+    override fun play(gameManager: GameManager): PlayerAction {
+        // TODO need to implement it
+        // Return a default SKIP action
+        TRACE(ERROR) { "Not implemented yet" }
+
+        return PlayerAction(
+            actionType = PlayerActionType.SKIP,
+            comment = "Remote move isn't supported yet !!!"
+        )
     }
+
 
     override fun copy(
         id: String,

@@ -14,6 +14,8 @@ import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.println
+import com.example.nido.data.model.PlayerActionType
+
 
 
 
@@ -58,6 +60,7 @@ object GameManager {
             currentPlayerIndex = 0,
             currentCombinationOnMat = Combination(mutableListOf()),
             discardPile = mutableStateListOf(),
+            skipCount = 0,  // Initialize skipCount to 0
             screen = GameScreens.PLAYING
         )
 
@@ -88,8 +91,7 @@ object GameManager {
         // Trace each player's name and their hand
         mutablePlayers.forEach { player ->
 
-            val hand = "$player.name's hand:" + player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" }
-            TRACE(INFO) { "$hand"}
+            TRACE(INFO) { "$player.name's hand:" + player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" } }
         }
 
         return state.copy(
@@ -100,11 +102,40 @@ object GameManager {
 
     private fun getCurrentPlayer(): Player = gameState.value.players[gameState.value.currentPlayerIndex]
 
+    fun skipTurn() {
+        TRACE(DEBUG) { "${getCurrentPlayer().name} is skipping turn" }
+        val currentGameState = gameState.value
+        val newSkipCount = currentGameState.skipCount + 1
+
+        if (newSkipCount >= currentGameState.players.size) {
+            // All players have skipped: discard the current playmat and allow the same player to replay.
+            TRACE(INFO) { "All players skipped! Discarding current playmat and allowing ${getCurrentPlayer().name} to replay." }
+            val discardedCards = currentGameState.currentCombinationOnMat.cards
+            val newDiscardPile = mutableStateListOf<Card>().apply {
+                addAll(currentGameState.discardPile)
+                addAll(discardedCards)
+            }
+            // Reset currentCombinationOnMat and skipCount, but keep currentPlayerIndex unchanged.
+            val updatedState = currentGameState.copy(
+                currentCombinationOnMat = Combination(mutableListOf()),
+                discardPile = newDiscardPile,
+                skipCount = 0
+            )
+            getViewModel().updateGameState(updatedState)
+        } else {
+            // Just update the skip count and move on to the next player's turn.
+            TRACE(VERBOSE) { "updating skip count to $newSkipCount" }
+
+            val updatedState = currentGameState.copy(skipCount = newSkipCount)
+            getViewModel().updateGameState(updatedState)
+            nextTurn()
+        }
+    }
     fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) {
         val currentGameState = gameState.value
 
         if (selectedCards.isEmpty()) {
-            TRACE(ERROR) { " No cards selected" }
+            TRACE(FATAL) { " No cards selected" }
             return
         }
 
@@ -114,12 +145,15 @@ object GameManager {
 
         // Validate the move.
         if (!GameRules.isValidMove(currentCombination, newCombination)) {
-            TRACE(ERROR) { "Invalid combination! Move rejected." }
+            TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
             return
         }
 
-        // Update the current player's hand by removing the played cards.
-        // For some 'Compose' recomposition reason we have to copy the whole players set
+
+        /**
+         * Update the current player's hand by removing the played cards (note that for human players, card has already been removed by HandView)
+         */
+
         val updatedHand = getCurrentPlayer().hand.copy().apply { removeCombination(newCombination) }
         val updatedPlayers = currentGameState.players.toMutableList().apply {
             this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
@@ -128,10 +162,15 @@ object GameManager {
         // Build a new discard pile:
         // It consists of the existing discard pile plus the cards from the current combination
         // excluding the card chosen by the player to keep.
+        val discardedCards = currentCombination.cards.filter { it != cardToKeep }
+
         val newDiscardPile = mutableStateListOf<Card>().apply {
             addAll(currentGameState.discardPile)
-            addAll(currentCombination.cards.filter { it != cardToKeep })
+            addAll(discardedCards)
         }
+
+        TRACE(INFO) { "${getCurrentPlayer().name} is playing: ${newCombination} and is keeping: ${cardToKeep}, ${discardedCards} moves to discard pile" }
+
 
         // If a card was chosen to keep, add it back to the player's hand.
         cardToKeep?.let { updatedHand.addCard(it) }
@@ -140,7 +179,8 @@ object GameManager {
         val updatedState = currentGameState.copy(
             players = updatedPlayers,
             currentCombinationOnMat = newCombination,
-            discardPile = newDiscardPile
+            discardPile = newDiscardPile,
+            skipCount = 0
         )
 
         getViewModel().updateGameState(updatedState)
@@ -153,26 +193,58 @@ object GameManager {
         val nextIndex = (currentGameState.currentPlayerIndex + 1) % currentGameState.players.size
 
         val updatedState = currentGameState.copy(currentPlayerIndex = nextIndex)
+
+
         getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
 
         val nextPlayer = updatedState.players[nextIndex]
+        TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
+/**
+ * Error, shall not be done here...
+ *
         if (nextPlayer.playerType == PlayerType.AI) {
             handleAIMove(nextPlayer)
         }
+
+ */
     }
 
     fun processAIMove() {
         val currentPlayer = getCurrentPlayer()
         if (currentPlayer.playerType == PlayerType.AI) {
+            TRACE(DEBUG) {"AI is playing (${currentPlayer.name})" }
             handleAIMove(currentPlayer)
         } else {
             TRACE(ERROR) {"Not AI's turn!" }
         }
     }
+    fun processSkip() {
+        val currentPlayer = getCurrentPlayer()
+        if (currentPlayer.playerType == PlayerType.AI) {
+            TRACE(FATAL) {" AI not support to skip via this function" }
+        } else {
+            TRACE(DEBUG) {"Local player ${currentPlayer.name} skips" }
+            skipTurn()
+        }
+    }
+
+
 
     private fun handleAIMove(aiPlayer: Player) {
-        val bestMove = aiPlayer.play(this)
-        bestMove?.let { processMove(it.cards) }
+        val playerAction = aiPlayer.play(this)
+
+        if (playerAction.actionType == PlayerActionType.PLAY) {
+            // Check if combination is null; if so, log a fatal error.
+            if (playerAction.combination == null) {
+                TRACE(FATAL) { "Combination cannot be null when actionType is PLAY for ${aiPlayer.name}" }
+            }
+            TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
+            // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
+            playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
+        } else {
+            TRACE(DEBUG) { "${aiPlayer.name} has no move !" }
+            skipTurn()
+        }
     }
 
     fun isValidMove(selectedCards: List<Card>): Boolean {

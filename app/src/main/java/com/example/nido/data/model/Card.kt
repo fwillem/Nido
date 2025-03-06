@@ -19,4 +19,11 @@ data class Card(
         color = CardColor.valueOf(color.uppercase()),
         value = value
     )
+
+    override fun toString(): String {
+        return "Card(" +
+                "$value/" +
+                "$color" +
+                ")"
+    }
 }
