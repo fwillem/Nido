@@ -5,7 +5,7 @@ import com.example.nido.data.model.CardColor
 // ✅ Constants file to centralize all game and UI constants.
 object Constants {
     // 🎮 Game Rules
-    const val GAME_MIN_POINT_LIMIT = 10
+    const val GAME_MIN_POINT_LIMIT = 5
     const val GAME_DEFAULT_POINT_LIMIT = 15
     const val GAME_MAX_POINT_LIMIT = 30
 
@@ -29,5 +29,6 @@ object Constants {
 
     // UI General
     const val NB_OF_DISCARDED_CARDS_TO_SHOW = 4
+    const val AI_THINKING_DURATION_MS = 1200L
 
 }

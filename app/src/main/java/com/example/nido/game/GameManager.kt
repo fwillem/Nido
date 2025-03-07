@@ -14,6 +14,7 @@ import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.data.model.PlayerActionType
 import com.example.nido.data.model.Hand
 import com.example.nido.events.AppEvent
+import kotlin.Int
 
 
 object GameManager {
@@ -101,7 +102,8 @@ object GameManager {
             skipCount = 0,
             startingPlayerIndex = newStartingPlayerIndex,
             currentPlayerIndex = newStartingPlayerIndex,
-            screen = GameScreens.PLAYING
+            screen = GameScreens.PLAYING,
+            turnId = currentState.turnId + 1
         )
 
         // Deal cards for the new round.
@@ -157,7 +159,8 @@ object GameManager {
             val updatedState = currentGameState.copy(
                 currentCombinationOnMat = Combination(mutableListOf()),
                 discardPile = newDiscardPile,
-                skipCount = 0
+                skipCount = 0,
+                turnId = currentGameState.turnId + 1
             )
             getViewModel().updateGameState(updatedState)
         } else {
@@ -215,8 +218,24 @@ object GameManager {
             val gameOver = GameRules.isGameOver(updatedPlayers, currentGameState.pointLimit)
 
             if (gameOver) {
+
                 TRACE(INFO) { "Game is over! 🍾" }
+                GameManager.setDialogEvent(
+                    AppEvent.GameEvent.GameOver(
+                        playerRankings = GameRules.getPlayerRankings(updatedPlayers),
+                    )
+                )
+
             } else {
+                GameManager.setDialogEvent(
+                    AppEvent.GameEvent.RoundOver(
+                        winner = getCurrentPlayer(),
+                        oldScore = 0,
+                        pointsAdded = 0,
+                        newScore=0
+                    )
+                )
+
                 TRACE(INFO) { "We need to Start a new round" }
                 startNewRound()
             }
@@ -260,7 +279,10 @@ object GameManager {
         val currentGameState = gameState.value
         val nextIndex = (currentGameState.currentPlayerIndex + 1) % currentGameState.players.size
 
-        val updatedState = currentGameState.copy(currentPlayerIndex = nextIndex)
+        val updatedState = currentGameState.copy(
+            currentPlayerIndex = nextIndex,
+            turnId = currentGameState.turnId + 1
+        )
 
 
         getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
