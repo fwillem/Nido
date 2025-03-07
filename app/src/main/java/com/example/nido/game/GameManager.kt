@@ -13,6 +13,7 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.data.model.PlayerActionType
 import com.example.nido.data.model.Hand
+import com.example.nido.events.AppEvent
 
 
 object GameManager {
@@ -358,5 +359,16 @@ object GameManager {
         TRACE(DEBUG) { "Withdrawn cards ${cardsToWithdraw.joinToString()} returned to ${currentPlayer.name}'s hand." }
     }
 
+    fun setDialogEvent(event: AppEvent) {
+        val currentState = gameState.value
+        getViewModel().updateGameState(currentState.copy(gameEvent = event))
+    }
+
+    fun clearDialogEvent() {
+        val currentState = gameState.value
+        getViewModel().updateGameState(currentState.copy(gameEvent = null))
+    }
 
 }
+
+
