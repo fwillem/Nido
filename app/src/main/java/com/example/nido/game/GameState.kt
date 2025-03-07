@@ -22,7 +22,9 @@ data class GameState(
     val skipCount: Int = 0, // New property to track consecutive skips.
     val soundOn: Boolean = true,
     val showConfirmExitDialog: Boolean = false,
-    val gameEvent: AppEvent? = null
+    val gameEvent: AppEvent? = null,
+    val turnId: Int = 0 // increments on every turn/replay. Allow to trigger launcheffect for automatic AI playing
+
 ) {
     override fun toString(): String {
         return """
@@ -40,6 +42,8 @@ data class GameState(
             💠 Sound On: $soundOn
             💠 Confirm Exit Dialog: $showConfirmExitDialog
             💠 Game Event: $gameEvent
+            💠 Turn ID : $turnId
+
         """.trimIndent()
     }
 
@@ -56,7 +60,8 @@ data class GameState(
             deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
             skipCount = this.skipCount,
             soundOn = this.soundOn,
-            gameEvent = this.gameEvent
+            gameEvent = this.gameEvent,
+            turnId = this.turnId
         )
     }
 }

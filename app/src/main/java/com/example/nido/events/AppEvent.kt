@@ -10,11 +10,11 @@ sealed class AppEvent {
             val winner: Player,
             val oldScore: Int,
             val pointsAdded: Int,
-            val newScore: Int
-        ) : GameEvent()
+            val newScore: Int,
+            ) : GameEvent()
 
         data class GameOver(
-            val winner: Player
+            val playerRankings: List<Pair<Player, Int>>
         ) : GameEvent()
 
         data class CardSelection(

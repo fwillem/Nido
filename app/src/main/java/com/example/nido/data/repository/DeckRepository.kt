@@ -104,9 +104,70 @@ val testDeckForAll = mutableStateListOf<Card>(
     Card(value = 6, color = "PINK")
 )
 
+val testDeckForAll2 = mutableStateListOf<Card>(
+    Card(value = 9, color = "ORANGE"),
+    Card(value = 6, color = "MOCHA"),
+    Card(value = 2, color = "PINK"),
+    Card(value = 7, color = "BLUE"),
+    Card(value = 5, color = "PINK"),
+    Card(value = 2, color = "GREEN"),
+    Card(value = 7, color = "GREEN"),
+    Card(value = 8, color = "MOCHA"),
+    Card(value = 3, color = "GREEN"),
+    Card(value = 4, color = "RED"),
+    Card(value = 2, color = "MOCHA"),
+    Card(value = 4, color = "ORANGE"),
+    Card(value = 6, color = "PINK"),
+    Card(value = 1, color = "GREEN"),
+    Card(value = 3, color = "PINK"),
+    Card(value = 1, color = "RED"),
+    Card(value = 6, color = "BLUE"),
+    Card(value = 6, color = "GREEN"),
+    Card(value = 8, color = "ORANGE"),
+    Card(value = 2, color = "ORANGE"),
+    Card(value = 4, color = "GREEN"),
+    Card(value = 9, color = "MOCHA"),
+    Card(value = 8, color = "RED"),
+    Card(value = 9, color = "RED"),
+    Card(value = 1, color = "BLUE"),
+    Card(value = 7, color = "MOCHA"),
+    Card(value = 3, color = "BLUE"),
+    Card(value = 9, color = "BLUE"),
+    Card(value = 4, color = "MOCHA"),
+    Card(value = 2, color = "RED"),
+    Card(value = 5, color = "ORANGE"),
+    Card(value = 8, color = "GREEN"),
+    Card(value = 2, color = "BLUE"),
+    Card(value = 9, color = "GREEN"),
+    Card(value = 5, color = "GREEN"),
+    Card(value = 3, color = "RED"),
+    Card(value = 1, color = "MOCHA"),
+    Card(value = 6, color = "ORANGE"),
+    Card(value = 7, color = "PINK"),
+    Card(value = 7, color = "ORANGE"),
+    Card(value = 9, color = "PINK"),
+    Card(value = 1, color = "ORANGE"),
+    Card(value = 1, color = "PINK"),
+    Card(value = 5, color = "MOCHA"),
+    Card(value = 8, color = "BLUE"),
+    Card(value = 4, color = "PINK"),
+    Card(value = 4, color = "BLUE"),
+    Card(value = 5, color = "BLUE"),
+    Card(value = 7, color = "RED"),
+    Card(value = 6, color = "RED"),
+    Card(value = 5, color = "RED"),
+    Card(value = 8, color = "PINK"),
+    Card(value = 3, color = "ORANGE"),
+    Card(value = 3, color = "MOCHA")
+)
 
 
+enum class DeckRepositoryMode {
+    NORMAL,
+    DEBUG
+}
 
+val deckRepositoryMode = DeckRepositoryMode.DEBUG
 
     object DeckRepository {
 
@@ -128,21 +189,37 @@ val testDeckForAll = mutableStateListOf<Card>(
         if (shuffle) deck.shuffle()
 
 
-        if (removedColors.isNotEmpty()) {
-            return testDeckFor2
-        } else {
-            return testDeckForAll
+        when (deckRepositoryMode) {
+            DeckRepositoryMode.DEBUG -> {
+                if (removedColors.isNotEmpty()) {
+                    return testDeckFor2
+                } else {
+                    // return testDeckForAll
+
+                    return testDeckForAll2
+                }
+            }
+
+            DeckRepositoryMode.NORMAL -> {
+                return deck
+            }
+
         }
 
-
-
-        return deck
     }
 
     fun shuffleDeck(deck: List<Card>) : List<Card> {
         // TODO Implement shuffle return(deck.shuffled())
-        return(deck)
-        // return deck.shuffled()
+        when (deckRepositoryMode) {
+            DeckRepositoryMode.DEBUG -> {
+                return (deck)
+            }
+
+            DeckRepositoryMode.NORMAL -> {
+                return deck.shuffled()
+            }
+        }
+
     }
 
     // Keep your other functions as they were

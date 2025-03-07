@@ -23,8 +23,16 @@ object NidoColors {
     val CardDefault = Color.DarkGray
 
     // 🎨 **New Colors for Mat & Discard Pile**
-    val PlaymatBackground = Color(0xFF228B22)  // Forest Green (Used in MatView)
+    val PlaymatBackground =     Color(0xFF228B22)  // Forest Green (Used in MatView)
     val DiscardPileBackground = Color.Gray     // Default discard pile color
+    val PlayersRowBackground =  Color(0xFFF06400) // Orange (Used in PlayersRowView) OK
+    val MatViewBackground =     Color(0xFF228B22)   // Forest Green (Used in MatView)
+    val MainScreenBackground =  Color(0xFF006400) // Green (Used in MainScreen)
+    val HandViewBackground2 =   Color(0xFF0000FF)   // Blue (Used in HandView)
+//    val HandViewBackground2 = Color(0xFF006400)   // Blue (Used in HandView)
+ //   val HandViewBackground =    Color(0xFF006400)  // Green (Used in HandView)
+    val HandViewBackground =    Color(0xFFFFFF00)  // Green (Used in HandView)
+
 }
 
 // 🎨 Dark Mode Colors

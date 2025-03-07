@@ -31,8 +31,18 @@ import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.events.AppEvent
 import com.example.nido.game.GameManager
 import com.example.nido.game.GameViewModel
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.nido.ui.views.MatView
 
+import androidx.compose.ui.unit.dp
+import com.example.nido.ui.views.MatView
 
 @Composable
 fun MatView(
@@ -44,8 +54,6 @@ fun MatView(
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
-    // State to control whether the card selection dialog is shown.
-    var showCardSelectionDialog by remember { mutableStateOf(false) }
 
     TRACE(DEBUG) {
         "🟦 Recomposing MatView : \n" +
@@ -57,10 +65,14 @@ fun MatView(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp)
+            .padding(0.dp)
     ) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            // **Selected Cards Row**
+        Row(modifier = Modifier
+            .fillMaxSize(),
+        ) {
+            Text("Selected Cards:", color = Color.White)
+
+        // **Selected Cards Row**
             if (selectedCards.isNotEmpty()) {
                 Row(
                     modifier = Modifier.padding(8.dp),
@@ -96,7 +108,8 @@ fun MatView(
                 }
             }
 
-            // **Discard Pile**
+            // **Discard Pile is discarded !
+            /*
             Column(
                 modifier = Modifier,
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -104,6 +117,9 @@ fun MatView(
                 Text("Discard Pile:", color = Color.Red)
                 Text("${discardPile.size}", color = Color.Red)
             }
+             */
+
+            /*
             Row(
                 modifier = Modifier.padding(8.dp),
                 horizontalArrangement = Arrangement.Center
@@ -118,6 +134,9 @@ fun MatView(
                 }
             }
 
+             */
+
+
             // **Play Button - Only when selection is not empty**
             if (selectedCards.isNotEmpty()) {
                 // Create a temporary combination from playmat (or empty if playmat is null)
@@ -129,11 +148,16 @@ fun MatView(
                             val candidateCards = playmat?.toList() ?: emptyList()
                             when {
                                 candidateCards.isEmpty() -> {
+                                    // More than one candidate: dispatch a dialog event via GameManager.
+                                    TRACE(DEBUG) { "No card to keep" }
                                     // If no candidate cards, commit move with no card to keep.
                                     onPlayCombination(selectedCards.toList(), null)
                                     selectedCards.clear()
                                 }
                                 candidateCards.size == 1 -> {
+
+                                    // Only one candidate: commit immediately.
+                                    TRACE(DEBUG) { "Only one candidate: commit immediately ${candidateCards.first()}" }
                                     // If only one candidate, commit immediately.
                                     onPlayCombination(selectedCards.toList(), candidateCards.first())
                                     selectedCards.clear()
@@ -141,6 +165,8 @@ fun MatView(
                                 else -> {
 
                                     // More than one candidate: dispatch a dialog event via GameManager.
+                                    TRACE(DEBUG) { "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}" }
+
                                     GameManager.setDialogEvent(
                                         AppEvent.GameEvent.CardSelection(
                                             candidateCards = candidateCards,
@@ -155,7 +181,7 @@ fun MatView(
                                             }
                                         )
                                     )
-                                }
+
 
                                 }
                             }
@@ -176,45 +202,97 @@ fun MatView(
         }
     }
 
-    // Show a transparent AlertDialog if multiple candidate cards are available.
-    if (showCardSelectionDialog) {
-        val candidateCards = playmat?.toList() ?: emptyList()
-        AlertDialog(
-            onDismissRequest = { showCardSelectionDialog = false },
-            title = { Text("Select Card to Keep") },
-            text = {
-                Column {
-                    candidateCards.forEach { card ->
-                        Button(
-                            onClick = {
-                                onPlayCombination(selectedCards.toList(), card)
-                                selectedCards.clear()
-                                showCardSelectionDialog = false
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = card.color.uiColor.copy(alpha = 0.3f), // 30% opacity background
-                                contentColor = card.color.uiColor // full opacity text color
-                            ),
-                            modifier = Modifier.padding(4.dp)
-                        ) {
-                            Text("${card.value} ${card.color}", fontSize = 12.sp)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showCardSelectionDialog = false },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = Color.Gray
-                    ),
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    Text("Cancel", fontSize = 12.sp)
-                }
-            },
-            containerColor = Color.Transparent
-        )
-    }
 }
+
+
+
+@Preview(
+    name = "MatView - 2 on Playmat, 3 on Selected",
+    showBackground = true,
+    widthDp = 800,
+    heightDp = 400
+)
+
+@Composable
+fun PreviewMatViewScenario1() {
+    // 🚀 Create dummy SnapshotStateLists for scenario 1:
+    val playmatCards = remember { mutableStateListOf<Card>().apply {
+        add(Card(2, "RED"))
+        add(Card(2, "RED"))
+        add(Card(2, "RED"))
+
+        add(Card(3, "GREEN"))
+    } }
+    val selectedCards = remember { mutableStateListOf<Card>().apply {
+        add(Card(4, "BLUE"))
+        add(Card(5, "MOCHA"))
+        add(Card(6, "PINK"))
+    } }
+    // Using an empty discard pile for simplicity:
+    val discardPile = remember { mutableStateListOf<Card>() }
+
+    // 🚀 Dummy lambdas for button callbacks:
+    val onPlayCombination: (List<Card>, Card?) -> Unit = { cards, cardToKeep ->
+        // No-op for preview
+    }
+    val onWithdrawCards: (List<Card>) -> Unit = { cards ->
+        // No-op for preview
+    }
+
+    MatView(
+        playmat = playmatCards,
+        discardPile = discardPile,
+        selectedCards = selectedCards,
+        onPlayCombination = onPlayCombination,
+        onWithdrawCards = onWithdrawCards,
+        cardWidth = 80.dp,   // 🚀 Example dimensions
+        cardHeight = 120.dp  // 🚀 Example dimensions
+    )
+}
+/*
+@Preview(
+    name = "MatView - 4 on Playmat, 5 on Selected",
+    showBackground = true,
+    widthDp = 800,
+    heightDp = 400
+)
+
+@Composable
+fun PreviewMatViewScenario2() {
+    // 🚀 Create dummy SnapshotStateLists for scenario 2:
+    val playmatCards = remember { mutableStateListOf<Card>().apply {
+        add(Card(2, "RED"))
+        add(Card(3, "GREEN"))
+        add(Card(4, "BLUE"))
+        add(Card(5, "MOCHA"))
+    } }
+    val selectedCards = remember { mutableStateListOf<Card>().apply {
+        add(Card(6, "PINK"))
+        add(Card(7, "ORANGE"))
+        add(Card(8, "MOCHA"))
+        add(Card(9, "GREEN"))
+        add(Card(10, "RED"))
+    } }
+    val discardPile = remember { mutableStateListOf<Card>() }
+
+    // 🚀 Dummy lambdas for button callbacks:
+    val onPlayCombination: (List<Card>, Card?) -> Unit = { cards, cardToKeep ->
+        // No-op for preview
+    }
+    val onWithdrawCards: (List<Card>) -> Unit = { cards ->
+        // No-op for preview
+    }
+
+    MatView(
+        playmat = playmatCards,
+        discardPile = discardPile,
+        selectedCards = selectedCards,
+        onPlayCombination = onPlayCombination,
+        onWithdrawCards = onWithdrawCards,
+        cardWidth = 80.dp,   // 🚀 Example dimensions
+        cardHeight = 120.dp  // 🚀 Example dimensions
+    )
+}
+
+
+ */
