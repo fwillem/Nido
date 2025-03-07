@@ -167,7 +167,7 @@ enum class DeckRepositoryMode {
     DEBUG
 }
 
-val deckRepositoryMode = DeckRepositoryMode.DEBUG
+val deckRepositoryMode = DeckRepositoryMode.NORMAL
 
     object DeckRepository {
 
