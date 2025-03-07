@@ -43,9 +43,12 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ✅ Display current selected players
-        selectedPlayers.forEach { player ->
-            Text("${player.avatar} ${player.name}")
+        Row {
+            Text ("Players(${selectedPlayers.size}) :")
+            // ✅ Display current selected players
+            selectedPlayers.forEach { player ->
+                Text("${player.avatar} ${player.name}")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -69,8 +72,6 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ✅ Display number of selected players
-        Text("Current Number of players: ${selectedPlayers.size}")
 
         // ✅ Slider to select point limit
         Text("Select Point Limit: $selectedPointLimit")

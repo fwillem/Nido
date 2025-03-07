@@ -47,6 +47,7 @@ object GameManager {
 
         //  Generate the deck
         val deck = DeckRepository.generateDeck(shuffle = true, nbOfPlayers = selectedPlayers.size)
+        TRACE(VERBOSE) { "Brand new deck generated!: $deck" }
 
         // Choose a random starting player.
         // TODO For debug we will simplify, the right value is :  val startingPlayerIndex = (0 until selectedPlayers.size).random()

@@ -22,6 +22,8 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.println
 import com.example.nido.data.model.CardResources.backCoverCard
+import com.example.nido.utils.Constants
+import com.example.nido.ui.theme.NidoColors
 
 @Composable
 fun HandView(
@@ -38,12 +40,16 @@ fun HandView(
 
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(cardHeight + 20.dp)
-            .background(Color(0xFF006400))
+            //.fillMaxWidth()
+   //         .height(cardHeight + 20.dp)
+            .background(NidoColors.HandViewBackground2)
+            .padding(bottom = 8.dp),
+
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
+
             horizontalArrangement = Arrangement.Center
         ) {
             val currentHand = hand.cards.toList()

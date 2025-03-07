@@ -1,5 +1,6 @@
 package com.example.nido.utils
 
+import androidx.compose.ui.graphics.Color
 import com.example.nido.data.model.CardColor
 
 // ✅ Constants file to centralize all game and UI constants.
@@ -14,8 +15,8 @@ object Constants {
     const val GAME_MAX_PLAYERS = 6
     const val GAME_REDUCED_COLOR_THRESHOLD = 2 // If number of players is less or equal to this value, we use a reduced set of colors
 
-    val DECK_REMOVED_COLORS: Set<CardColor> = setOf( // Corrected: Use setOf
-        CardColor.RED,  // Corrected: Use enum constants
+    val DECK_REMOVED_COLORS: Set<CardColor> = setOf(
+        CardColor.RED,
         CardColor.ORANGE
     )
 
@@ -23,9 +24,28 @@ object Constants {
 
     const val HAND_SIZE = 9
 
-    // 📏 UI Dimensions
-    const val CARD_WIDTH = 50
-    const val CARD_HEIGHT = 100
+    // 📏 🎨 UI Dimensions & Colors
+    const val CARD_ON_HAND_HEIGHT = 160
+    const val CARD_ON_HAND_WIDTH = (CARD_ON_HAND_HEIGHT/2)// 80
+
+    const val CARD_ON_MAT_HEIGHT = 160
+    const val CARD_ON_MAT_WIDTH = (CARD_ON_MAT_HEIGHT/2)
+
+    const val PLAYERS_ROW_HEIGHT = 50
+    const val MAT_VIEW_HEIGHT = 150
+
+    /*
+    const val PLAYERS_ROW_COLOR = 0xFFF06400 // OK, This one is OK
+
+    const val MAT_VIEW_COLOR = 0xFF228B22 // OK, This one is OK
+
+    const val MAIN_SCREEN_COLOR = 0xFF006400
+
+
+    const val HAND_VIEW_COLOR2 = 0xFF0000FF
+
+
+     */
 
     // UI General
     const val NB_OF_DISCARDED_CARDS_TO_SHOW = 4
