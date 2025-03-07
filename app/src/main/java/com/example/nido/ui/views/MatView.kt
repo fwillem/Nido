@@ -28,6 +28,11 @@ import com.example.nido.game.rules.GameRules.isValidMove
 import com.example.nido.utils.Constants.NB_OF_DISCARDED_CARDS_TO_SHOW
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.events.AppEvent
+import com.example.nido.game.GameManager
+import com.example.nido.game.GameViewModel
+
+
 
 @Composable
 fun MatView(
@@ -134,8 +139,24 @@ fun MatView(
                                     selectedCards.clear()
                                 }
                                 else -> {
-                                    // More than one candidate: show the selection dialog.
-                                    showCardSelectionDialog = true
+
+                                    // More than one candidate: dispatch a dialog event via GameManager.
+                                    GameManager.setDialogEvent(
+                                        AppEvent.GameEvent.CardSelection(
+                                            candidateCards = candidateCards,
+                                            selectedCards = selectedCards.toList(),
+                                            onConfirm = { chosenCard ->
+                                                onPlayCombination(selectedCards.toList(), chosenCard)
+                                                selectedCards.clear()
+                                                GameManager.clearDialogEvent()
+                                            },
+                                            onCancel = {
+                                                GameManager.clearDialogEvent()
+                                            }
+                                        )
+                                    )
+                                }
+
                                 }
                             }
                         },
