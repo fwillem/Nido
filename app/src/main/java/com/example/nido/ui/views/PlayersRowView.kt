@@ -12,7 +12,7 @@ import com.example.nido.data.model.Player
 import com.example.nido.data.model.PlayerType
 
 @Composable
-fun PlayersRowView(players: List<Player>, currentTurnIndex: Int) {
+fun PlayersRowView(players: List<Player>, currentTurnIndex: Int, turnID: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -41,11 +41,25 @@ fun PlayersRowView(players: List<Player>, currentTurnIndex: Int) {
                     .padding(4.dp)
             ) {
                 Text(
-                    text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} cards - ${player.score} points",
+                    text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} cards - ${player.score} points)",
                     fontSize = 16.sp,
                     color = color
                 )
             }
         }
+
+        Box(
+            modifier = Modifier
+                .background(Color.Transparent)
+                .padding(4.dp)
+        ) {
+
+            Text(
+                text = "\uD83C\uDFB2 $turnID",
+                fontSize = 16.sp,
+                color = Color.White
+            )
+        }
+
     }
 }

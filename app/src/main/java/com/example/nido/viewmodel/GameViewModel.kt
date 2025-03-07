@@ -45,6 +45,10 @@ class GameViewModel : ViewModel() {
         if (oldState.soundOn != newState.soundOn) changes.add("soundOn: ${oldState.soundOn} ➝ ${newState.soundOn}")
         if (oldState.gameEvent != newState.gameEvent) changes.add("gameEvent: ${oldState.gameEvent} ➝ ${newState.gameEvent}")
         if (oldState.skipCount != newState.skipCount) changes.add("skipCount: ${oldState.skipCount} ➝ ${newState.skipCount}")
+        if (oldState.pointLimit != newState.pointLimit) changes.add("pointLimit: ${oldState.pointLimit} ➝ ${newState.pointLimit}")
+        if (oldState.turnId != newState.turnId) changes.add("turnId: ${oldState.turnId} ➝ ${newState.turnId}")
+
+
 
         // Print only changed values.
         if (changes.isNotEmpty()) {
@@ -65,7 +69,8 @@ class GameViewModel : ViewModel() {
             skipCount = newState.skipCount,
             screen = newState.screen,
             soundOn = newState.soundOn,
-            gameEvent = newState.gameEvent
+            gameEvent = newState.gameEvent,
+            turnId = newState.turnId
         )
     }
 }

@@ -31,6 +31,9 @@ import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.events.AppEvent
 import com.example.nido.game.GameManager
 import com.example.nido.game.GameViewModel
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
+
 
 
 
@@ -44,8 +47,6 @@ fun MatView(
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
-    // State to control whether the card selection dialog is shown.
-    var showCardSelectionDialog by remember { mutableStateOf(false) }
 
     TRACE(DEBUG) {
         "🟦 Recomposing MatView : \n" +
@@ -104,6 +105,7 @@ fun MatView(
                 Text("Discard Pile:", color = Color.Red)
                 Text("${discardPile.size}", color = Color.Red)
             }
+            /*
             Row(
                 modifier = Modifier.padding(8.dp),
                 horizontalArrangement = Arrangement.Center
@@ -118,6 +120,9 @@ fun MatView(
                 }
             }
 
+             */
+
+
             // **Play Button - Only when selection is not empty**
             if (selectedCards.isNotEmpty()) {
                 // Create a temporary combination from playmat (or empty if playmat is null)
@@ -129,11 +134,16 @@ fun MatView(
                             val candidateCards = playmat?.toList() ?: emptyList()
                             when {
                                 candidateCards.isEmpty() -> {
+                                    // More than one candidate: dispatch a dialog event via GameManager.
+                                    TRACE(DEBUG) { "No card to keep" }
                                     // If no candidate cards, commit move with no card to keep.
                                     onPlayCombination(selectedCards.toList(), null)
                                     selectedCards.clear()
                                 }
                                 candidateCards.size == 1 -> {
+
+                                    // Only one candidate: commit immediately.
+                                    TRACE(DEBUG) { "Only one candidate: commit immediately ${candidateCards.first()}" }
                                     // If only one candidate, commit immediately.
                                     onPlayCombination(selectedCards.toList(), candidateCards.first())
                                     selectedCards.clear()
@@ -141,6 +151,8 @@ fun MatView(
                                 else -> {
 
                                     // More than one candidate: dispatch a dialog event via GameManager.
+                                    TRACE(DEBUG) { "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}" }
+
                                     GameManager.setDialogEvent(
                                         AppEvent.GameEvent.CardSelection(
                                             candidateCards = candidateCards,
@@ -155,7 +167,7 @@ fun MatView(
                                             }
                                         )
                                     )
-                                }
+
 
                                 }
                             }
@@ -176,45 +188,4 @@ fun MatView(
         }
     }
 
-    // Show a transparent AlertDialog if multiple candidate cards are available.
-    if (showCardSelectionDialog) {
-        val candidateCards = playmat?.toList() ?: emptyList()
-        AlertDialog(
-            onDismissRequest = { showCardSelectionDialog = false },
-            title = { Text("Select Card to Keep") },
-            text = {
-                Column {
-                    candidateCards.forEach { card ->
-                        Button(
-                            onClick = {
-                                onPlayCombination(selectedCards.toList(), card)
-                                selectedCards.clear()
-                                showCardSelectionDialog = false
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = card.color.uiColor.copy(alpha = 0.3f), // 30% opacity background
-                                contentColor = card.color.uiColor // full opacity text color
-                            ),
-                            modifier = Modifier.padding(4.dp)
-                        ) {
-                            Text("${card.value} ${card.color}", fontSize = 12.sp)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { showCardSelectionDialog = false },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = Color.Gray
-                    ),
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    Text("Cancel", fontSize = 12.sp)
-                }
-            },
-            containerColor = Color.Transparent
-        )
-    }
 }

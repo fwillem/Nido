@@ -105,8 +105,12 @@ val testDeckForAll = mutableStateListOf<Card>(
 )
 
 
+enum class DeckRepositoryMode {
+    NORMAL,
+    DEBUG
+}
 
-
+val deckRepositoryMode = DeckRepositoryMode.NORMAL
 
     object DeckRepository {
 
@@ -128,21 +132,35 @@ val testDeckForAll = mutableStateListOf<Card>(
         if (shuffle) deck.shuffle()
 
 
-        if (removedColors.isNotEmpty()) {
-            return testDeckFor2
-        } else {
-            return testDeckForAll
+        when (deckRepositoryMode) {
+            DeckRepositoryMode.DEBUG -> {
+                if (removedColors.isNotEmpty()) {
+                    return testDeckFor2
+                } else {
+                    return testDeckForAll
+                }
+            }
+
+            DeckRepositoryMode.NORMAL -> {
+                return deck
+            }
+
         }
 
-
-
-        return deck
     }
 
     fun shuffleDeck(deck: List<Card>) : List<Card> {
         // TODO Implement shuffle return(deck.shuffled())
-        return(deck)
-        // return deck.shuffled()
+        when (deckRepositoryMode) {
+            DeckRepositoryMode.DEBUG -> {
+                return (deck)
+            }
+
+            DeckRepositoryMode.NORMAL -> {
+                return deck.shuffled()
+            }
+        }
+
     }
 
     // Keep your other functions as they were
