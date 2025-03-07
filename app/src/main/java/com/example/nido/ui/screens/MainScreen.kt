@@ -160,6 +160,7 @@ fun MainScreen(
                     currentPlayer.hand.cards.clear()
                     currentPlayer.hand.cards.addAll(updatedHand.cards)
                 },
+                onSkip = {GameManager.processSkip()},
                 cardWidth = Constants.CARD_ON_MAT_WIDTH.dp,
                 cardHeight = Constants.CARD_ON_MAT_HEIGHT.dp
             )

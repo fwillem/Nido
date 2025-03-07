@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.sp
 import com.example.nido.events.AppEvent
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.CardColor
+import com.example.nido.ui.theme.NidoColors
+
 
 @Composable
 fun CardSelectionDialog(event: AppEvent.GameEvent.CardSelection) { // 🚀 Extracted CardSelection dialog
@@ -25,7 +27,7 @@ fun CardSelectionDialog(event: AppEvent.GameEvent.CardSelection) { // 🚀 Extra
             Text(
                 "Select Card to Keep",
                 modifier = Modifier
-                    .background(Color.White.copy(alpha = 0.5f))
+                    .background(NidoColors.DialogTitleBackground.copy(alpha = 0.5f))
                     .padding(4.dp)
             )
         },
