@@ -6,6 +6,7 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.utils.Constants
+import com.example.nido.events.AppEvent
 
 data class GameState(
     val screen: GameScreens = GameScreens.MENU,
@@ -20,7 +21,8 @@ data class GameState(
     val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
     val skipCount: Int = 0, // New property to track consecutive skips.
     val soundOn: Boolean = true,
-    val showConfirmExitDialog: Boolean = false
+    val showConfirmExitDialog: Boolean = false,
+    val gameEvent: AppEvent? = null
 ) {
     override fun toString(): String {
         return """
@@ -37,6 +39,7 @@ data class GameState(
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
             💠 Sound On: $soundOn
             💠 Confirm Exit Dialog: $showConfirmExitDialog
+            💠 Game Event: $gameEvent
         """.trimIndent()
     }
 
@@ -53,7 +56,7 @@ data class GameState(
             deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
             skipCount = this.skipCount,
             soundOn = this.soundOn,
-            showConfirmExitDialog = this.showConfirmExitDialog
+            gameEvent = this.gameEvent
         )
     }
 }

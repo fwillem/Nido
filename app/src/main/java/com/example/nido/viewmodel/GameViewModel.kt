@@ -43,7 +43,7 @@ class GameViewModel : ViewModel() {
         if (oldState.currentCombinationOnMat != newState.currentCombinationOnMat) changes.add("currentCombinationOnMat: ${oldState.currentCombinationOnMat} ➝ ${newState.currentCombinationOnMat}")
         if (oldState.screen != newState.screen) changes.add("screen: ${oldState.screen} ➝ ${newState.screen}")
         if (oldState.soundOn != newState.soundOn) changes.add("soundOn: ${oldState.soundOn} ➝ ${newState.soundOn}")
-        if (oldState.showConfirmExitDialog != newState.showConfirmExitDialog) changes.add("showConfirmExitDialog: ${oldState.showConfirmExitDialog} ➝ ${newState.showConfirmExitDialog}")
+        if (oldState.gameEvent != newState.gameEvent) changes.add("gameEvent: ${oldState.gameEvent} ➝ ${newState.gameEvent}")
         if (oldState.skipCount != newState.skipCount) changes.add("skipCount: ${oldState.skipCount} ➝ ${newState.skipCount}")
 
         // Print only changed values.
@@ -65,7 +65,7 @@ class GameViewModel : ViewModel() {
             skipCount = newState.skipCount,
             screen = newState.screen,
             soundOn = newState.soundOn,
-            showConfirmExitDialog = newState.showConfirmExitDialog
+            gameEvent = newState.gameEvent
         )
     }
 }

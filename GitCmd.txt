@@ -1,4 +1,34 @@
 git config --global alias.savepoint '!git add . && git commit -m "Auto-save" && git tag -a $(date +%Y-%m-%d_%H-%M-%S) -m "Archived version" && git push && git push --tags'
+
+
+
+
+git config --global alias.release '!f() { \
+  read -p "Enter release description: " desc && \
+  git add . && \
+  git commit -m "Release $1: $desc" && \
+  git tag -a "$1" -m "$desc" && \
+  git push && \
+  git push --tags; \
+}; f'
+
+git config --global alias.release '!f() { read -p "Enter release description: " desc && git add . && git commit -m "Release $1: $desc" && git tag -a "$1" -m "$desc" && git push && git push --tags;}; f'
+
+
+
+
+
+git config --global alias.release '!f() { git checkout -b "$1" && read -p "Enter release description: " desc && git add . && git commit -m "Release $1: $desc" && git tag -a "$1" -m "$desc" && git push -u origin "$1" && git push --tags; }; f'
+
+
+git config --global alias.release '!f() { git checkout -b "$1" && read -p "Enter release description: " desc && git add . && git commit -m "Release $1: $desc" && git tag -a "release-$1" -m "$desc" && git push -u origin "$1" && git push --tags; }; f'
+
+
+git config --global alias.release '!f() { git checkout -b "$1" && read -p "Enter release description: " desc && git add . && if ! git diff-index --quiet HEAD -- ; then git commit -m "Release $1: $desc"; else echo "No changes to commit";   fi && git tag -a "release-$1" -m "$desc" && git push -u origin "$1" && git push --tags; }; f'
+
+
+git release v0.70
+
 git savepoint
 
 git push -u origin working-v0.3
