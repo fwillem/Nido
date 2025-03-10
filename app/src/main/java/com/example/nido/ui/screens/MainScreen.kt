@@ -218,6 +218,7 @@ fun MainScreen(
                 TRACE(FATAL) { "Unknown event type: ${gameState.gameEvent}" }
             }
         }
+
     }
 
     LaunchedEffect(gameState.turnId) {

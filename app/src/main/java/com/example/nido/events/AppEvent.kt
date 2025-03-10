@@ -8,9 +8,7 @@ sealed class AppEvent {
     sealed class GameEvent : AppEvent() {
         data class RoundOver(
             val winner: Player,
-            val oldScore: Int,
-            val pointsAdded: Int,
-            val newScore: Int,
+            val playersHandScore: List<Pair<Player, Int>>
             ) : GameEvent()
 
         data class GameOver(

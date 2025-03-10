@@ -16,7 +16,12 @@ import com.example.nido.data.model.Hand
 import com.example.nido.events.AppEvent
 import kotlin.Int
 
-
+enum class gameManagerMoveResult {
+    ROUND_OVER,
+    GAME_OVER,
+    NEXT_PLAYER,
+    INVALID_MOVE
+}
 object GameManager {
     private var gameViewModel: GameViewModel? = null
     val gameState: State<GameState>
@@ -177,12 +182,13 @@ object GameManager {
     /**
      * Play a combination of cards.Returns true if the player won.
      */
-    fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) : Boolean {
+    fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) : gameManagerMoveResult {
         val currentGameState = gameState.value
+        var moveResult : gameManagerMoveResult = gameManagerMoveResult.NEXT_PLAYER
 
         if (selectedCards.isEmpty()) {
             TRACE(FATAL) { " No cards selected" }
-            return false
+            return gameManagerMoveResult.INVALID_MOVE
         }
 
         // Create the new combination based on selected cards.
@@ -192,7 +198,7 @@ object GameManager {
         // Validate the move.
         if (!GameRules.isValidMove(currentCombination, newCombination)) {
             TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
-            return false
+            return gameManagerMoveResult.INVALID_MOVE
         }
 
 
@@ -205,7 +211,7 @@ object GameManager {
             this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
         }
 
-        // We need to figure out here is the player won
+        // We need to figure out here if the player won
         if (GameRules.hasPlayerWonTheRound(updatedHand)) {
             TRACE(INFO) { "${getCurrentPlayer().name} is playing: $newCombination " }
             TRACE(INFO) { "😍 ${getCurrentPlayer().name}  😎 won! " }
@@ -221,27 +227,34 @@ object GameManager {
             if (gameOver) {
 
                 TRACE(INFO) { "Game is over! 🍾" }
+                TRACE(INFO) { "SetDialogEvent GameOver" }
+
                 GameManager.setDialogEvent(
                     AppEvent.GameEvent.GameOver(
                         playerRankings = GameRules.getPlayerRankings(updatedPlayers),
                     )
                 )
 
+                // The game is over..
+                moveResult = gameManagerMoveResult.GAME_OVER
+
             } else {
+                TRACE(INFO) { "SetDialogEvent RoundOver" }
+
                 GameManager.setDialogEvent(
                     AppEvent.GameEvent.RoundOver(
                         winner = getCurrentPlayer(),
-                        oldScore = 0,
-                        pointsAdded = 0,
-                        newScore=0
+                        playersHandScore = GameRules.getPlayerHandScores(updatedPlayers),
                     )
                 )
 
                 TRACE(INFO) { "We need to Start a new round" }
                 startNewRound()
+
+                // Round is over
+                moveResult = gameManagerMoveResult.ROUND_OVER
             }
 
-            return true
         } else {
             // Build a new discard pile:
             // It consists of the existing discard pile plus the cards from the current combination
@@ -271,8 +284,10 @@ object GameManager {
 
             nextTurn()
 
-            return false
+            moveResult = gameManagerMoveResult.NEXT_PLAYER
         }
+
+        return moveResult
     }
 
 
@@ -323,6 +338,8 @@ object GameManager {
             TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
             // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
             playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
+
+
         } else {
             TRACE(INFO) { "${aiPlayer.name} has no move !" }
             skipTurn()
@@ -345,6 +362,14 @@ object GameManager {
 
     fun getPlayerRankings(): List<Pair<Player, Int>> {
         return GameRules.getPlayerRankings(gameState.value.players)
+    }
+
+    fun getPlayerHandScores() : List<Pair<Player, Int>> {
+        return GameRules.getPlayerHandScores(gameState.value.players)
+    }
+
+    fun getCurrentPlayerHandSize() : Int {
+        return getCurrentPlayer().hand.cards.size
     }
 
     fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {

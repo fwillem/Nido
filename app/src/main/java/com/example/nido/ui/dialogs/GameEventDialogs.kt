@@ -16,60 +16,7 @@ import com.example.nido.events.AppEvent
 import com.example.nido.game.GameManager
 
 
-@Composable
-fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver) { // 🚀 Extracted RoundOver dialog
-    AlertDialog(
-        onDismissRequest = { GameManager.clearDialogEvent() },
-        title = {
-            Card(modifier = Modifier.background(Color.White.copy(alpha = 0.7f))) {
-                Text("Round Over")
-            }
-        },
-        text = {
-            Card(modifier = Modifier.background(Color.White)) {
-                Text(
-                    "Winner: ${event.winner.name}\n" +
-                            "Old Score: ${event.oldScore}\n" +
-                            "Points Added: ${event.pointsAdded}\n" +
-                            "New Score: ${event.newScore}"
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { GameManager.clearDialogEvent() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Gray
-                )
-            ) {
-                Text("OK")
-            }
-        },
-        containerColor = Color.White.copy(alpha = 0.7f)
-    )
-}
 
-@Composable
-fun GameOverDialog(event: AppEvent.GameEvent.GameOver) { // 🚀 Extracted GameOver dialog
-    AlertDialog(
-        onDismissRequest = { GameManager.clearDialogEvent() },
-        title = { Text("Game Over") },
-        text = { Text("Winner: ${event.playerRankings.first()}") },
-        confirmButton = {
-            Button(
-                onClick = { GameManager.clearDialogEvent() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Gray
-                )
-            ) {
-                Text("OK")
-            }
-        },
-        containerColor = Color.White.copy(alpha = 0.7f)
-    )
-}
 
 @Composable
 fun PlayerLeftDialog(event: AppEvent.PlayerEvent.PlayerLeft) { // 🚀 Extracted PlayerLeft dialog
