@@ -40,6 +40,7 @@ import com.example.nido.data.model.PlayerAction
 import com.example.nido.data.model.PlayerActionType
 import com.example.nido.game.GameState
 import com.example.nido.game.GameScreens
+import com.example.nido.game.gameManagerMoveResult
 import com.example.nido.ui.screens.MainScreen
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.theme.NidoColors
@@ -145,7 +146,12 @@ fun MainScreen(
                 onPlayCombination = { playedCards, cardToKeep ->  // ✅ Use a different name
                     if (GameManager.isValidMove(playedCards)) {
                         TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
-                        GameManager.playCombination(playedCards, cardToKeep)
+                        val playMoveResult = GameManager.playCombination(playedCards, cardToKeep)
+
+                        if (playMoveResult == gameManagerMoveResult.GAME_OVER) {
+                            TRACE(DEBUG, tag = "MatView:onPlayCombination") { "Game Over" }
+                            onEndGame()
+                        }
                         selectedCards.clear() // Clear selection after a valid move.
                     } else {
                         TRACE(FATAL, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
