@@ -8,11 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview // 🚀 Added Preview import
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Player
 import com.example.nido.game.GameManager
 import com.example.nido.ui.theme.NidoColors
+import com.example.nido.ui.theme.NidoTheme
 
 @Composable
 fun ScoreScreen(
@@ -24,39 +26,42 @@ fun ScoreScreen(
     val winners = GameManager.getGameWinners() // ✅ Overall winners
     val gameOver = GameManager.isGameOver() // ✅ Check if game is over
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NidoColors.BackgroundDark)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.background(NidoColors.SetupScreenBackground)
     ) {
-        Text("🏆 Final Rankings", fontSize = 24.sp, color = Color.White)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // ✅ Display Ranked Players (with ranking numbers)
-        rankings.forEach { (player, rank) ->
-            PlayerScoreRow(player = player, rank = rank)
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        if (gameOver) {
-            Text(
-                "🎉 Winner(s): ${winners.joinToString(", ") { it.name }}",
-                fontSize = 20.sp,
-                color = Color.Yellow
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("🏆 Final Rankings", fontSize = 24.sp, color = Color.White)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = onEndGame) {
-                Text("🏁 End Game")
+            // ✅ Display Ranked Players (with ranking numbers)
+            rankings.forEach { (player, rank) ->
+                PlayerScoreRow(player = player, rank = rank)
             }
-        } else {
-            Button(onClick = onContinue) {
-                Text("▶️ Continue Game")
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            if (gameOver) {
+                Text(
+                    "🎉 Winner(s): ${winners.joinToString(", ") { it.name }}",
+                    fontSize = 20.sp,
+                    color = Color.Yellow
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = onEndGame) {
+                    Text("🏁 End Game")
+                }
+            } else {
+                Button(onClick = onContinue) {
+                    Text("▶️ Continue Game")
+                }
             }
         }
     }
@@ -83,5 +88,23 @@ fun PlayerScoreRow(player: Player, rank: Int) {
             Text("#$rank ${player.name} (${player.playerType})", fontSize = 18.sp, color = Color.White)
             Text("${player.score} pts", fontSize = 18.sp, color = Color.White)
         }
+    }
+}
+
+// 🚀 Landscape Preview for ScoreScreen
+@Preview(
+    name = "ScoreScreen - Landscape", // 🚀 Preview name
+    showBackground = true,
+    widthDp = 800, // 🚀 Landscape width
+    heightDp = 400 // 🚀 Landscape height
+)
+@Composable
+fun ScoreScreenLandscapePreview() {
+    NidoTheme { // 🚀 Wrap in your theme for proper styling
+        ScoreScreen(
+            onContinue = {},
+            onEndGame = {},
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }

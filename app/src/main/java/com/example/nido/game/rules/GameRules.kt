@@ -8,6 +8,7 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.Constants
 import com.example.nido.data.model.Hand
+import com.example.nido.game.GameManager.gameState
 
 
 object GameRules {
@@ -124,6 +125,14 @@ object GameRules {
         return players.sortedBy { it.score }
             .mapIndexed { index, player -> player to (index + 1) }
     }
+
+    fun getPlayerHandScores(players: List<Player>) : List<Pair<Player, Int>> {
+        // We need to return here for each player the number of cards he has (since it will be the score that will be added to the player's score)
+        return players.map { player ->
+            player to player.hand.cards.size
+        }
+    }
+
 
     fun updatePlayersScores(players: List<Player>) {
         TRACE(DEBUG) { "Updating scores" }

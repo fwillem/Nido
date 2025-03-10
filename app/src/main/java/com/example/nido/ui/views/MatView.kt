@@ -146,21 +146,32 @@ fun MatView(
 
                                         // More than one candidate: dispatch a dialog event via GameManager.
                                         TRACE(DEBUG) { "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}" }
+                                        TRACE(INFO) { "setDialogEvent : CardSelection" }
 
-                                        GameManager.setDialogEvent(
-                                            AppEvent.GameEvent.CardSelection(
-                                                candidateCards = candidateCards,
-                                                selectedCards = selectedCards.toList(),
-                                                onConfirm = { chosenCard ->
-                                                    onPlayCombination(selectedCards.toList(), chosenCard)
-                                                    selectedCards.clear()
-                                                    GameManager.clearDialogEvent()
-                                                },
-                                                onCancel = {
-                                                    GameManager.clearDialogEvent()
-                                                }
+                                        // Caveat here! if the user played his last cards, he won the round, no need to ask him to pick a card
+                                        // And that prevent us from dealing with re-entrance issue(if the user won the onPlayCombination() call
+                                        // will trigger a round over event that will be cleared by call to clearDialogEvent()
+                                        if (selectedCards.size == GameManager.getCurrentPlayerHandSize()) {
+                                                onPlayCombination(selectedCards.toList(), candidateCards.first())
+                                                selectedCards.clear()
+                                        } else {
+
+                                            GameManager.setDialogEvent(
+                                                AppEvent.GameEvent.CardSelection(
+                                                    candidateCards = candidateCards,
+                                                    selectedCards = selectedCards.toList(),
+                                                    onConfirm = { chosenCard ->
+                                                        onPlayCombination(selectedCards.toList(), chosenCard)
+                                                        selectedCards.clear()
+                                                        GameManager.clearDialogEvent()
+                                                    },
+                                                    onCancel = {
+                                                        GameManager.clearDialogEvent()
+                                                    }
+                                                )
                                             )
-                                        )
+                                        }
+
 
 
                                     }
@@ -175,7 +186,7 @@ fun MatView(
                             )
 
                         ) {
-                            Text("Play", fontSize = 12.sp, lineHeight = 12.sp)
+                            Text("Play", fontSize = 16.sp, lineHeight = 16.sp)
                         }
                     } else {
                         Button(
@@ -191,7 +202,7 @@ fun MatView(
 
 
                         ) {
-                            Text("Remove", fontSize = 12.sp, lineHeight = 12.sp)
+                            Text("Remove", fontSize = 16.sp, lineHeight = 16.sp)
                         }
                     }
                 } else {
@@ -207,7 +218,7 @@ fun MatView(
 
 
                     ) {
-                        Text("Skip", fontSize = 12.sp, lineHeight = 12.sp)
+                        Text("Skip", fontSize = 16.sp, lineHeight = 16.sp)
                     }
 
                 }

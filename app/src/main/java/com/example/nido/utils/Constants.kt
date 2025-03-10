@@ -7,7 +7,7 @@ import com.example.nido.data.model.CardColor
 object Constants {
     // 🎮 Game Rules
     const val GAME_MIN_POINT_LIMIT = 5
-    const val GAME_DEFAULT_POINT_LIMIT = 15
+    const val GAME_DEFAULT_POINT_LIMIT = 7
     const val GAME_MAX_POINT_LIMIT = 30
 
 

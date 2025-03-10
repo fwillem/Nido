@@ -31,8 +31,11 @@ object NidoColors {
     val HandViewBackground =    Color(0xFF006400)  // Green (Used in HandView)
     val SelectedCardBackground =    Color(0xFF228B22)  // Green (Used in HandView)
     val PlayMatButtonBackground = Color(0xFF006400)
+    val SetupScreenBackground = Color(0xFF228B22)
+    val ScoreScreenBackground = Color(0xFF228B22)
 
-    val DialogTitleBackground = Color(0xFF006400)
+
+    val DialogTitleBackground = Color(0xFF228B22)
 /**
  *  DEBUG Colors
     val PlaymatBackground =    Color(0xFFE040FB)  // Green (Used in HandView)

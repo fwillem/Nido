@@ -6,7 +6,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import com.example.nido.game.GameManager
 import com.example.nido.game.GameViewModel // Import GameViewModel
 
 @Composable
