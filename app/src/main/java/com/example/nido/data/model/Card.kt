@@ -6,7 +6,6 @@ import com.example.nido.data.model.CardColor
 import com.example.nido.data.model.CardResources
 
 
-
 data class Card(
     @DrawableRes val cardImageId: Int,
     val color: CardColor,
