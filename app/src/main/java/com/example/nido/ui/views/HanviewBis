@@ -9,22 +9,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.pointer.consume
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity  // 🚀 Added import for LocalDensity
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Hand
-import com.example.nido.utils.sortedByMode
 import com.example.nido.utils.SortMode
-import com.example.nido.ui.views.CardView
+import com.example.nido.utils.println
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
-import com.example.nido.utils.println
-import com.example.nido.data.model.CardResources.backCoverCard
-import com.example.nido.utils.Constants
 import com.example.nido.ui.theme.NidoColors
+import com.example.nido.utils.Constants
+import com.example.nido.ui.views.CardView
 import kotlinx.coroutines.launch
+
+// 🚀 NEW: Make sure you have your original sortedByMode extension function defined in your project:
+// fun List<Card>.sortedByMode(mode: SortMode): List<Card> {
+//     return when (mode) {
+//         SortMode.FIFO -> this // No sorting, keep as is
+//         SortMode.COLOR -> this.sortedWith(compareBy({ it.color.ordinal }, { it.value }))
+//         SortMode.VALUE -> this.sortedBy { it.value }
+//     }
+// }
 
 @Composable
 fun HandView(
@@ -36,8 +44,8 @@ fun HandView(
     onSelectCard: (Card) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    // 🚀 NEW: Retrieve the current density to convert between px and dp
     val density = LocalDensity.current
+    val cardHeightPx = with(density) { cardHeight.toPx() }
 
     TRACE(VERBOSE) { "Recomposing HandView : ${hand.cards}" }
 
@@ -57,29 +65,29 @@ fun HandView(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            // 🚀 Use the sortedCards list for iteration
             sortedCards.indices.forEach { index ->
-                val card = sortedCards[index] // Use sortedCards instead of currentHand
+                val card = sortedCards[index] // Using sorted list now
                 var offsetY by remember { mutableStateOf(0f) }
                 var dragging by remember { mutableStateOf(false) }
 
                 Box(
                     modifier = Modifier
                         .shadow(if (dragging) 8.dp else 0.dp)
-                        // 🚀 Convert offsetY from pixels to dp using density
+                        // 🚀 NEW: Convert offset from pixels to dp using LocalDensity
                         .offset(y = with(density) { offsetY.toDp() })
-                        .pointerInput(card) { // Use card as key so the lambda updates when card changes
+                        .pointerInput(card) { // 🔄 Changed key from Unit to card so the lambda updates when card changes
                             detectDragGestures(
                                 onDragStart = {
                                     dragging = true
+                                    // 🔄 Using the captured 'card' rather than reading from sortedCards[index]
                                     TRACE(VERBOSE, tag = "HandView:onDragStart1") { "Dragging card: ${card.value}, ${card.color}, index = $index" }
                                 },
                                 onDragEnd = {
                                     dragging = false
                                     TRACE(VERBOSE, tag = "HandView:onDragEnd") { "Drag End card: ${card.value}, ${card.color}, index = $index" }
 
-                                    // ✅ Drag threshold reached (converted cardHeight to pixels)
-                                    if (offsetY < -cardHeight.run { with(density) { toPx() } } / 2) {
+                                    // ✅ Check if drag threshold is reached
+                                    if (offsetY < -cardHeightPx / 2) {
                                         coroutineScope.launch {
                                             if (hand.cards.contains(card)) {
                                                 val removed = hand.removeCard(card)
