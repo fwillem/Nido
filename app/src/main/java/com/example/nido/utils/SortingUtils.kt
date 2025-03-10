@@ -22,8 +22,11 @@ fun List<Card>.sortedByComplexCriteria(): List<Card> {
 
 fun List<Card>.sortedByMode(mode: SortMode): List<Card> {
     return when (mode) {
-        SortMode.FIFO -> this // No sorting, keep as is
-        SortMode.COLOR -> this.sortedWith(compareBy({ it.color.ordinal }, { it.value }))
+        SortMode.FIFO -> this // No sorting; keep the original order.
+        // In COLOR mode, sort by color (using the ordinal) and then by value in descending order.
+        SortMode.COLOR -> this.sortedWith(compareBy<Card> { it.color.ordinal }
+            .thenByDescending { it.value })
+        // In VALUE mode, sort all cards by descending value.
         SortMode.VALUE -> this.sortedByDescending { it.value }
     }
 }
