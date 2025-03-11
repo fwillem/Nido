@@ -21,7 +21,6 @@ data class GameState(
     val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
     val skipCount: Int = 0, // New property to track consecutive skips.
     val soundOn: Boolean = true,
-    val showConfirmExitDialog: Boolean = false,
     val gameEvent: AppEvent? = null,
     val turnId: Int = 0 // increments on every turn/replay. Allow to trigger launcheffect for automatic AI playing
 
@@ -40,7 +39,6 @@ data class GameState(
             💠 Selected Cards: ${selectedCards.joinToString(", ") { it.toString() }}
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
             💠 Sound On: $soundOn
-            💠 Confirm Exit Dialog: $showConfirmExitDialog
             💠 Game Event: $gameEvent
             💠 Turn ID : $turnId
 

@@ -68,6 +68,7 @@ class GameViewModel : ViewModel() {
             currentCombinationOnMat = newState.currentCombinationOnMat,
             skipCount = newState.skipCount,
             screen = newState.screen,
+            pointLimit = newState.pointLimit,
             soundOn = newState.soundOn,
             gameEvent = newState.gameEvent,
             turnId = newState.turnId

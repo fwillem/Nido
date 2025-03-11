@@ -359,7 +359,6 @@ fun PreviewMainScreen() {
         deck = dummyDeck,
         skipCount = 0,
         soundOn = true,
-        showConfirmExitDialog = false,
         gameEvent = null,
         turnId = 1
     )
