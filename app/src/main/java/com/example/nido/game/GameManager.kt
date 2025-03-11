@@ -372,6 +372,23 @@ object GameManager {
         return getCurrentPlayer().hand.cards.size
     }
 
+    fun isCurrentPlayerLocal() : Boolean {
+        return getCurrentPlayer().playerType == PlayerType.LOCAL
+    }
+
+        fun currentPlayerHasValidCombination() : Boolean {
+
+        // Find all possible valid combinations from the current hand.
+        val possibleMoves: List<Combination> = GameRules.findValidCombinations(getCurrentPlayer().hand.cards)
+
+        // Get the current combination on the playmat.
+        val playmatCombination = gameState.value.currentCombinationOnMat
+
+        // Look for a valid move that beats the current playmat combination.
+        return (possibleMoves.find { GameRules.isValidMove(playmatCombination, it) } != null)
+
+    }
+
     fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
         val currentGameState = gameState.value
         val currentPlayer = getCurrentPlayer()
