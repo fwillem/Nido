@@ -1,8 +1,7 @@
 package com.example.nido.data.model
 
-import com.example.nido.game.GameManager
+import com.example.nido.game.IGameManager
 import com.example.nido.data.model.Combination
-
 
 /**
  * Enum representing the type of action a player can take.
@@ -14,11 +13,6 @@ enum class PlayerActionType {
 
 /**
  * Data class that encapsulates the result of a player's action.
- *
- * @property actionType Indicates whether the player is playing or skipping.
- * @property combination The combination played by the player (if any).
- * @property cardToKeep The card the player chooses to keep (if applicable).
- * @property comment An optional comment provided by the player.
  */
 data class PlayerAction(
     val actionType: PlayerActionType,
@@ -29,9 +23,6 @@ data class PlayerAction(
 
 /**
  * The Player interface represents a participant in the game.
- *
- * Each player has properties such as id, name, avatar, player type, score, and a hand of cards.
- * The play() method returns a PlayerAction that encapsulates the player's move for the turn.
  */
 interface Player {
     val id: String
@@ -44,11 +35,9 @@ interface Player {
     /**
      * Called when it's the player's turn.
      *
-     * @param gameManager The current game manager instance for accessing game state or helper functions.
-     * @return A PlayerAction instance describing what the player did, including the combination played,
-     *         the card to keep, and an optional comment.
+     * ✅ Updated to reference IGameManager instead of GameManager
      */
-    fun play(gameManager: GameManager): PlayerAction
+    fun play(gameManager: IGameManager): PlayerAction
 
     /**
      * Returns a copy of the player, optionally replacing some properties.

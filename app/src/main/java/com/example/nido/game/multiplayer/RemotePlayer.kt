@@ -2,6 +2,7 @@ package com.example.nido.game.multiplayer
 
 import com.example.nido.data.model.*
 import com.example.nido.game.GameManager
+import com.example.nido.game.IGameManager
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 
@@ -16,7 +17,7 @@ class RemotePlayer(
 ) : Player {
     override val playerType: PlayerType = PlayerType.REMOTE
 
-    override fun play(gameManager: GameManager): PlayerAction {
+    override fun play(gameManager: IGameManager): PlayerAction {
         // TODO need to implement it
         // Return a default SKIP action
         TRACE(ERROR) { "Not implemented yet" }

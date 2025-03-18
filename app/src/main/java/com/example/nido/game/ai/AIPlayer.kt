@@ -3,6 +3,7 @@ package com.example.nido.game.ai
 import com.example.nido.game.GameManager
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.*
+import com.example.nido.game.IGameManager
 import com.example.nido.utils.Constants
 
 val AIPLayerComments = listOf("That's my choice", "What do you think about that", "I'm thinking about it", "This move will make me win")
@@ -16,7 +17,7 @@ class AIPlayer(
 ) : Player {
     override val playerType: PlayerType = PlayerType.AI
 
-    override fun play(gameManager: GameManager): PlayerAction {
+    override fun play(gameManager: IGameManager): PlayerAction {
         // Find all possible valid combinations from the current hand.
         val possibleMoves: List<Combination> = GameRules.findValidCombinations(hand.cards)
 

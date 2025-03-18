@@ -23,6 +23,9 @@ import com.example.nido.data.model.PlayerActionType
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.foundation.layout.Column
 import com.example.nido.ui.theme.NidoColors
+import com.example.nido.game.LocalPlayer
+import com.example.nido.game.ai.AIPlayer
+import com.example.nido.game.FakeGameManager
 
 @Composable
 fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver) { // 🚀 Updated to use playersHandScore as List<Pair<Player, Int>>
@@ -60,68 +63,32 @@ fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver) { // 🚀 Updated to us
 }
 
 // 🚀 Dummy implementations of Player for preview purposes.
-private
-val dummyLocalPlayer = object : Player {
-    override val id: String = "1"
-    override val name: String = "Alice"
-    override val avatar: String = ""
-    override val playerType: PlayerType = PlayerType.LOCAL
-    override var score: Int = 80
-    override val hand: Hand = Hand(mutableStateListOf())
-    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
-        return PlayerAction(PlayerActionType.SKIP)
-    }
 
-    override fun copy(
-        id: String,
-        name: String,
-        avatar: String,
-        score: Int,
-        hand: Hand
-    ): Player = this
-}
+private val dummyLocalPlayer = LocalPlayer(
+    id = "1",
+    name = "Alice",
+    avatar = "",
+    score = 80,
+    hand = Hand(mutableStateListOf())
+)
 
-private
-val dummyAIPlayer1 = object : Player {
-    override val id: String = "2"
-    override val name: String = "Bob"
-    override val avatar: String = ""
-    override val playerType: PlayerType = PlayerType.AI
-    override var score: Int = 60
-    override val hand: Hand = Hand(mutableStateListOf())
-    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
-        return PlayerAction(PlayerActionType.SKIP)
-    }
+private val dummyAIPlayer1 = AIPlayer(
+    id = "2",
+    name = "Bob",
+    avatar = "",
+    score = 60,
+    hand = Hand(mutableStateListOf())
+)
 
-    override fun copy(
-        id: String,
-        name: String,
-        avatar: String,
-        score: Int,
-        hand: Hand
-    ): Player = this
-}
+private val dummyAIPlayer2 = AIPlayer(
+    id = "3",
+    name = "Carol",
+    avatar = "",
+    score = 70,
+    hand = Hand(mutableStateListOf())
+)
 
-private
-val dummyAIPlayer2 = object : Player {
-    override val id: String = "3"
-    override val name: String = "Carol"
-    override val avatar: String = ""
-    override val playerType: PlayerType = PlayerType.AI
-    override var score: Int = 70
-    override val hand: Hand = Hand(mutableStateListOf())
-    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
-        return PlayerAction(PlayerActionType.SKIP)
-    }
 
-    override fun copy(
-        id: String,
-        name: String,
-        avatar: String,
-        score: Int,
-        hand: Hand
-    ): Player = this
-}
 
 // 🚀 Preview for RoundOverDialog in landscape mode with three players.
 @Preview(
@@ -130,6 +97,7 @@ val dummyAIPlayer2 = object : Player {
     widthDp = 800,  // 🚀 Landscape width
     heightDp = 400  // 🚀 Landscape height
 )
+/*
 @Composable
 fun PreviewRoundOverDialog() {
     // 🚀 Create a dummy RoundOver event with a sample playersHandScore list including three players.
@@ -141,5 +109,18 @@ fun PreviewRoundOverDialog() {
             dummyAIPlayer2 to 70      // 🚀 Carol (AI)
         )
     )
+    RoundOverDialog(event = dummyEvent)
+}
+
+ */
+@Composable
+fun PreviewRoundOverDialog() {
+    val fakeGameManager = FakeGameManager()
+
+    val dummyEvent = AppEvent.GameEvent.RoundOver(
+        winner = fakeGameManager.gameState.value.players.first(), // ✅ Use FakeGameManager player
+        playersHandScore = fakeGameManager.getPlayerHandScores()  // ✅ Use FakeGameManager data
+    )
+
     RoundOverDialog(event = dummyEvent)
 }
