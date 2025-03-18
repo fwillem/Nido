@@ -51,6 +51,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.theme.NidoTheme
+import com.example.nido.game.FakeGameManager
+import androidx.compose.runtime.CompositionLocalProvider
+
 
 @Composable
 fun MatView(
@@ -249,32 +252,37 @@ fun MatView(
 @Composable
 fun PreviewMatViewScenario1() {
     NidoTheme {
-        val playmatCards = remember { mutableStateListOf(
-            Card(2, "RED"),
-            Card(3, "GREEN")
-        )}
+        // Provide the FakeGameManager to the CompositionLocal so that
+        // every call to LocalGameManager.current returns the fake instance.
+        CompositionLocalProvider(LocalGameManager provides FakeGameManager()) {
+            val playmatCards = remember { mutableStateListOf(
+                Card(2, "RED"),
+                Card(3, "GREEN")
+            )}
 
-        val selectedCards = remember { mutableStateListOf(
-            Card(4, "BLUE"),
-            Card(5, "MOCHA"),
-            Card(6, "PINK")
-        )}
+            val selectedCards = remember { mutableStateListOf(
+                Card(4, "BLUE"),
+                Card(5, "MOCHA"),
+                Card(6, "PINK")
+            )}
 
-        val discardPile = remember { mutableStateListOf<Card>() }
+            val discardPile = remember { mutableStateListOf<Card>() }
 
-        val onPlayCombination: (List<Card>, Card?) -> Unit = { _, _ -> }
-        val onWithdrawCards: (List<Card>) -> Unit = { _ -> }
-        val onSkip: () -> Unit = {}
+            val onPlayCombination: (List<Card>, Card?) -> Unit = { _, _ -> }
+            val onWithdrawCards: (List<Card>) -> Unit = { _ -> }
+            val onSkip: () -> Unit = {}
 
-        MatView(
-            playmat = playmatCards,
-            discardPile = discardPile,
-            selectedCards = selectedCards,
-            onPlayCombination = onPlayCombination,
-            onWithdrawCards = onWithdrawCards,
-            onSkip = onSkip,
-            cardWidth = 80.dp,
-            cardHeight = 120.dp
-        )
+            MatView(
+                playmat = playmatCards,
+                discardPile = discardPile,
+                selectedCards = selectedCards,
+                onPlayCombination = onPlayCombination,
+                onWithdrawCards = onWithdrawCards,
+                onSkip = onSkip,
+                cardWidth = 80.dp,
+                cardHeight = 120.dp
+            )
+        }
     }
 }
+
