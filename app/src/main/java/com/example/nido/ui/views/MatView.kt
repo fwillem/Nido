@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.CardColor
 import com.example.nido.data.model.Combination
-import com.example.nido.game.GameManager
 import com.example.nido.game.rules.GameRules
 import com.example.nido.events.AppEvent
 import com.example.nido.ui.theme.NidoColors
@@ -50,6 +49,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.theme.NidoTheme
 
 @Composable
@@ -69,6 +69,9 @@ fun MatView(
                 "DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}\n" +
                 "SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }} \n"
     }
+
+    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+
 
     Row(modifier = Modifier.fillMaxSize()) {
         // Left section: Selected Cards
@@ -123,10 +126,10 @@ fun MatView(
                 }
             }
             // Button section
-            if (!GameManager.isCurrentPlayerLocal()) {
+            if (!gameManager.isCurrentPlayerLocal()) {
 
             }
-            else if (!GameManager.currentPlayerHasValidCombination()) {
+            else if (!gameManager.currentPlayerHasValidCombination()) {
                 TRACE(VERBOSE) { "Local player has no valid combination" }
                 var skipCount by remember { mutableStateOf(3) }
                 // Use LaunchedEffect to decrement skipCount every 500ms.
@@ -173,21 +176,21 @@ fun MatView(
                                         "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}"
                                     }
                                     TRACE(INFO) { "setDialogEvent : CardSelection" }
-                                    if (selectedCards.size == GameManager.getCurrentPlayerHandSize()) {
+                                    if (selectedCards.size == gameManager.getCurrentPlayerHandSize()) {
                                         onPlayCombination(selectedCards.toList(), candidateCards.first())
                                         selectedCards.clear()
                                     } else {
-                                        GameManager.setDialogEvent(
+                                        gameManager.setDialogEvent(
                                             AppEvent.GameEvent.CardSelection(
                                                 candidateCards = candidateCards,
                                                 selectedCards = selectedCards.toList(),
                                                 onConfirm = { chosenCard ->
                                                     onPlayCombination(selectedCards.toList(), chosenCard)
                                                     selectedCards.clear()
-                                                    GameManager.clearDialogEvent()
+                                                    gameManager.clearDialogEvent()
                                                 },
                                                 onCancel = {
-                                                    GameManager.clearDialogEvent()
+                                                    gameManager.clearDialogEvent()
                                                 }
                                             )
                                         )

@@ -1,6 +1,5 @@
 package com.example.nido.game.ai
 
-import com.example.nido.game.GameManager
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.*
 import com.example.nido.game.IGameManager

@@ -12,7 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview // 🚀 Added Preview import
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Player
-import com.example.nido.game.GameManager
+import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 
@@ -22,9 +22,11 @@ fun ScoreScreen(
     onEndGame: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rankings = GameManager.getPlayerRankings() // ✅ Now gets (Player, Rank) pairs
-    val winners = GameManager.getGameWinners() // ✅ Overall winners
-    val gameOver = GameManager.isGameOver() // ✅ Check if game is over
+    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+
+    val rankings = gameManager.getPlayerRankings() // ✅ Now gets (Player, Rank) pairs
+    val winners = gameManager.getGameWinners() // ✅ Overall winners
+    val gameOver = gameManager.isGameOver() // ✅ Check if game is over
 
     Box(
         modifier = Modifier.background(NidoColors.SetupScreenBackground)

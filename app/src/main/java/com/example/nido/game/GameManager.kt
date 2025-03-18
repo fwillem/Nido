@@ -436,4 +436,7 @@ private object GameManager : IGameManager {
 
 }
 
+// Internal helper function to expose GameManager as IGameManager within the module.
+internal fun getGameManagerInstance(): IGameManager = GameManager
+
 

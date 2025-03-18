@@ -13,20 +13,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.events.AppEvent
-import com.example.nido.game.GameManager
-
-
+import com.example.nido.ui.LocalGameManager
 
 
 @Composable
 fun PlayerLeftDialog(event: AppEvent.PlayerEvent.PlayerLeft) { // 🚀 Extracted PlayerLeft dialog
+    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+
     AlertDialog(
-        onDismissRequest = { GameManager.clearDialogEvent() },
+        onDismissRequest = { gameManager.clearDialogEvent() },
         title = { Text("Player Left") },
         text = { Text("${event.player.name} has left the game.") },
         confirmButton = {
             Button(
-                onClick = { GameManager.clearDialogEvent() },
+                onClick = { gameManager.clearDialogEvent() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.Gray
@@ -41,13 +41,15 @@ fun PlayerLeftDialog(event: AppEvent.PlayerEvent.PlayerLeft) { // 🚀 Extracted
 
 @Composable
 fun ChatMessageDialog(event: AppEvent.PlayerEvent.ChatMessage) { // 🚀 Extracted ChatMessage dialog
+    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+
     AlertDialog(
-        onDismissRequest = { GameManager.clearDialogEvent() },
+        onDismissRequest = { gameManager.clearDialogEvent() },
         title = { Text("New Chat Message") },
         text = { Text("${event.sender.name}: ${event.message}") },
         confirmButton = {
             Button(
-                onClick = { GameManager.clearDialogEvent() },
+                onClick = { gameManager.clearDialogEvent() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.Gray

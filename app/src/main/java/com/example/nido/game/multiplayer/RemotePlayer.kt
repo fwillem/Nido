@@ -1,7 +1,6 @@
 package com.example.nido.game.multiplayer
 
 import com.example.nido.data.model.*
-import com.example.nido.game.GameManager
 import com.example.nido.game.IGameManager
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*

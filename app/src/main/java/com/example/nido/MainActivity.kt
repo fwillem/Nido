@@ -13,8 +13,8 @@ import com.example.nido.game.GameViewModel
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.screens.NidoApp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.nido.game.GameManager
 import com.example.nido.game.IGameManager
+import com.example.nido.game.getGameManagerInstance
 import com.example.nido.ui.LocalGameManager
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,16 +31,15 @@ class MainActivity : ComponentActivity() {
         windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
 
-        // Set the content of the activity
         setContent {
             NidoTheme {
                 val viewModel: GameViewModel = viewModel()
 
-                // ✅ Use dependency injection for GameManager
-                val gameManager: IGameManager = GameManager
+                // Obtain the GameManager instance using our internal helper.
+                val gameManager: IGameManager = getGameManagerInstance()
                 gameManager.initialize(viewModel)
 
-                // ✅ Provide GameManager using CompositionLocalProvider
+                // Provide the GameManager only via LocalGameManager.
                 CompositionLocalProvider(LocalGameManager provides gameManager) {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         NidoApp(

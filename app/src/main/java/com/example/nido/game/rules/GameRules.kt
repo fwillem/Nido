@@ -8,7 +8,6 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.Constants
 import com.example.nido.data.model.Hand
-import com.example.nido.game.GameManager.gameState
 
 
 object GameRules {
