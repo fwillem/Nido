@@ -237,33 +237,34 @@ fun MatView(
     }
 }
 
+/*
 @Preview(
     name = "MatView - 2 on Playmat, 3 on Selected",
     showBackground = true,
     widthDp = 800,
     heightDp = 400
 )
+
 @Composable
 fun PreviewMatViewScenario1() {
-    // 🚀 Create dummy SnapshotStateLists for scenario 1:
+    // 🚀 Fake data for preview
     val playmatCards = remember { mutableStateListOf<Card>().apply {
-        add(Card(2, "RED"))
-        add(Card(2, "RED"))
         add(Card(2, "RED"))
         add(Card(3, "GREEN"))
     } }
+
     val selectedCards = remember { mutableStateListOf<Card>().apply {
         add(Card(4, "BLUE"))
         add(Card(5, "MOCHA"))
         add(Card(6, "PINK"))
     } }
-    // Using an empty discard pile for simplicity:
-    val discardPile = remember { mutableStateListOf<Card>() }
 
-    // 🚀 Dummy lambdas for button callbacks:
-    val onPlayCombination: (List<Card>, Card?) -> Unit = { cards, cardToKeep -> }
-    val onWithdrawCards: (List<Card>) -> Unit = { cards -> }
-    val onSkip: () -> Unit = { }
+    val discardPile = remember { mutableStateListOf<Card>() } // Empty discard pile for simplicity
+
+    // 🚀 Use Fake Functions Instead of GameManager
+    val onPlayCombination: (List<Card>, Card?) -> Unit = { _, _ -> }
+    val onWithdrawCards: (List<Card>) -> Unit = { _ -> }
+    val onSkip: () -> Unit = {}
 
     MatView(
         playmat = playmatCards,
@@ -276,3 +277,4 @@ fun PreviewMatViewScenario1() {
         cardHeight = 120.dp  // 🚀 Example dimensions
     )
 }
+*/

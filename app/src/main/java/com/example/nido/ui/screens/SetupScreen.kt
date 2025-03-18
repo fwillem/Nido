@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nido.data.model.Player
@@ -53,7 +55,7 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
             Spacer(modifier = Modifier.height(16.dp))
 
             Row {
-                Text("Players :")
+                Text("Players (${selectedPlayers.size}) :")
                 // ✅ Display current selected players
                 selectedPlayers.forEach { player ->
                     Text("${player.avatar} ${player.name}    ")
@@ -62,22 +64,48 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ✅ Button to add AI players
-            Button(
-                onClick = {
-                    if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {  // Max 6 players (1 Human + 5 AI)
-                        val nextAI = aiPlayers[selectedPlayers.size - 1] // Pick next AI from list
-                        selectedPlayers = selectedPlayers + AIPlayer(
-                            id = (selectedPlayers.size).toString(),
-                            name = nextAI.first,
-                            avatar = nextAI.second
-                        )
-                    }
-                },
-                enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS  // Disable button if max players reached
+            // ✅ Buttons shall have the same width
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Add Player (${selectedPlayers.size})")
+                // ✅ Button to add AI players
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                    ,
+                    onClick = {
+                        if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {  // Max 6 players (1 Human + 5 AI)
+                            val nextAI = aiPlayers[selectedPlayers.size - 1] // Pick next AI from list
+                            selectedPlayers = selectedPlayers + AIPlayer(
+                                id = (selectedPlayers.size).toString(),
+                                name = nextAI.first,
+                                avatar = nextAI.second
+                            )
+                        }
+                    },
+                    enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS  // Disable button if max players reached
+                ) {
+                    Text("Add Player")
+                }
+
+                // ✅ Button to remove AI players
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                    ,
+                    onClick = {
+                        if (selectedPlayers.size > 1) {
+                            selectedPlayers = selectedPlayers.dropLast(1)
+                        }
+                    },
+                    enabled = selectedPlayers.size > 1
+                ) {
+                    Text("Remove Player")
+                }
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
