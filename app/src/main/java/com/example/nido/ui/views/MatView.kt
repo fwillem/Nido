@@ -237,13 +237,15 @@ fun MatView(
     }
 }
 
-/*
+
 @Preview(
     name = "MatView - 2 on Playmat, 3 on Selected",
     showBackground = true,
     widthDp = 800,
     heightDp = 400
 )
+
+
 
 @Composable
 fun PreviewMatViewScenario1() {
@@ -277,4 +279,3 @@ fun PreviewMatViewScenario1() {
         cardHeight = 120.dp  // 🚀 Example dimensions
     )
 }
-*/
