@@ -46,6 +46,9 @@ import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.screens.MainScreen
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.theme.NidoColors
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.nido.game.FakeGameManager
+
 
 @Composable
 fun MainScreen(
@@ -353,9 +356,12 @@ fun PreviewMainScreen() {
 
 
     NidoTheme {
-        MainScreen(
-            onEndGame = {},
-            viewModel = fakeViewModel
-        )
+        CompositionLocalProvider(LocalGameManager provides FakeGameManager()) {
+
+            MainScreen(
+                onEndGame = {},
+                viewModel = fakeViewModel
+            )
+        }
     }
 }

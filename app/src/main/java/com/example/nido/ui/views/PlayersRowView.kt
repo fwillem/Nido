@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.*
 import com.example.nido.data.repository.CardRepository.getBackCover
+import com.example.nido.game.LocalPlayer
+import com.example.nido.game.ai.AIPlayer
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.utils.Constants
@@ -83,7 +85,7 @@ fun PlayersRowView(players: List<Player>, currentTurnIndex: Int, turnID: Int) {
         }
     }
 }
-/*
+
 // 🚀 Dummy Players for Preview
 @Preview(
     name = "PlayersRowView - 4 Players",
@@ -96,61 +98,60 @@ fun PreviewPlayersRowView() {
     NidoTheme {
         val players = remember {
             listOf(
-                object : Player {
-                    override val id = "1"
-                    override val name = "Alice"
-                    override val avatar = "🧑"
-                    override val playerType = PlayerType.LOCAL
-                    override var score = 15
-                    override val hand = Hand(mutableStateListOf(Card(3, "RED"), Card(5, "BLUE")))
-                    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
-                        return PlayerAction(PlayerActionType.SKIP)
-                    }
-                    override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-                },
-                object : Player {
-                    override val id = "2"
-                    override val name = "Bot 1"
-                    override val avatar = "🤖"
-                    override val playerType = PlayerType.AI
-                    override var score = 10
-                    override val hand = Hand(mutableStateListOf(Card(7, "GREEN"), Card(9, "MOCHA")))
-                    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
-                        return PlayerAction(PlayerActionType.SKIP)
-                    }
-                    override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-                },
-                object : Player {
-                    override val id = "3"
-                    override val name = "Bot 2"
-                    override val avatar = "🤖"
-                    override val playerType = PlayerType.AI
-                    override var score = 20
-                    override val hand = Hand(mutableStateListOf(Card(2, "PINK"), Card(4, "BLUE")))
-                    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
-                        return PlayerAction(PlayerActionType.SKIP)
-                    }
-                    override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-                },
-                object : Player {
-                    override val id = "4"
-                    override val name = "Bot 3"
-                    override val avatar = "🤖"
-                    override val playerType = PlayerType.AI
-                    override var score = 5
-                    override val hand = Hand(mutableStateListOf(Card(1, "MOCHA"), Card(8, "RED")))
-                    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
-                        return PlayerAction(PlayerActionType.SKIP)
-                    }
-                    override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-                }
+                LocalPlayer(
+                    id = "1",
+                    name = "Alice",
+                    avatar = "",
+                    score = 15,
+                    hand = Hand(
+                        mutableStateListOf(
+                            Card(3, "RED"),
+                            Card(5, "BLUE")
+                        )
+                    )
+                ),
+                AIPlayer(
+                    id = "2",
+                    name = "Bob",
+                    avatar = "",
+                    score = 10,
+                    hand = Hand(
+                        mutableStateListOf(
+                            Card(7, "GREEN"),
+                            Card(9, "MOCHA")
+                        )
+                    )
+                ),
+                AIPlayer(
+                    id = "3",
+                    name = "Carol",
+                    avatar = "",
+                    score = 20,
+                    hand = Hand(
+                        mutableStateListOf(
+                            Card(2, "PINK"),
+                            Card(4, "BLUE")
+                        )
+                    )
+                ),
+                AIPlayer(
+                    id = "4",
+                    name = "Bot 3",
+                    avatar = "",
+                    score = 5,
+                    hand = Hand(
+                        mutableStateListOf(
+                            Card(1, "MOCHA"),
+                            Card(8, "RED")
+                        )
+                    )
+                )
             )
         }
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height( Constants.PLAYERS_ROW_HEIGHT.dp)
+                .height(Constants.PLAYERS_ROW_HEIGHT.dp)
                 .background(NidoColors.PlayersRowBackground),
 
             ) {
@@ -163,4 +164,3 @@ fun PreviewPlayersRowView() {
 
     }
 }
-*/
