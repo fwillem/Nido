@@ -17,7 +17,6 @@ import com.example.nido.data.repository.CardRepository.getBackCover
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.utils.Constants
-import com.example.nido.game.GameManager
 
 @Composable
 fun PlayersRowView(players: List<Player>, currentTurnIndex: Int, turnID: Int) {
@@ -30,7 +29,8 @@ fun PlayersRowView(players: List<Player>, currentTurnIndex: Int, turnID: Int) {
         players.forEachIndexed { index, player ->
             val isCurrent = index == currentTurnIndex
             val color = when {
-                isCurrent -> Color.Yellow   // Human player's turn
+                isCurrent && player.playerType == PlayerType.LOCAL -> Color.Yellow   // Human player's turn
+                isCurrent && player.playerType == PlayerType.AI -> Color.Red         // AI player's turn
                 else -> Color.White
             }
             val backgroundColor = if (isCurrent) Color.DarkGray else Color.Transparent
@@ -84,60 +84,82 @@ fun PlayersRowView(players: List<Player>, currentTurnIndex: Int, turnID: Int) {
     }
 }
 
+// 🚀 Dummy Players for Preview
 @Preview(
     name = "PlayersRowView - 4 Players",
     showBackground = true,
     widthDp = 800,
-    heightDp = 400
+    heightDp = 200
 )
 @Composable
 fun PreviewPlayersRowView() {
-    // 🚀 Create dummy players for preview
-    val players = listOf(
-        object : Player {
-            override val id = "1"
-            override val name = "Alice"
-            override val avatar = "👤"
-            override val playerType = PlayerType.LOCAL
-            override var score = 10
-            override val hand = Hand(mutableStateListOf(Card(2, "RED"), Card(3, "GREEN")))
-            override fun play(gameManager: GameManager) = PlayerAction(PlayerActionType.PLAY)
-            override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-        },
-        object : Player {
-            override val id = "2"
-            override val name = "Bob"
-            override val avatar = "🤖"
-            override val playerType = PlayerType.AI
-            override var score = 15
-            override val hand = Hand(mutableStateListOf(Card(5, "BLUE"), Card(6, "MOCHA")))
-            override fun play(gameManager: GameManager) = PlayerAction(PlayerActionType.SKIP)
-            override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-        },
-        object : Player {
-            override val id = "3"
-            override val name = "Charlie"
-            override val avatar = "🤖"
-            override val playerType = PlayerType.AI
-            override var score = 20
-            override val hand = Hand(mutableStateListOf(Card(7, "PINK"), Card(8, "YELLOW")))
-            override fun play(gameManager: GameManager) = PlayerAction(PlayerActionType.PLAY)
-            override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-        },
-        object : Player {
-            override val id = "4"
-            override val name = "Diana"
-            override val avatar = "🤖"
-            override val playerType = PlayerType.AI
-            override var score = 5
-            override val hand = Hand(mutableStateListOf(Card(9, "GREEN"), Card(10, "RED")))
-            override fun play(gameManager: GameManager) = PlayerAction(PlayerActionType.PLAY)
-            override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-        }
-    )
-
-    // 🚀 Wrap inside NidoTheme to prevent missing CompositionLocal errors
     NidoTheme {
-        PlayersRowView(players = players, currentTurnIndex = 0, turnID = 1)
+        val players = remember {
+            listOf(
+                object : Player {
+                    override val id = "1"
+                    override val name = "Alice"
+                    override val avatar = "🧑"
+                    override val playerType = PlayerType.LOCAL
+                    override var score = 15
+                    override val hand = Hand(mutableStateListOf(Card(3, "RED"), Card(5, "BLUE")))
+                    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
+                        return PlayerAction(PlayerActionType.SKIP)
+                    }
+                    override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
+                },
+                object : Player {
+                    override val id = "2"
+                    override val name = "Bot 1"
+                    override val avatar = "🤖"
+                    override val playerType = PlayerType.AI
+                    override var score = 10
+                    override val hand = Hand(mutableStateListOf(Card(7, "GREEN"), Card(9, "MOCHA")))
+                    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
+                        return PlayerAction(PlayerActionType.SKIP)
+                    }
+                    override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
+                },
+                object : Player {
+                    override val id = "3"
+                    override val name = "Bot 2"
+                    override val avatar = "🤖"
+                    override val playerType = PlayerType.AI
+                    override var score = 20
+                    override val hand = Hand(mutableStateListOf(Card(2, "PINK"), Card(4, "BLUE")))
+                    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
+                        return PlayerAction(PlayerActionType.SKIP)
+                    }
+                    override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
+                },
+                object : Player {
+                    override val id = "4"
+                    override val name = "Bot 3"
+                    override val avatar = "🤖"
+                    override val playerType = PlayerType.AI
+                    override var score = 5
+                    override val hand = Hand(mutableStateListOf(Card(1, "MOCHA"), Card(8, "RED")))
+                    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
+                        return PlayerAction(PlayerActionType.SKIP)
+                    }
+                    override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
+                }
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height( Constants.PLAYERS_ROW_HEIGHT.dp)
+                .background(NidoColors.PlayersRowBackground),
+
+            ) {
+            PlayersRowView(
+                players = players,
+                currentTurnIndex = 1,
+                turnID = 12
+            )
+        }
+
     }
 }
