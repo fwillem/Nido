@@ -40,6 +40,8 @@ import com.example.nido.data.model.PlayerAction
 import com.example.nido.data.model.PlayerActionType
 import com.example.nido.game.GameState
 import com.example.nido.game.GameScreens
+import com.example.nido.game.LocalPlayer
+import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.gameManagerMoveResult
 import com.example.nido.ui.screens.MainScreen
 import com.example.nido.ui.theme.NidoTheme
@@ -240,29 +242,8 @@ fun MainScreen(
 }
 
 
-// 🚀 SimplePlayer: A basic implementation of the Player interface for preview purposes.
-data class SimplePlayer(
-    override val id: String,
-    override val name: String,
-    override val avatar: String = "",
-    override val playerType: PlayerType,
-    override var score: Int = 0,
-    override val hand: Hand
-) : Player {
-    override fun play(gameManager: com.example.nido.game.GameManager): PlayerAction {
-        // Return a dummy action (SKIP) for preview purposes.
-        return PlayerAction(PlayerActionType.SKIP)
-    }
-    override fun copy(
-        id: String,
-        name: String,
-        avatar: String,
-        score: Int,
-        hand: Hand
-    ): Player {
-        return SimplePlayer(id, name, avatar, playerType, score, hand)
-    }
-}
+
+
 
 
 @Preview(
@@ -276,10 +257,10 @@ data class SimplePlayer(
 fun PreviewMainScreen() {
     // 🚀 Create dummy players using SimplePlayer.
     val dummyPlayers = listOf(
-        SimplePlayer(
+        LocalPlayer (
             id = "1",
             name = "Alice",
-            playerType = PlayerType.LOCAL,
+            avatar = "",
             hand = Hand(mutableStateListOf(
                 // 9 cards for the current player's hand
                 Card(2, "RED"),
@@ -293,20 +274,20 @@ fun PreviewMainScreen() {
                 Card(4, "RED")
             ))
         ),
-        SimplePlayer(
+        AIPlayer(
             id = "2",
             name = "Bob",
-            playerType = PlayerType.AI,
+            avatar = "",
+            score = 0,
             hand = Hand(mutableStateListOf(
-                Card(2, "RED"),
-                Card(3, "GREEN"),
-                Card(4, "BLUE")
+                Card(2, "BLUE"),
+                Card(5, "MOCHA")
             ))
         ),
-        SimplePlayer(
+        AIPlayer(
             id = "3",
             name = "Carol",
-            playerType = PlayerType.LOCAL,
+            avatar = "",
             hand = Hand(mutableStateListOf(
                 Card(2, "PINK"),
                 Card(3, "MOCHA"),

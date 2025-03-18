@@ -33,8 +33,7 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.CardColor
 import com.example.nido.data.model.Combination
 import com.example.nido.game.GameManager
-import com.example.nido.game.GameManager.currentPlayerHasValidCombination
-import com.example.nido.game.rules.GameRules.isValidMove
+import com.example.nido.game.rules.GameRules
 import com.example.nido.events.AppEvent
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.views.CardView
@@ -51,6 +50,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.example.nido.ui.theme.NidoTheme
 
 @Composable
 fun MatView(
@@ -126,7 +126,7 @@ fun MatView(
             if (!GameManager.isCurrentPlayerLocal()) {
 
             }
-            else if (!currentPlayerHasValidCombination()) {
+            else if (!GameManager.currentPlayerHasValidCombination()) {
                 TRACE(VERBOSE) { "Local player has no valid combination" }
                 var skipCount by remember { mutableStateOf(3) }
                 // Use LaunchedEffect to decrement skipCount every 500ms.
@@ -153,7 +153,7 @@ fun MatView(
             } else if (selectedCards.isNotEmpty()) {
                 TRACE(DEBUG) { "Player has a valid combination" }
                 val currentCombination = if (playmat != null) Combination(playmat) else Combination(mutableStateListOf())
-                if (isValidMove(currentCombination, Combination(selectedCards))) {
+                if (GameRules.isValidMove(currentCombination, Combination(selectedCards))) {
                     Button(
                         onClick = {
                             val candidateCards = playmat?.toList() ?: emptyList()
@@ -237,45 +237,41 @@ fun MatView(
     }
 }
 
-
 @Preview(
     name = "MatView - 2 on Playmat, 3 on Selected",
     showBackground = true,
     widthDp = 800,
     heightDp = 400
 )
-
-
-
 @Composable
 fun PreviewMatViewScenario1() {
-    // 🚀 Fake data for preview
-    val playmatCards = remember { mutableStateListOf<Card>().apply {
-        add(Card(2, "RED"))
-        add(Card(3, "GREEN"))
-    } }
+    NidoTheme {
+        val playmatCards = remember { mutableStateListOf(
+            Card(2, "RED"),
+            Card(3, "GREEN")
+        )}
 
-    val selectedCards = remember { mutableStateListOf<Card>().apply {
-        add(Card(4, "BLUE"))
-        add(Card(5, "MOCHA"))
-        add(Card(6, "PINK"))
-    } }
+        val selectedCards = remember { mutableStateListOf(
+            Card(4, "BLUE"),
+            Card(5, "MOCHA"),
+            Card(6, "PINK")
+        )}
 
-    val discardPile = remember { mutableStateListOf<Card>() } // Empty discard pile for simplicity
+        val discardPile = remember { mutableStateListOf<Card>() }
 
-    // 🚀 Use Fake Functions Instead of GameManager
-    val onPlayCombination: (List<Card>, Card?) -> Unit = { _, _ -> }
-    val onWithdrawCards: (List<Card>) -> Unit = { _ -> }
-    val onSkip: () -> Unit = {}
+        val onPlayCombination: (List<Card>, Card?) -> Unit = { _, _ -> }
+        val onWithdrawCards: (List<Card>) -> Unit = { _ -> }
+        val onSkip: () -> Unit = {}
 
-    MatView(
-        playmat = playmatCards,
-        discardPile = discardPile,
-        selectedCards = selectedCards,
-        onPlayCombination = onPlayCombination,
-        onWithdrawCards = onWithdrawCards,
-        onSkip = onSkip,
-        cardWidth = 80.dp,   // 🚀 Example dimensions
-        cardHeight = 120.dp  // 🚀 Example dimensions
-    )
+        MatView(
+            playmat = playmatCards,
+            discardPile = discardPile,
+            selectedCards = selectedCards,
+            onPlayCombination = onPlayCombination,
+            onWithdrawCards = onWithdrawCards,
+            onSkip = onSkip,
+            cardWidth = 80.dp,
+            cardHeight = 120.dp
+        )
+    }
 }

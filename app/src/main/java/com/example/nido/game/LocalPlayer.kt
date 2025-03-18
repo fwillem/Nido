@@ -14,7 +14,7 @@ class LocalPlayer(
 ) : Player {
     override val playerType: PlayerType = PlayerType.LOCAL
 
-    override fun play(gameManager: GameManager): PlayerAction {
+    override fun play(gameManager: IGameManager): PlayerAction {
         // For LocalPlayer, the UI handles moves.
         // Return a default SKIP action
         TRACE(FATAL) { "LocalPlayer.play() should not be called!" }

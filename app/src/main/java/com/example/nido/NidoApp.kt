@@ -6,17 +6,25 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import com.example.nido.game.GameViewModel // Import GameViewModel
+import com.example.nido.game.GameViewModel
+import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.screens.MainScreen
+import com.example.nido.ui.screens.ScoreScreen
+import com.example.nido.ui.screens.SetupScreen
 
 @Composable
 fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) { // Receive viewModel
+
+    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+
     var currentScreen by rememberSaveable { mutableStateOf("SetupScreen") }
+
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         when (currentScreen) {
             "SetupScreen" -> SetupScreen(
                 onGameStart = { selectedPlayers, selectedPointLimit ->
-                    viewModel.gameManager.startNewGame(selectedPlayers, selectedPointLimit) // Use viewModel
+                    gameManager.startNewGame(selectedPlayers, selectedPointLimit) // Use viewModel
                     currentScreen = "GameScreen"
                 },
                 modifier = modifier.padding(innerPadding)

@@ -22,13 +22,13 @@ enum class gameManagerMoveResult {
     NEXT_PLAYER,
     INVALID_MOVE
 }
-object GameManager {
+private object GameManager : IGameManager {
     private var gameViewModel: GameViewModel? = null
-    val gameState: State<GameState>
+    override val gameState: State<GameState>
         get() = getViewModel().gameState
 
 
-    fun initialize(viewModel: GameViewModel) {
+   override fun initialize(viewModel: GameViewModel) {
         if (gameViewModel != null) {
             // Already initialized; the user may have changed the orientation of the phone or moved the app in background
             TRACE(DEBUG) { "GameManager already initialized; reattaching." }
@@ -47,7 +47,7 @@ object GameManager {
      * This function now only sets up the base state (players, point limit, deck, startingIndex) without dealing cards.
      * Then it calls startNewRound() to handle round-specific initialization.
      */
-    fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
+    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
         TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit" }
 
         //  Generate the deck
@@ -84,7 +84,7 @@ object GameManager {
      * 🔄 Reshuffles the existing deck (no need to re-create it) and deals cards to each player.
      * 🏁 Updates startingIndex to be the next player after the one who started the previous round.
      */
-    fun startNewRound() {
+    override fun startNewRound() {
         val currentState = gameState.value
 
         // Reshuffle the existing deck.
@@ -148,7 +148,7 @@ object GameManager {
 
     private fun getCurrentPlayer(): Player = gameState.value.players[gameState.value.currentPlayerIndex]
 
-    fun skipTurn() {
+    override fun skipTurn() {
         TRACE(DEBUG) { "${getCurrentPlayer().name} is skipping turn" }
         val currentGameState = gameState.value
         val newSkipCount = currentGameState.skipCount + 1
@@ -182,7 +182,7 @@ object GameManager {
     /**
      * Play a combination of cards.Returns true if the player won.
      */
-    fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) : gameManagerMoveResult {
+    override fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) : gameManagerMoveResult {
         val currentGameState = gameState.value
         var moveResult : gameManagerMoveResult = gameManagerMoveResult.NEXT_PLAYER
 
@@ -308,7 +308,7 @@ object GameManager {
 
     }
 
-    fun processAIMove() {
+    override fun processAIMove() {
         val currentPlayer = getCurrentPlayer()
         if (currentPlayer.playerType == PlayerType.AI) {
             TRACE(DEBUG) {"AI is playing (${currentPlayer.name})" }
@@ -317,7 +317,7 @@ object GameManager {
             TRACE(ERROR) {"Not AI's turn!" }
         }
     }
-    fun processSkip() {
+    override fun processSkip() {
         val currentPlayer = getCurrentPlayer()
         if (currentPlayer.playerType == PlayerType.AI) {
             TRACE(FATAL) {" AI not supposed to skip via this function" }
@@ -346,37 +346,37 @@ object GameManager {
         }
     }
 
-    fun isValidMove(selectedCards: List<Card>): Boolean {
+    override fun isValidMove(selectedCards: List<Card>): Boolean {
         val currentCombination = gameState.value.currentCombinationOnMat
         val selectedCombination = Combination(selectedCards.toMutableList())
         return GameRules.isValidMove(currentCombination, selectedCombination)
     }
 
-    fun isGameOver(): Boolean {
+    override fun isGameOver(): Boolean {
         return GameRules.isGameOver(gameState.value.players, gameState.value.pointLimit)
     }
 
-    fun getGameWinners(): List<Player> {
+    override fun getGameWinners(): List<Player> {
         return GameRules.getGameWinners(gameState.value.players)
     }
 
-    fun getPlayerRankings(): List<Pair<Player, Int>> {
+    override fun getPlayerRankings(): List<Pair<Player, Int>> {
         return GameRules.getPlayerRankings(gameState.value.players)
     }
 
-    fun getPlayerHandScores() : List<Pair<Player, Int>> {
+    override fun getPlayerHandScores() : List<Pair<Player, Int>> {
         return GameRules.getPlayerHandScores(gameState.value.players)
     }
 
-    fun getCurrentPlayerHandSize() : Int {
+    override fun getCurrentPlayerHandSize() : Int {
         return getCurrentPlayer().hand.cards.size
     }
 
-    fun isCurrentPlayerLocal() : Boolean {
+    override fun isCurrentPlayerLocal() : Boolean {
         return getCurrentPlayer().playerType == PlayerType.LOCAL
     }
 
-        fun currentPlayerHasValidCombination() : Boolean {
+    override fun currentPlayerHasValidCombination() : Boolean {
 
         // Find all possible valid combinations from the current hand.
         val possibleMoves: List<Combination> = GameRules.findValidCombinations(getCurrentPlayer().hand.cards)
@@ -389,7 +389,7 @@ object GameManager {
 
     }
 
-    fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
+    override fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
         val currentGameState = gameState.value
         val currentPlayer = getCurrentPlayer()
 
@@ -424,12 +424,12 @@ object GameManager {
         TRACE(DEBUG) { "Withdrawn cards ${cardsToWithdraw.joinToString()} returned to ${currentPlayer.name}'s hand." }
     }
 
-    fun setDialogEvent(event: AppEvent) {
+    override fun setDialogEvent(event: AppEvent) {
         val currentState = gameState.value
         getViewModel().updateGameState(currentState.copy(gameEvent = event))
     }
 
-    fun clearDialogEvent() {
+    override fun clearDialogEvent() {
         val currentState = gameState.value
         getViewModel().updateGameState(currentState.copy(gameEvent = null))
     }

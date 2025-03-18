@@ -8,7 +8,6 @@ import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.game.GameState
 
 class GameViewModel : ViewModel() {
-    val gameManager: GameManager = GameManager // Access the GameManager object
 
     private val _gameState = mutableStateOf(GameState())
     val gameState: State<GameState> = _gameState
