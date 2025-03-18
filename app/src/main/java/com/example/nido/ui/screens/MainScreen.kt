@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Card
-import com.example.nido.game.GameManager
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.views.ActionButtonsView
 import com.example.nido.ui.views.HandView
@@ -43,6 +42,7 @@ import com.example.nido.game.GameScreens
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.gameManagerMoveResult
+import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.screens.MainScreen
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.theme.NidoColors
@@ -53,6 +53,8 @@ fun MainScreen(
     modifier: Modifier = Modifier,
     viewModel: GameViewModel  // Add viewModel parameter
 ) {
+    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+
     val gameState by viewModel.gameState
 
     // Use derivedStateOf for values that depend on gameState
@@ -86,13 +88,13 @@ fun MainScreen(
         mapOf(
             "Sort Mode: ${sortMode.name}" to { toggleSortMode() },
             "Quit" to { onEndGame() },
-            "Skip" to { GameManager.processSkip() }  // Process skip for local players.
+            "Skip" to { gameManager.processSkip() }  // Process skip for local players.
         )
     } else {
         mapOf(
             "Sort Mode: ${sortMode.name}" to { toggleSortMode() },
             "Quit" to { onEndGame() },
-            "Play AI Move" to { GameManager.processAIMove() }
+            "Play AI Move" to { gameManager.processAIMove() }
         )
     }
 
@@ -146,9 +148,9 @@ fun MainScreen(
                 discardPile = discardPile,
                 selectedCards = selectedCards,
                 onPlayCombination = { playedCards, cardToKeep ->  // ✅ Use a different name
-                    if (GameManager.isValidMove(playedCards)) {
+                    if (gameManager.isValidMove(playedCards)) {
                         TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
-                        val playMoveResult = GameManager.playCombination(playedCards, cardToKeep)
+                        val playMoveResult = gameManager.playCombination(playedCards, cardToKeep)
 
                         if (playMoveResult == gameManagerMoveResult.GAME_OVER) {
                             TRACE(DEBUG, tag = "MatView:onPlayCombination") { "Game Over" }
@@ -168,7 +170,7 @@ fun MainScreen(
                     currentPlayer.hand.cards.clear()
                     currentPlayer.hand.cards.addAll(updatedHand.cards)
                 },
-                onSkip = {GameManager.processSkip()},
+                onSkip = {gameManager.processSkip()},
                 cardWidth = Constants.CARD_ON_MAT_WIDTH.dp,
                 cardHeight = Constants.CARD_ON_MAT_HEIGHT.dp
             )
@@ -234,7 +236,7 @@ fun MainScreen(
             TRACE(INFO) { "AI will play in ${AI_THINKING_DURATION_MS / 1000} seconds..." }
             // Delay for n milliseconds (e.g., 2000 ms = 2 seconds)
             kotlinx.coroutines.delay(AI_THINKING_DURATION_MS)
-            GameManager.processAIMove()
+            gameManager.processAIMove()
         }
     }
 

@@ -11,12 +11,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.events.AppEvent
-import com.example.nido.game.GameManager
+import com.example.nido.ui.LocalGameManager
 
 @Composable
 fun GameOverDialog(event: AppEvent.GameEvent.GameOver) {
+    val gameManager = LocalGameManager.current
+
     AlertDialog(
-        onDismissRequest = { GameManager.clearDialogEvent() },
+        onDismissRequest = { gameManager.clearDialogEvent() },
         title = {
             // Display the name of the top-ranked player in the title.
             Text("Game Over, congrats ${event.playerRankings.first().first.name}")
@@ -34,7 +36,7 @@ fun GameOverDialog(event: AppEvent.GameEvent.GameOver) {
         },
         confirmButton = {
             Button(
-                onClick = { GameManager.clearDialogEvent() },
+                onClick = { gameManager.clearDialogEvent() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.Gray
