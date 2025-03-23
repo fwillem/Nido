@@ -250,8 +250,8 @@ private object GameManager : IGameManager {
                     )
                 )
 
-                TRACE(INFO) { "We need to Start a new round" }
-                startNewRound()
+                // TRACE(INFO) { "We need to Start a new round" }
+                // startNewRound() start new round is now called in the handling of the GameEvent
 
                 // Round is over
                 moveResult = gameManagerMoveResult.ROUND_OVER

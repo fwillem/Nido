@@ -18,6 +18,7 @@ import com.example.nido.events.AppEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.screens.ScoreScreen
+import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 
 @Composable
@@ -28,7 +29,7 @@ fun GameOverDialog(event: AppEvent.GameEvent.GameOver, onExit : () -> Unit) {
         onDismissRequest = { gameManager.clearDialogEvent() ; onExit()},
         title = {
             // Display the name of the top-ranked player in the title.
-            Text("Game Over, congrats ${event.playerRankings.first().first.name}")
+            Text("Game Over....\n\n ... congrats ${event.playerRankings.first().first.name} !!")
         },
         text = {
             /*
@@ -52,7 +53,11 @@ fun GameOverDialog(event: AppEvent.GameEvent.GameOver, onExit : () -> Unit) {
                     contentColor = Color.Gray
                 )
             ) {
-                Text("OK", fontSize = 12.sp)
+                Text(
+                    "OK",
+                    fontSize = 24.sp,
+                    color = NidoColors.SecondaryText
+                )
             }
         },
         containerColor = Color.White.copy(alpha = 0.7f)

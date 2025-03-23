@@ -160,7 +160,7 @@ fun PreviewHandView() {
                 )),
                 cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
                 cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
-                sortMode = SortMode.FIFO, // Use a default sort mode value
+                sortMode = SortMode.COLOR, // Use a default sort mode value
                 onDoubleClick = { },
                 onSelectCard = { /* no-op for preview */ }
             )

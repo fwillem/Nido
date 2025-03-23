@@ -4,6 +4,7 @@ import com.example.nido.data.model.Card
 import kotlin.text.get
 
 enum class SortMode { FIFO, COLOR, VALUE }
+//enum class SortMode { COLOR, VALUE }
 
 
 

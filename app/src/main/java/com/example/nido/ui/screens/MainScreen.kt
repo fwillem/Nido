@@ -75,12 +75,19 @@ fun MainScreen(
     val playmat by remember { derivedStateOf { gameState.currentCombinationOnMat } }
     val selectedCards = gameState.selectedCards
 
-    var sortMode by remember { mutableStateOf(SortMode.FIFO) }
+    var sortMode by remember { mutableStateOf(SortMode.COLOR) }
     val toggleSortMode: () -> Unit = {
+        /* OLD SORT MODE WHEN FIFO WAS THERE
         sortMode = when (sortMode) {
             SortMode.FIFO -> SortMode.COLOR
             SortMode.COLOR -> SortMode.VALUE
             SortMode.VALUE -> SortMode.FIFO
+        }
+         */
+        sortMode = when (sortMode) {
+            SortMode.FIFO -> SortMode.COLOR
+            SortMode.COLOR -> SortMode.VALUE
+            SortMode.VALUE -> SortMode.COLOR
         }
     }
 
@@ -158,7 +165,8 @@ fun MainScreen(
 
                         if (playMoveResult == gameManagerMoveResult.GAME_OVER) {
                             TRACE(DEBUG, tag = "MatView:onPlayCombination") { "Game Over" }
-                            onEndGame()
+                            // onEndGame() No we don't end the game this way anymore, this is now done in
+                            // gameState.gameEvent handler
                         }
                         selectedCards.clear() // Clear selection after a valid move.
                     } else {
@@ -217,7 +225,11 @@ fun MainScreen(
                 CardSelectionDialog(event = event)
             }
             is AppEvent.GameEvent.RoundOver -> {
-                RoundOverDialog(event = event)
+                RoundOverDialog(event = event,
+                    onExit = {
+                        gameManager.startNewRound()
+                    }
+                )
             }
             is AppEvent.GameEvent.GameOver -> {
                 GameOverDialog(event = event, onExit = onEndGame)
