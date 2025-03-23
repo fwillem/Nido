@@ -150,6 +150,7 @@ fun MainScreen(
                 playmat = playmatSnapshotList,
                 discardPile = discardPile,
                 selectedCards = selectedCards,
+                playerHandSize = gameManager.getCurrentPlayerHandSize(),
                 onPlayCombination = { playedCards, cardToKeep ->  // ✅ Use a different name
                     if (gameManager.isValidMove(playedCards)) {
                         TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
@@ -219,7 +220,7 @@ fun MainScreen(
                 RoundOverDialog(event = event)
             }
             is AppEvent.GameEvent.GameOver -> {
-                GameOverDialog(event = event)
+                GameOverDialog(event = event, onExit = onEndGame)
             }
             is AppEvent.PlayerEvent.PlayerLeft -> {
                 PlayerLeftDialog(event = event)

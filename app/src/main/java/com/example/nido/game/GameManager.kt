@@ -58,9 +58,11 @@ private object GameManager : IGameManager {
         // TODO For debug we will simplify, the right value is :  val startingPlayerIndex = (0 until selectedPlayers.size).random()
         val startingPlayerIndex = -1
 
+        val initializedPlayers = GameRules.initializePlayerScores(selectedPlayers, selectedPointLimit)
+
         // Set up initial state
         val initialState = GameState(
-            players = selectedPlayers,
+            players = initializedPlayers, // ✅ Players now have the correct starting score
             pointLimit = selectedPointLimit,
             deck = mutableStateListOf<Card>().apply { addAll(deck) },
             startingPlayerIndex = startingPlayerIndex,
@@ -196,7 +198,7 @@ private object GameManager : IGameManager {
         val newCombination = Combination(selectedCards.toMutableList())
 
         // Validate the move.
-        if (!GameRules.isValidMove(currentCombination, newCombination)) {
+        if (!GameRules.isValidMove(currentCombination, newCombination, getCurrentPlayer().hand.cards.size)) {
             TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
             return gameManagerMoveResult.INVALID_MOVE
         }
@@ -320,7 +322,7 @@ private object GameManager : IGameManager {
     override fun processSkip() {
         val currentPlayer = getCurrentPlayer()
         if (currentPlayer.playerType == PlayerType.AI) {
-            TRACE(FATAL) {" AI not supposed to skip via this function" }
+            TRACE(WARNING) {" AI not supposed to skip via this function" }
         } else {
             TRACE(INFO) {"Local player ${currentPlayer.name} skips" }
             skipTurn()
@@ -334,11 +336,17 @@ private object GameManager : IGameManager {
             // Check if combination is null; if so, log a fatal error.
             if (playerAction.combination == null) {
                 TRACE(FATAL) { "Combination cannot be null when actionType is PLAY for ${aiPlayer.name}" }
-            }
-            TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
-            // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
-            playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
+            } else {
+                TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
+                // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
+                val playMoveResult = playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
 
+                // Here we need to test is game is ended
+                if (playMoveResult == gameManagerMoveResult.GAME_OVER) {
+                    TRACE(DEBUG, tag = "handleAIMove") { "Game Over" }
+                  // onEndGame() not done here, will be done upon reception of the GAME_OVER event
+                }
+            }
 
         } else {
             TRACE(INFO) { "${aiPlayer.name} has no move !" }
@@ -349,7 +357,7 @@ private object GameManager : IGameManager {
     override fun isValidMove(selectedCards: List<Card>): Boolean {
         val currentCombination = gameState.value.currentCombinationOnMat
         val selectedCombination = Combination(selectedCards.toMutableList())
-        return GameRules.isValidMove(currentCombination, selectedCombination)
+        return GameRules.isValidMove(currentCombination, selectedCombination, getCurrentPlayer().hand.cards.size)
     }
 
     override fun isGameOver(): Boolean {
@@ -385,7 +393,7 @@ private object GameManager : IGameManager {
         val playmatCombination = gameState.value.currentCombinationOnMat
 
         // Look for a valid move that beats the current playmat combination.
-        return (possibleMoves.find { GameRules.isValidMove(playmatCombination, it) } != null)
+        return (possibleMoves.find { GameRules.isValidMove(playmatCombination, it, getCurrentPlayer().hand.cards.size) } != null)
 
     }
 

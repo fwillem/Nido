@@ -11,7 +11,7 @@ class AIPlayer(
     override val id: String,
     override val name: String,
     override val avatar: String,
-    override var score: Int = 0,
+    override var score: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     override val hand: Hand = Hand()
 ) : Player {
     override val playerType: PlayerType = PlayerType.AI
@@ -25,7 +25,7 @@ class AIPlayer(
 
         // Look for a valid move that beats the current playmat combination.
         // TODO Refine the heuristic
-        val chosenCombination = possibleMoves.find { GameRules.isValidMove(playmatCombination, it) }
+        val chosenCombination = possibleMoves.find { GameRules.isValidMove(playmatCombination, it, hand.cards.size) }
 
         return if (chosenCombination != null) {
             // For AI, choose the first card of the current playmat (if available) as the card to keep.

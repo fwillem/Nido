@@ -25,7 +25,7 @@ object GameRules {
         return allSameColor || allSameValue
     }
 
-    fun isValidMove(current: Combination, newMove: Combination): Boolean {
+    fun isValidMove(current: Combination, newMove: Combination, handSize: Int): Boolean {
         return try {
             //  Prevent empty combination crashes
             if (newMove.cards.isEmpty()) {
@@ -39,8 +39,10 @@ object GameRules {
                 return false
             }
 
-            // Safe comparison
-            val isValid = (newMove.value > current.value) && (newMove.cards.size <= current.cards.size + 1)
+            // The move is valid if the new combination is better than the current one and :
+            // the number of cards in the new combination is not greater than the number of cards in the current combination + 1
+            // or he plays all the cards of his hand
+            val isValid = (newMove.value > current.value) && ((newMove.cards.size <= current.cards.size + 1) || (newMove.cards.size == handSize))
 
             TRACE(VERBOSE) { "isValidMove: Current = ${current.value}, New = ${newMove.value}, Card Size = ${newMove.cards.size}, Current Size = ${current.cards.size}, Allowed = $isValid" }
             isValid
@@ -99,7 +101,7 @@ object GameRules {
     }
 
     fun isGameOver(players: List<Player>, pointLimit: Int): Boolean {
-        return players.any { it.score >= pointLimit }
+        return players.any { it.score <= 0 }
     }
 
     fun colorsToRemove (nbOfPlayers: Int): Set<CardColor> {
@@ -115,14 +117,17 @@ object GameRules {
         return hand.cards.isEmpty()
     }
 
+    // Now if there are players with the same score, all of them win!
     fun getGameWinners(players: List<Player>): List<Player> {
-        val lowestScore = players.minOfOrNull { it.score } ?: return emptyList()
-        return players.filter { it.score == lowestScore }
+        val highestScore = players.maxOfOrNull { it.score } ?: return emptyList()
+        return players.filter { it.score == highestScore }
     }
 
     fun getPlayerRankings(players: List<Player>): List<Pair<Player, Int>> {
-        return players.sortedBy { it.score }
-            .mapIndexed { index, player -> player to (index + 1) }
+        return players
+            .sortedByDescending { it.score }
+            .mapIndexed { index, player ->
+                player to (index + 1) }
     }
 
     fun getPlayerHandScores(players: List<Player>) : List<Pair<Player, Int>> {
@@ -136,10 +141,16 @@ object GameRules {
     fun updatePlayersScores(players: List<Player>) {
         TRACE(DEBUG) { "Updating scores" }
         for (player in players) {
-            val scoreToAdd = player.hand.cards.size
-            val newScore = player.score + scoreToAdd
-            TRACE(DEBUG) { "Updating score for ${player.name} with ${scoreToAdd} cards, current score ${player.score} -> $newScore" }
+            val scoreToRetreive = player.hand.cards.size
+            val newScore = player.score - scoreToRetreive
+            TRACE(DEBUG) { "Updating score for ${player.name} with -${scoreToRetreive} cards, current score ${player.score} -> $newScore" }
             player.score = newScore
+        }
+    }
+
+    fun initializePlayerScores(players: List<Player>, pointLimit: Int): List<Player> {
+        return players.map { player ->
+            player.copy(score = pointLimit)
         }
     }
 

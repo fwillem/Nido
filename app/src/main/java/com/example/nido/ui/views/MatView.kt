@@ -60,6 +60,7 @@ fun MatView(
     playmat: SnapshotStateList<Card>?,
     discardPile: SnapshotStateList<Card>,
     selectedCards: SnapshotStateList<Card>,
+    playerHandSize: Int,
     onPlayCombination: (List<Card>, Card?) -> Unit,  // Callback for committing a move
     onWithdrawCards: (List<Card>) -> Unit,             // Callback for withdrawing cards
     onSkip: () -> Unit,                                // Callback for skipping a turn
@@ -134,7 +135,7 @@ fun MatView(
             }
             else if (!gameManager.currentPlayerHasValidCombination()) {
                 TRACE(VERBOSE) { "Local player has no valid combination" }
-                var skipCount by remember { mutableStateOf(3) }
+                var skipCount by remember { mutableStateOf(5) }
                 // Use LaunchedEffect to decrement skipCount every 500ms.
                 LaunchedEffect(Unit) {
                     while (skipCount > 0) {
@@ -154,12 +155,12 @@ fun MatView(
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Skippy ($skipCount)", fontSize = 16.sp, lineHeight = 16.sp)
+                    Text("Skip ($skipCount)", fontSize = 16.sp, lineHeight = 16.sp)
                 }
             } else if (selectedCards.isNotEmpty()) {
                 TRACE(DEBUG) { "Player has a valid combination" }
                 val currentCombination = if (playmat != null) Combination(playmat) else Combination(mutableStateListOf())
-                if (GameRules.isValidMove(currentCombination, Combination(selectedCards))) {
+                if (GameRules.isValidMove(currentCombination, Combination(selectedCards),playerHandSize)) {
                     Button(
                         onClick = {
                             val candidateCards = playmat?.toList() ?: emptyList()
@@ -276,6 +277,7 @@ fun PreviewMatViewScenario1() {
                 playmat = playmatCards,
                 discardPile = discardPile,
                 selectedCards = selectedCards,
+                playerHandSize = FakeGameManager().getCurrentPlayerHandSize(),
                 onPlayCombination = onPlayCombination,
                 onWithdrawCards = onWithdrawCards,
                 onSkip = onSkip,

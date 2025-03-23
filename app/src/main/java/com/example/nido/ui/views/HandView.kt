@@ -145,38 +145,25 @@ fun HandView(
 
 @Preview(
     name = "Landscape HandView Preview",
-    widthDp = 800, // 🚀 wider than it is tall
-    heightDp = 400, // 🚀 adjust as needed
+    widthDp = 800, // wider than it is tall
+    heightDp = 400, // adjust as needed
     showBackground = true
 )
-//@Preview(showBackground = true, name = "MainScreen Preview")
 @Composable
 fun PreviewHandView() {
-
-
-
-
-
-
-
     NidoTheme {
         CompositionLocalProvider(LocalGameManager provides FakeGameManager()) {
-
             HandView(
-                hand = Hand(
-                    mutableListOf(
-                        Card(1, "RED"),
-                        Card(2, "PINK")
-                    )),
+                hand = Hand(mutableStateListOf(
+                    Card(1, "RED"),
+                    Card(2, "PINK")
+                )),
                 cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
                 cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
-                sortMode = LocalGameManager.current.gameState.value.sortMode,
+                sortMode = SortMode.FIFO, // Use a default sort mode value
                 onDoubleClick = { },
-                onSelectCard = { _ -> }
+                onSelectCard = { /* no-op for preview */ }
             )
-
-
         }
-
     }
 }

@@ -2,6 +2,7 @@ package com.example.nido.game.multiplayer
 
 import com.example.nido.data.model.*
 import com.example.nido.game.IGameManager
+import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 
@@ -11,7 +12,7 @@ class RemotePlayer(
     override val id: String,
     override val name: String,
     override val avatar: String,
-    override var score: Int = 0,
+    override var score: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     override val hand: Hand = Hand()
 ) : Player {
     override val playerType: PlayerType = PlayerType.REMOTE
