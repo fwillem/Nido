@@ -28,11 +28,11 @@ import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
 
 @Composable
-fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver) { // 🚀 Updated to use playersHandScore as List<Pair<Player, Int>>
+fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver, onExit: () -> Unit) { // 🚀 Updated to use playersHandScore as List<Pair<Player, Int>>
     val gameManager = LocalGameManager.current
 
     AlertDialog(
-        onDismissRequest = { gameManager.clearDialogEvent() },
+        onDismissRequest = { gameManager.clearDialogEvent() ; onExit()},
         title = {
             Text("${event.winner.name} won this round!")
         },
@@ -47,7 +47,7 @@ fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver) { // 🚀 Updated to us
         },
         confirmButton = {
             Button(
-                onClick = { gameManager.clearDialogEvent() },
+                onClick = { gameManager.clearDialogEvent() ; onExit()},
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
                     contentColor = Color.Gray
@@ -124,5 +124,5 @@ fun PreviewRoundOverDialog() {
         playersHandScore = fakeGameManager.getPlayerHandScores()  // ✅ Use FakeGameManager data
     )
 
-    RoundOverDialog(event = dummyEvent)
+    RoundOverDialog(event = dummyEvent, onExit = {})
 }
