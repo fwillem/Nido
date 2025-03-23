@@ -1,143 +1,77 @@
-package com.example.nido.ui.views
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.nido.data.model.*
-import com.example.nido.data.repository.CardRepository.getBackCover
-import com.example.nido.ui.theme.NidoColors
-import com.example.nido.ui.theme.NidoTheme
-import com.example.nido.utils.Constants
-import com.example.nido.game.GameManager
-
-@Composable
-fun PlayersRowView(players: List<Player>, currentTurnIndex: Int, turnID: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        players.forEachIndexed { index, player ->
-            val isCurrent = index == currentTurnIndex
-            val color = when {
-                isCurrent -> Color.Yellow   // Human player's turn
-                else -> Color.White
-            }
-            val backgroundColor = if (isCurrent) Color.DarkGray else Color.Transparent
-
-            val playerTypeEmoji = when (player.playerType) {
-                PlayerType.LOCAL -> "🧑"  // Human Player
-                PlayerType.AI -> "🤖"     // AI Player
-                PlayerType.REMOTE -> "🌐" // Remote Player
-            }
-
-            val backCoverCard = getBackCover()
-
-            Box(
-                modifier = Modifier
-                    .background(backgroundColor)
-                    .padding(4.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "$playerTypeEmoji ${player.name}: ${player.hand.count()} ",
-                        fontSize = 16.sp,
-                        color = color
-                    )
-
-                    CardView(
-                        card = backCoverCard,
-                        modifier = Modifier
-                            .width(8.dp)
-                            .height(16.dp)
-                    )
-                    Text(
-                        text = " ${player.score} ⭐",
-                        fontSize = 16.sp,
-                        color = color
-                    )
-                }
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .background(Color.Transparent)
-                .padding(4.dp)
-        ) {
-            Text(
-                text = "\uD83C\uDFB2 $turnID",
-                fontSize = 16.sp,
-                color = Color.White
-            )
-        }
-    }
-}
-
-@Preview(
-    name = "PlayersRowView - 4 Players",
-    showBackground = true,
-    widthDp = 800,
-    heightDp = 400
-)
-@Composable
-fun PreviewPlayersRowView() {
-    // 🚀 Create dummy players for preview
-    val players = listOf(
-        object : Player {
-            override val id = "1"
-            override val name = "Alice"
-            override val avatar = "👤"
-            override val playerType = PlayerType.LOCAL
-            override var score = 10
-            override val hand = Hand(mutableStateListOf(Card(2, "RED"), Card(3, "GREEN")))
-            override fun play(gameManager: GameManager) = PlayerAction(PlayerActionType.PLAY)
-            override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-        },
-        object : Player {
-            override val id = "2"
-            override val name = "Bob"
-            override val avatar = "🤖"
-            override val playerType = PlayerType.AI
-            override var score = 15
-            override val hand = Hand(mutableStateListOf(Card(5, "BLUE"), Card(6, "MOCHA")))
-            override fun play(gameManager: GameManager) = PlayerAction(PlayerActionType.SKIP)
-            override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-        },
-        object : Player {
-            override val id = "3"
-            override val name = "Charlie"
-            override val avatar = "🤖"
-            override val playerType = PlayerType.AI
-            override var score = 20
-            override val hand = Hand(mutableStateListOf(Card(7, "PINK"), Card(8, "YELLOW")))
-            override fun play(gameManager: GameManager) = PlayerAction(PlayerActionType.PLAY)
-            override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-        },
-        object : Player {
-            override val id = "4"
-            override val name = "Diana"
-            override val avatar = "🤖"
-            override val playerType = PlayerType.AI
-            override var score = 5
-            override val hand = Hand(mutableStateListOf(Card(9, "GREEN"), Card(10, "RED")))
-            override fun play(gameManager: GameManager) = PlayerAction(PlayerActionType.PLAY)
-            override fun copy(id: String, name: String, avatar: String, score: Int, hand: Hand) = this
-        }
-    )
-
-    // 🚀 Wrap inside NidoTheme to prevent missing CompositionLocal errors
-    NidoTheme {
-        PlayersRowView(players = players, currentTurnIndex = 0, turnID = 1)
-    }
-}
+                                                                                                      hand: GREEN 5, RED 1, GREEN 2, MOCHA 4 ➝ RED 1, MOCHA 4, RED 5
+                                                                                                    discardPile: SnapshotStateList(value=[Card(4/RED), Card(6/BLUE), Card(2/BLUE), Card(8/ORANGE), Card(3/ORANGE), Card(9/BLUE), Card(7/BLUE), Card(4/BLUE), Card(1/BLUE), Card(2/RED), Card(9/PINK), Card(5/BLUE), Card(3/BLUE), Card(7/ORANGE), Card(2/ORANGE), Card(7/MOCHA), Card(6/MOCHA), Card(9/GREEN), Card(8/GREEN), Card(3/GREEN), Card(4/ORANGE), Card(3/RED), Card(8/RED), Card(9/ORANGE), Card(8/PINK), Card(3/PINK), Card(2/PINK), Card(5/ORANGE), Card(7/RED), Card(6/RED), Card(6/ORANGE), Card(6/PINK), Card(4/PINK), Card(7/GREEN), Card(6/GREEN), Card(5/PINK), Card(9/MOCHA), Card(5/MOCHA)])@112762464 ➝ SnapshotStateList(value=[Card(4/RED), Card(6/BLUE), Card(2/BLUE), Card(8/ORANGE), Card(3/ORANGE), Card(9/BLUE), Card(7/BLUE), Card(4/BLUE), Card(1/BLUE), Card(2/RED), Card(9/PINK), Card(5/BLUE), Card(3/BLUE), Card(7/ORANGE), Card(2/ORANGE), Card(7/MOCHA), Card(6/MOCHA), Card(9/GREEN), Card(8/GREEN), Card(3/GREEN), Card(4/ORANGE), Card(3/RED), Card(8/RED), Card(9/ORANGE), Card(8/PINK), Card(3/PINK), Card(2/PINK), Card(5/ORANGE), Card(7/RED), Card(6/RED), Card(6/ORANGE), Card(6/PINK), Card(4/PINK), Card(7/GREEN), Card(6/GREEN), Card(5/PINK), Card(9/MOCHA), Card(5/MOCHA)])@204204959
+                                                                                                    currentCombinationOnMat: 5 RED ➝ 5 GREEN, 2 GREEN
+2025-03-23 15:19:38.180 22432-22432 GameVie:updateGameState                                      D  🟡 🔄 GameState changes:
+                                                                                                    currentPlayerIndex: 1 ➝ 2
+                                                                                                    turnId: 150 ➝ 151
+2025-03-23 15:19:38.180 22432-22432 GameManager:nextTurn                                         D  🟡 Player is now Erik(2)
+2025-03-23 15:19:38.191 22432-22432 MatView:MatView-D-yJdWM                                      D  🟡 🟦 Recomposing MatView : 
+                                                                                                    Playmat : 5 GREEN, 2 GREEN
+                                                                                                    DiscardPile : 4 RED, 6 BLUE, 2 BLUE, 8 ORANGE, 3 ORANGE, 9 BLUE, 7 BLUE, 4 BLUE, 1 BLUE, 2 RED, 9 PINK, 5 BLUE, 3 BLUE, 7 ORANGE, 2 ORANGE, 7 MOCHA, 6 MOCHA, 9 GREEN, 8 GREEN, 3 GREEN, 4 ORANGE, 3 RED, 8 RED, 9 ORANGE, 8 PINK, 3 PINK, 2 PINK, 5 ORANGE, 7 RED, 6 RED, 6 ORANGE, 6 PINK, 4 PINK, 7 GREEN, 6 GREEN, 5 PINK, 9 MOCHA, 5 MOCHA
+                                                                                                    SelectedCards :  
+2025-03-23 15:19:38.225 22432-22432 MainScree:invokeSuspend                                      I  🟡 AI will play in 1 seconds...
+2025-03-23 15:19:39.431 22432-22432 GameManag:processAIMove                                      D  🟡 AI is playing (Erik)
+2025-03-23 15:19:39.436 22432-22432 GameManage:handleAIMove                                      I  🟡 Erik has no move !
+2025-03-23 15:19:39.436 22432-22432 GameManager:skipTurn                                         D  🟡 Erik is skipping turn
+2025-03-23 15:19:39.442 22432-22432 GameVie:updateGameState                                      D  🟡 🔄 GameState changes:
+                                                                                                    skipCount: 0 ➝ 1
+2025-03-23 15:19:39.448 22432-22432 GameVie:updateGameState                                      D  🟡 🔄 GameState changes:
+                                                                                                    currentPlayerIndex: 2 ➝ 3
+                                                                                                    turnId: 151 ➝ 152
+2025-03-23 15:19:39.449 22432-22432 GameManager:nextTurn                                         D  🟡 Player is now Bjorn(3)
+2025-03-23 15:19:39.458 22432-22432 MatView:MatView-D-yJdWM                                      D  🟡 🟦 Recomposing MatView : 
+                                                                                                    Playmat : 5 GREEN, 2 GREEN
+                                                                                                    DiscardPile : 4 RED, 6 BLUE, 2 BLUE, 8 ORANGE, 3 ORANGE, 9 BLUE, 7 BLUE, 4 BLUE, 1 BLUE, 2 RED, 9 PINK, 5 BLUE, 3 BLUE, 7 ORANGE, 2 ORANGE, 7 MOCHA, 6 MOCHA, 9 GREEN, 8 GREEN, 3 GREEN, 4 ORANGE, 3 RED, 8 RED, 9 ORANGE, 8 PINK, 3 PINK, 2 PINK, 5 ORANGE, 7 RED, 6 RED, 6 ORANGE, 6 PINK, 4 PINK, 7 GREEN, 6 GREEN, 5 PINK, 9 MOCHA, 5 MOCHA
+                                                                                                    SelectedCards :  
+2025-03-23 15:19:39.476 22432-22432 MainScree:invokeSuspend                                      I  🟡 AI will play in 1 seconds...
+2025-03-23 15:19:40.680 22432-22432 GameManag:processAIMove                                      D  🟡 AI is playing (Bjorn)
+2025-03-23 15:19:40.682 22432-22432 GameManage:handleAIMove                                      I  🟡 Bjorn has no move !
+2025-03-23 15:19:40.682 22432-22432 GameManager:skipTurn                                         D  🟡 Bjorn is skipping turn
+2025-03-23 15:19:40.688 22432-22432 GameVie:updateGameState                                      D  🟡 🔄 GameState changes:
+                                                                                                    skipCount: 1 ➝ 2
+2025-03-23 15:19:40.694 22432-22432 GameVie:updateGameState                                      D  🟡 🔄 GameState changes:
+                                                                                                    currentPlayerIndex: 3 ➝ 4
+                                                                                                    turnId: 152 ➝ 153
+2025-03-23 15:19:40.695 22432-22432 GameManager:nextTurn                                         D  🟡 Player is now Lagertha(4)
+2025-03-23 15:19:40.706 22432-22432 MatView:MatView-D-yJdWM                                      D  🟡 🟦 Recomposing MatView : 
+                                                                                                    Playmat : 5 GREEN, 2 GREEN
+                                                                                                    DiscardPile : 4 RED, 6 BLUE, 2 BLUE, 8 ORANGE, 3 ORANGE, 9 BLUE, 7 BLUE, 4 BLUE, 1 BLUE, 2 RED, 9 PINK, 5 BLUE, 3 BLUE, 7 ORANGE, 2 ORANGE, 7 MOCHA, 6 MOCHA, 9 GREEN, 8 GREEN, 3 GREEN, 4 ORANGE, 3 RED, 8 RED, 9 ORANGE, 8 PINK, 3 PINK, 2 PINK, 5 ORANGE, 7 RED, 6 RED, 6 ORANGE, 6 PINK, 4 PINK, 7 GREEN, 6 GREEN, 5 PINK, 9 MOCHA, 5 MOCHA
+                                                                                                    SelectedCards :  
+2025-03-23 15:19:40.724 22432-22432 MainScree:invokeSuspend                                      I  🟡 AI will play in 1 seconds...
+2025-03-23 15:19:41.929 22432-22432 GameManag:processAIMove                                      D  🟡 AI is playing (Lagertha)
+2025-03-23 15:19:41.933 22432-22432 GameManage:handleAIMove                                      I  🟡 Lagertha has no move !
+2025-03-23 15:19:41.934 22432-22432 GameManager:skipTurn                                         D  🟡 Lagertha is skipping turn
+2025-03-23 15:19:41.953 22432-22432 GameVie:updateGameState                                      D  🟡 🔄 GameState changes:
+                                                                                                    skipCount: 2 ➝ 3
+2025-03-23 15:19:41.966 22432-22432 GameVie:updateGameState                                      D  🟡 🔄 GameState changes:
+                                                                                                    currentPlayerIndex: 4 ➝ 5
+                                                                                                    turnId: 153 ➝ 154
+2025-03-23 15:19:41.966 22432-22432 GameManager:nextTurn                                         D  🟡 Player is now Freydis(5)
+2025-03-23 15:19:41.987 22432-22432 MatView:MatView-D-yJdWM                                      D  🟡 🟦 Recomposing MatView : 
+                                                                                                    Playmat : 5 GREEN, 2 GREEN
+                                                                                                    DiscardPile : 4 RED, 6 BLUE, 2 BLUE, 8 ORANGE, 3 ORANGE, 9 BLUE, 7 BLUE, 4 BLUE, 1 BLUE, 2 RED, 9 PINK, 5 BLUE, 3 BLUE, 7 ORANGE, 2 ORANGE, 7 MOCHA, 6 MOCHA, 9 GREEN, 8 GREEN, 3 GREEN, 4 ORANGE, 3 RED, 8 RED, 9 ORANGE, 8 PINK, 3 PINK, 2 PINK, 5 ORANGE, 7 RED, 6 RED, 6 ORANGE, 6 PINK, 4 PINK, 7 GREEN, 6 GREEN, 5 PINK, 9 MOCHA, 5 MOCHA
+                                                                                                    SelectedCards :  
+2025-03-23 15:19:42.012 22432-22432 MainScree:invokeSuspend                                      I  🟡 AI will play in 1 seconds...
+2025-03-23 15:19:43.217 22432-22432 GameManag:processAIMove                                      D  🟡 AI is playing (Freydis)
+2025-03-23 15:19:43.222 22432-22432 GameManage:handleAIMove                                      D  🟡 Freydis is playing: 8 MOCHA, 1 MOCHA and is keeping: Card(5/GREEN)
+2025-03-23 15:19:43.225 22432-22432 GameMan:playCombination                                      I  🟡 Freydis is playing: 8 MOCHA, 1 MOCHA 
+2025-03-23 15:19:43.226 22432-22432 GameMan:playCombination                                      I  🟡 😍 Freydis  😎 won! 
+2025-03-23 15:19:43.227 22432-22432 Gam:updatePlayersScores                                      D  🟡 Updating scores
+2025-03-23 15:19:43.228 22432-22432 Gam:updatePlayersScores                                      D  🟡 Updating score for Bibi with -1 cards, current score 7 -> 6
+2025-03-23 15:19:43.229 22432-22432 Gam:updatePlayersScores                                      D  🟡 Updating score for Thorstein with -3 cards, current score 2 -> -1
+2025-03-23 15:19:43.230 22432-22432 Gam:updatePlayersScores                                      D  🟡 Updating score for Erik with -5 cards, current score 3 -> -2
+2025-03-23 15:19:43.231 22432-22432 Gam:updatePlayersScores                                      D  🟡 Updating score for Bjorn with -2 cards, current score 4 -> 2
+2025-03-23 15:19:43.232 22432-22432 Gam:updatePlayersScores                                      D  🟡 Updating score for Lagertha with -1 cards, current score 1 -> 0
+2025-03-23 15:19:43.233 22432-22432 Gam:updatePlayersScores                                      D  🟡 Updating score for Freydis with -0 cards, current score 2 -> 2
+2025-03-23 15:19:43.233 22432-22432 GameMan:playCombination                                      I  🟡 Game is over! 🍾
+2025-03-23 15:19:43.234 22432-22432 GameMan:playCombination                                      I  🟡 SetDialogEvent GameOver
+2025-03-23 15:19:43.261 22432-22432 GameVie:updateGameState                                      D  🟡 🔄 GameState changes:
+                                                                                                    gameEvent: null ➝ GameOver(playerRankings=[(LocalPlayer(id='0', name='Bibi', avatar='👤', playerType=LOCAL, score=6, hand=BLUE 8), 1), (AIPlayer(id='3', name='Bjorn', avatar='🐻', playerType=AI, score=2, hand=PINK 1, MOCHA 2), 2), (AIPlayer(id='5', name='Freydis', avatar='🔥', playerType=AI, score=2, hand=The hand is empty), 3), (AIPlayer(id='4', name='Lagertha', avatar='🛡', playerType=AI, score=0, hand=PINK 7), 4), (AIPlayer(id='1', name='Thorstein', avatar='⚡', playerType=AI, score=-1, hand=RED 1, MOCHA 4, RED 5), 5), (AIPlayer(id='2', name='Erik', avatar='🪓', playerType=AI, score=-2, hand=GREEN 4, GREEN 1, MOCHA 3, ORANGE 1, RED 9), 6)])
+2025-03-23 15:19:43.282 22432-22432 MatView:MatView-D-yJdWM                                      D  🟡 🟦 Recomposing MatView : 
+                                                                                                    Playmat : 5 GREEN, 2 GREEN
+                                                                                                    DiscardPile : 4 RED, 6 BLUE, 2 BLUE, 8 ORANGE, 3 ORANGE, 9 BLUE, 7 BLUE, 4 BLUE, 1 BLUE, 2 RED, 9 PINK, 5 BLUE, 3 BLUE, 7 ORANGE, 2 ORANGE, 7 MOCHA, 6 MOCHA, 9 GREEN, 8 GREEN, 3 GREEN, 4 ORANGE, 3 RED, 8 RED, 9 ORANGE, 8 PINK, 3 PINK, 2 PINK, 5 ORANGE, 7 RED, 6 RED, 6 ORANGE, 6 PINK, 4 PINK, 7 GREEN, 6 GREEN, 5 PINK, 9 MOCHA, 5 MOCHA
+                                                                                                    SelectedCards :  
+2025-03-23 15:19:43.292 22432-22432 IS_CTS_MODE                                                  D  false
+2025-03-23 15:19:43.292 22432-22432 MULTI_WIND...CH_ENABLED                                      D  false
+2025-03-23 15:19:43.465 22432-22432 DecorView[]                                                  D  onWindowFocusChanged hasWindowFocus false
+2025-03-23 15:19:43.466 22432-22432 DecorView[]                                                  D  onWindowFocusChanged hasWindowFocus true

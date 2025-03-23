@@ -15,6 +15,7 @@ import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
+import com.example.nido.ui.preview.NidoPreview
 
 
 
@@ -141,7 +142,9 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
  * 🎨 **Preview for SetupScreen**
  * ✅ Simulates the screen without running the full app.
  */
-@Preview(showBackground = true)
+// @Preview(showBackground = true)
+@NidoPreview(name = "SetupScreeny")
+
 @Composable
 fun SetupScreenPreview() {
     NidoTheme {

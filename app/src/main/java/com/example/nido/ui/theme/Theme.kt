@@ -33,6 +33,7 @@ object NidoColors {
     val PlayMatButtonBackground = Color(0xFF006400)
     val SetupScreenBackground = Color(0xFF228B22)
     val ScoreScreenBackground = Color(0xFF228B22)
+    val ScoreScreenWinner = Color(0xFFAEEA00)
 
 
     val DialogTitleBackground = Color(0xFF228B22)
