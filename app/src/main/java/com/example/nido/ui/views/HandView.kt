@@ -59,6 +59,8 @@ fun HandView(
             derivedStateOf { hand.cards.sortedByMode(sortMode) }
         }
 
+        println("PNB Sorted Cards = $sortedCards")
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
