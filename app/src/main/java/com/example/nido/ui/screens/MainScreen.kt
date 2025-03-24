@@ -178,6 +178,8 @@ fun MainScreen(
                     // Remove cards from selected cards
                     selectedCards.removeAll(cardsToWithdraw)
                     // Trick to force a UI refresh on the HandView
+                    // TODO REMOVE THIS TRICK
+
                     val updatedHand = currentPlayer.hand.copy()
                     currentPlayer.hand.cards.clear()
                     currentPlayer.hand.cards.addAll(updatedHand.cards)
