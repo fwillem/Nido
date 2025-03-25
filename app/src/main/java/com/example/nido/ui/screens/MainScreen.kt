@@ -216,19 +216,24 @@ fun MainScreen(
                 onDoubleClick = toggleSortMode,
 
                 onSelectCard = { card ->
-                    // Get current player's hand from game state (this is already provided in your currentPlayer)
-                    val currentHand = currentPlayer.hand.copy()
-                    if (currentHand.removeCard(card)) {
-                        TRACE(DEBUG, tag = "HandView:onSelectCard") { "Successfully removed card: ${card.value}, ${card.color}" }
-                        // Update the game manager with the modified hand
+                    if (selectedCards.contains(card)) {
+                        // Unselect the card: remove it from selectedCards and add it back to the hand.
+                        selectedCards.remove(card)
+                        val currentHand = currentPlayer.hand.copy().apply { addCard(card) }
                         gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
+                        TRACE(DEBUG, tag = "HandView:onSelectCard") { "Card unselected: ${card.value}, ${card.color}" }
                     } else {
-                        TRACE(ERROR, tag = "HandView:onSelectCard") { "Failed to remove card: ${card.value}, ${card.color}" }
+                        // Select the card: remove it from the hand and add it to selectedCards.
+                        val currentHand = currentPlayer.hand.copy()
+                        if (currentHand.removeCard(card)) {
+                            selectedCards.add(card)
+                            gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
+                            TRACE(DEBUG, tag = "HandView:onSelectCard") { "Card selected: ${card.value}, ${card.color}" }
+                        } else {
+                            TRACE(ERROR, tag = "HandView:onSelectCard") { "Failed to remove card: ${card.value}, ${card.color}" }
+                        }
                     }
                 }
-
-
-
             )
         }
     }
