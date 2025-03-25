@@ -442,6 +442,27 @@ private object GameManager : IGameManager {
         getViewModel().updateGameState(currentState.copy(gameEvent = null))
     }
 
+    override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
+        val currentGameState = gameState.value
+
+        // Ensure the playerIndex is valid
+        if (playerIndex in currentGameState.players.indices) {
+            // Update the player's hand
+            val updatedPlayers = currentGameState.players.mapIndexed { index, player ->
+                if (index == playerIndex) player.copy(hand = hand) else player
+            }
+
+            // Apply the new state
+            getViewModel().updateGameState(currentGameState.copy(players = updatedPlayers))
+
+            TRACE(DEBUG) { "✅ Updated Player($playerIndex) hand: ${hand.cards}" }
+        } else {
+            TRACE(ERROR) { "⚠️ Invalid playerIndex: $playerIndex" }
+        }
+    }
+
+
+
 }
 
 // Internal helper function to expose GameManager as IGameManager within the module.

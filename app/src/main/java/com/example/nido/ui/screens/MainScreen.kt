@@ -159,6 +159,9 @@ fun MainScreen(
                 selectedCards = selectedCards,
                 playerHandSize = gameManager.getCurrentPlayerHandSize(),
                 onPlayCombination = { playedCards, cardToKeep ->  // ✅ Use a different name
+
+                    println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
+
                     if (gameManager.isValidMove(playedCards)) {
                         TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
                         val playMoveResult = gameManager.playCombination(playedCards, cardToKeep)
@@ -198,6 +201,11 @@ fun MainScreen(
                 .background(NidoColors.HandViewBackground),
             contentAlignment = Alignment.Center
         ) {
+
+
+
+            println("PNB currentHand(${currentHand.size}) = $currentHand")
+
             HandView(
                 hand = com.example.nido.data.model.Hand(
                     mutableStateListOf<Card>().apply { addAll(currentHand) }

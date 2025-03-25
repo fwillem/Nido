@@ -14,6 +14,7 @@ import com.example.nido.game.ai.AIPlayer
  */
 class FakeGameManager : IGameManager {
 
+
     // ✅ Create static fake players
     private val dummyLocalPlayer = LocalPlayer(
         id = "1",
@@ -135,4 +136,14 @@ class FakeGameManager : IGameManager {
     override fun isCurrentPlayerLocal(): Boolean = true
 
     override fun currentPlayerHasValidCombination(): Boolean = true
+
+    override fun updatePlayerHand(playerIndex: Int, newHand: Hand) {
+        _gameState.value = _gameState.value.copy(
+            players = _gameState.value.players.mapIndexed { index, player ->
+                if (index == playerIndex) player.copy(hand = newHand) else player
+            }
+        )
+
+    }
+
 }

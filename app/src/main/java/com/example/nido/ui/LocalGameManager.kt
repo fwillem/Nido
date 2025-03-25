@@ -7,6 +7,7 @@ import com.example.nido.game.GameViewModel
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Player
 import com.example.nido.events.AppEvent
+import com.example.nido.data.model.Hand
 
 val LocalGameManager = staticCompositionLocalOf<IGameManager> {
     object : IGameManager {
@@ -34,6 +35,6 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
         override fun isCurrentPlayerLocal() = getGameManagerInstance().isCurrentPlayerLocal()
         override fun currentPlayerHasValidCombination() = getGameManagerInstance().currentPlayerHasValidCombination()
         override fun isValidMove(selectedCards: List<Card>) = getGameManagerInstance().isValidMove(selectedCards)
-
+        override fun updatePlayerHand(playerIndex: Int, hand: Hand) = getGameManagerInstance().updatePlayerHand(playerIndex, hand)
     }
 }

@@ -1,3 +1,7 @@
 package com.example.nido.game
 
-interface IGameManager : IGameStateProvider, IGameActions
+import com.example.nido.data.model.Hand
+
+interface IGameManager : IGameStateProvider, IGameActions {
+    fun updatePlayerHand(playerIndex: Int, hand: Hand)
+}
