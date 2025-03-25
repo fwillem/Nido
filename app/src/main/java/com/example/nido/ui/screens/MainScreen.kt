@@ -160,7 +160,7 @@ fun MainScreen(
                 playerHandSize = gameManager.getCurrentPlayerHandSize(),
                 onPlayCombination = { playedCards, cardToKeep ->  // ✅ Use a different name
 
-                    println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
+                    // TODO TOREMOVE println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
 
                     if (gameManager.isValidMove(playedCards)) {
                         TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
@@ -204,7 +204,7 @@ fun MainScreen(
 
 
 
-            println("PNB currentHand(${currentHand.size}) = $currentHand")
+            // TODO TOREMOVE println("PNB currentHand(${currentHand.size}) = $currentHand")
 
             HandView(
                 hand = com.example.nido.data.model.Hand(
