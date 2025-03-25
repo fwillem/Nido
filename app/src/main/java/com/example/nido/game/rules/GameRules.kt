@@ -42,7 +42,8 @@ object GameRules {
             // The move is valid if the new combination is better than the current one and :
             // the number of cards in the new combination is not greater than the number of cards in the current combination + 1
             // or he plays all the cards of his hand
-            val isValid = (newMove.value > current.value) && ((newMove.cards.size <= current.cards.size + 1) || (newMove.cards.size == handSize))
+            // TODO TOREMOVE SHALL USE A gameManager function ot check if use won the round instead of checking handSize
+            val isValid = (newMove.value > current.value) && ((newMove.cards.size <= current.cards.size + 1) || (handSize == 0))
 
             TRACE(VERBOSE) { "isValidMove: Current = ${current.value}, New = ${newMove.value}, Card Size = ${newMove.cards.size}, Current Size = ${current.cards.size}, Allowed = $isValid" }
             isValid

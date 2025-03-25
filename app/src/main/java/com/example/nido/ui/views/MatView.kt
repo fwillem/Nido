@@ -134,7 +134,8 @@ fun MatView(
                 // Button isn't visible to non-local players
 
             }
-            else if (!gameManager.currentPlayerHasValidCombination()) {
+            // TODO TOREMOVE SHALL USE A gameManager function ot check if use won the round instead of checking HandSize ==0
+            else if (!gameManager.currentPlayerHasValidCombination() && (gameManager.getCurrentPlayerHandSize()!=0)) {
                 // The player has no valid combination, show a skip button that will automatically be 'pressed' after a delay
                 // This allow the player to understand that he cannot play, he can either press the skip button to speedup the action
                 // Or wait for the counter to expire
@@ -167,7 +168,6 @@ fun MatView(
                 if (GameRules.isValidMove(currentCombination, Combination(selectedCards),playerHandSize)) {
                     Button(
                         onClick = {
-                            println("PNB PlayButton Pressed")
 
                             val candidateCards = playmat?.toList() ?: emptyList()
                             when {
