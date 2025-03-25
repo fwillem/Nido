@@ -131,9 +131,13 @@ fun MatView(
             }
             // Button section
             if (!gameManager.isCurrentPlayerLocal()) {
+                // Button isn't visible to non-local players
 
             }
             else if (!gameManager.currentPlayerHasValidCombination()) {
+                // The player has no valid combination, show a skip button that will automatically be 'pressed' after a delay
+                // This allow the player to understand that he cannot play, he can either press the skip button to speedup the action
+                // Or wait for the counter to expire
                 TRACE(VERBOSE) { "Local player has no valid combination" }
                 var skipCount by remember { mutableStateOf(5) }
                 // Use LaunchedEffect to decrement skipCount every 500ms.
