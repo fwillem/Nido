@@ -155,6 +155,36 @@ private object GameManager : IGameManager {
         val currentGameState = gameState.value
         val newSkipCount = currentGameState.skipCount + 1
 
+        /*
+        // We move to the next player
+        nextTurn()
+
+        //
+        if (newSkipCount >= currentGameState.players.size) {
+            // All players have skipped: discard the current playmat
+            TRACE(INFO) { "All players skipped! Discarding current playmat , ${getCurrentPlayer().name} will restart." }
+
+            val discardedCards = currentGameState.currentCombinationOnMat.cards
+            val newDiscardPile = mutableStateListOf<Card>().apply {
+                addAll(currentGameState.discardPile)
+                addAll(discardedCards)
+            }
+            // Reset currentCombinationOnMat and skipCount, but keep currentPlayerIndex unchanged.
+            val updatedState = currentGameState.copy(
+                currentCombinationOnMat = Combination(mutableListOf()),
+                discardPile = newDiscardPile,
+                skipCount = 0,
+                turnId = currentGameState.turnId + 1
+            )
+            getViewModel().updateGameState(updatedState)
+        } else {
+            // We just update the new skipcount
+            val updatedState = currentGameState.copy(skipCount = newSkipCount)
+            getViewModel().updateGameState(updatedState)
+        }
+        */
+
+        // TODO TOVERIFY
         if (newSkipCount >= currentGameState.players.size) {
             // All players have skipped: discard the current playmat and allow the same player to replay.
             TRACE(INFO) { "All players skipped! Discarding current playmat and allowing ${getCurrentPlayer().name} to replay." }
@@ -179,6 +209,8 @@ private object GameManager : IGameManager {
             getViewModel().updateGameState(updatedState)
             nextTurn()
         }
+
+
     }
 
     /**
