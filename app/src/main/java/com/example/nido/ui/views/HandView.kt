@@ -69,12 +69,13 @@ fun HandView(
                                 },
                                 onDragEnd = {
                                     dragging = false
-                                    TRACE(VERBOSE, tag = "HandView:onDragEnd") {
-                                        "Drag End card: ${card.value}, ${card.color}, index = $index"
+                                    TRACE(VERBOSE, tag = "HandView:onDragEnd") { "Drag End card: ${card.value}, ${card.color}, index = $index" }
+                                    // Drag threshold reached (cardHeight converted to pixels)
+                                    if (offsetY < -cardHeight.run { with(density) { toPx() } } / 2) {
+                                        onSelectCard(card)
+                                    } else {
+                                        TRACE(VERBOSE, tag = "HandView:onDragEnd") { "Drag threshold not reached" }
                                     }
-
-                                    // Only notify selection, actual removal is handled in MainScreen.
-                                    onSelectCard(card)
                                     offsetY = 0f
                                 },
                                 onDragCancel = {
