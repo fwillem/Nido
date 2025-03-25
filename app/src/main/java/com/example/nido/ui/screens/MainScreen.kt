@@ -214,14 +214,21 @@ fun MainScreen(
                 cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
                 sortMode = sortMode,
                 onDoubleClick = toggleSortMode,
+
                 onSelectCard = { card ->
-                    if (selectedCards.contains(card)) {
-                        selectedCards.remove(card)
+                    // Get current player's hand from game state (this is already provided in your currentPlayer)
+                    val currentHand = currentPlayer.hand.copy()
+                    if (currentHand.removeCard(card)) {
+                        TRACE(DEBUG, tag = "HandView:onSelectCard") { "Successfully removed card: ${card.value}, ${card.color}" }
+                        // Update the game manager with the modified hand
+                        gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
                     } else {
-                        selectedCards.add(card)
+                        TRACE(ERROR, tag = "HandView:onSelectCard") { "Failed to remove card: ${card.value}, ${card.color}" }
                     }
-                    TRACE(DEBUG, tag = "HandView:onSelectCard") { "Selected Cards: $selectedCards" }
                 }
+
+
+
             )
         }
     }
