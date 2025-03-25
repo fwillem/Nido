@@ -114,6 +114,7 @@ object GameRules {
 
 
     fun hasPlayerWonTheRound(hand: Hand): Boolean {
+        TRACE(VERBOSE) { "Checking if player has won the round: ${hand.cards} (${hand.cards.isEmpty()} - ${hand.cards.size})" }
         return hand.cards.isEmpty()
     }
 

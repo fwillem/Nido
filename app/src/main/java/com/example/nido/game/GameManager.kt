@@ -384,18 +384,24 @@ private object GameManager : IGameManager {
         return getCurrentPlayer().playerType == PlayerType.LOCAL
     }
 
+    // This function checks if the player is able to make a valid move
+    // In this current implementation, the function needs to check the union of cards in the selectedcard and the hand
     override fun currentPlayerHasValidCombination() : Boolean {
+        // Consider both the remaining hand and the selected cards.
+        val fullHand = getCurrentPlayer().hand.cards.toMutableList().apply {
+            addAll(gameState.value.selectedCards)
+        }
 
-        // Find all possible valid combinations from the current hand.
-        val possibleMoves: List<Combination> = GameRules.findValidCombinations(getCurrentPlayer().hand.cards)
+        // Find all possible valid combinations from the full hand.
+        val possibleMoves: List<Combination> = GameRules.findValidCombinations(fullHand)
 
         // Get the current combination on the playmat.
         val playmatCombination = gameState.value.currentCombinationOnMat
 
         // Look for a valid move that beats the current playmat combination.
-        return (possibleMoves.find { GameRules.isValidMove(playmatCombination, it, getCurrentPlayer().hand.cards.size) } != null)
-
+        return (possibleMoves.find { GameRules.isValidMove(playmatCombination, it, fullHand.size) } != null)
     }
+
 
     override fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
         val currentGameState = gameState.value

@@ -186,10 +186,16 @@ fun MatView(
                                         "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}"
                                     }
                                     TRACE(INFO) { "setDialogEvent : CardSelection" }
-                                    if (selectedCards.size == gameManager.getCurrentPlayerHandSize()) {
+
+                                    // TODO TOREMOVE SHALL USE A gameManager function ot check if use won the ron
+                                    // used to be : if (selectedCards.size == gameManager.getCurrentPlayerHandSize()) {
+                                    if (gameManager.getCurrentPlayerHandSize() == 0) {
+                                        println("PNB selectedCards.size (${selectedCards.size}) is Zero")
+                                        // The player played its remaining cards, he probably won
                                         onPlayCombination(selectedCards.toList(), candidateCards.first())
                                         selectedCards.clear()
                                     } else {
+                                        println("PNB selectedCards.size (${selectedCards.size}) / gameManager.getCurrentPlayerHandSize()(${gameManager.getCurrentPlayerHandSize()})")
                                         gameManager.setDialogEvent(
                                             AppEvent.GameEvent.CardSelection(
                                                 candidateCards = candidateCards,

@@ -17,9 +17,9 @@ class GameViewModel : ViewModel() {
 
         // 🛠️ Check if players exist and currentPlayerIndex is valid
         if (_gameState.value.players.isNotEmpty() && _gameState.value.currentPlayerIndex in _gameState.value.players.indices) {
-            println("PNB Avant updateGameState: currentHand(${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards.size}) = ${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards}")
+          //  println("PNB Avant updateGameState: currentHand(${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards.size}) = ${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards}")
         } else {
-            println("PNB Avant updateGameState: Invalid currentPlayerIndex (${_gameState.value.currentPlayerIndex}) or no players!")
+           // println("PNB Avant updateGameState: Invalid currentPlayerIndex (${_gameState.value.currentPlayerIndex}) or no players!")
         }
 
         val oldState = _gameState.value  // Get the previous state
@@ -83,9 +83,9 @@ class GameViewModel : ViewModel() {
         )
         // 🛠️ Check again after update to avoid crashes
         if (_gameState.value.players.isNotEmpty() && _gameState.value.currentPlayerIndex in _gameState.value.players.indices) {
-            println("PNB Après updateGameState: currentHand(${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards.size}) = ${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards}")
+           // println("PNB Après updateGameState: currentHand(${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards.size}) = ${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards}")
         } else {
-            println("PNB Après updateGameState: Invalid currentPlayerIndex (${_gameState.value.currentPlayerIndex}) or no players!")
+           // println("PNB Après updateGameState: Invalid currentPlayerIndex (${_gameState.value.currentPlayerIndex}) or no players!")
         }
     }
 
