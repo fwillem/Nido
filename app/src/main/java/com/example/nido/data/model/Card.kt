@@ -19,10 +19,9 @@ data class Card(
         value = value
     )
 
+
     override fun toString(): String {
-        return "Card(" +
-                "$value/" +
-                "$color" +
-                ")"
+        return "$value/" + "$color"
+
     }
 }

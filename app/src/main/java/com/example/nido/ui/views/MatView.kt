@@ -167,6 +167,8 @@ fun MatView(
                 if (GameRules.isValidMove(currentCombination, Combination(selectedCards),playerHandSize)) {
                     Button(
                         onClick = {
+                            println("PNB PlayButton Pressed")
+
                             val candidateCards = playmat?.toList() ?: emptyList()
                             when {
                                 candidateCards.isEmpty() -> {

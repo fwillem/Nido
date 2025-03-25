@@ -53,6 +53,6 @@ data class Hand(
     }
 
     override fun toString(): String = cards
-        .joinToString(", ") { "${it.color.name} ${it.value}" }
+        .joinToString(", ") { "${it.value}/${it.color.name}" }
         .ifEmpty { "The hand is empty" }
 }
