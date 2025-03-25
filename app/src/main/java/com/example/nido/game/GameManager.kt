@@ -125,9 +125,14 @@ private object GameManager : IGameManager {
         val mutableDeck = state.deck.toMutableList()
         val mutablePlayers = state.players.map { player ->
             val updatedHand = player.hand.copy()
+            var copyCount = 0;
+            println("PNB player = $player, deck size is ${mutableDeck.size}")
             repeat(Constants.HAND_SIZE) {
                 if (mutableDeck.isNotEmpty()) {
                     val card = mutableDeck.removeAt(0)
+                    copyCount++
+                    println("PNB Card dealt: $card , ($copyCount)")
+
                     updatedHand.addCard(card)
                 } else {
                     TRACE (FATAL) { "Deck is empty before dealing all cards!" }
