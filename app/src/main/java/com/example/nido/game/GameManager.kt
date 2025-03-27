@@ -161,14 +161,16 @@ private object GameManager : IGameManager {
         val currentGameState = gameState.value
         val newSkipCount = currentGameState.skipCount + 1
 
-        /*
-        // We move to the next player
-        nextTurn()
+        println("PNB skipTurn : ${newSkipCount}")
+
+
+
+
 
         //
-        if (newSkipCount >= currentGameState.players.size) {
+        if (newSkipCount >= (currentGameState.players.size-1)) {
             // All players have skipped: discard the current playmat
-            TRACE(INFO) { "All players skipped! Discarding current playmat , ${getCurrentPlayer().name} will restart." }
+            TRACE(INFO) { "All players but one skipped! Discarding current playmat , ${getCurrentPlayer().name} will restart." }
 
             val discardedCards = currentGameState.currentCombinationOnMat.cards
             val newDiscardPile = mutableStateListOf<Card>().apply {
@@ -180,39 +182,19 @@ private object GameManager : IGameManager {
                 currentCombinationOnMat = Combination(mutableListOf()),
                 discardPile = newDiscardPile,
                 skipCount = 0,
-                turnId = currentGameState.turnId + 1
             )
             getViewModel().updateGameState(updatedState)
+
+            // We move to the next player
+            nextTurn()
         } else {
+            println("PNB We just update the new skipcount")
+
             // We just update the new skipcount
             val updatedState = currentGameState.copy(skipCount = newSkipCount)
             getViewModel().updateGameState(updatedState)
-        }
-        */
 
-        // TODO TOVERIFY
-        if (newSkipCount >= currentGameState.players.size) {
-            // All players have skipped: discard the current playmat and allow the same player to replay.
-            TRACE(INFO) { "All players skipped! Discarding current playmat and allowing ${getCurrentPlayer().name} to replay." }
-            val discardedCards = currentGameState.currentCombinationOnMat.cards
-            val newDiscardPile = mutableStateListOf<Card>().apply {
-                addAll(currentGameState.discardPile)
-                addAll(discardedCards)
-            }
-            // Reset currentCombinationOnMat and skipCount, but keep currentPlayerIndex unchanged.
-            val updatedState = currentGameState.copy(
-                currentCombinationOnMat = Combination(mutableListOf()),
-                discardPile = newDiscardPile,
-                skipCount = 0,
-                turnId = currentGameState.turnId + 1
-            )
-            getViewModel().updateGameState(updatedState)
-        } else {
-            // Just update the skip count and move on to the next player's turn.
-            TRACE(VERBOSE) { "updating skip count to $newSkipCount" }
-
-            val updatedState = currentGameState.copy(skipCount = newSkipCount)
-            getViewModel().updateGameState(updatedState)
+            // We move to the next player
             nextTurn()
         }
 
