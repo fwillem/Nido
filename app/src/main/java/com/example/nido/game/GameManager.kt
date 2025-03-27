@@ -91,6 +91,7 @@ private object GameManager : IGameManager {
 
         // Reshuffle the existing deck.
         val reshuffledDeck = DeckRepository.shuffleDeck(currentState.deck.toMutableList())
+        println("PNB : Reshuffle New Deck (${reshuffledDeck.size})")
         val mutableDeck = mutableStateListOf<Card>().apply { addAll(reshuffledDeck) }
 
         // Calculate new starting index: next player after previous starting player.
@@ -121,9 +122,9 @@ private object GameManager : IGameManager {
     }
 
 
-    private fun dealCards(state: GameState): GameState {
-        val mutableDeck = state.deck.toMutableList()
-        val mutablePlayers = state.players.map { player ->
+    private fun dealCards(gameState: GameState): GameState {
+        val mutableDeck = gameState.deck.toMutableList()
+        val mutablePlayers = gameState.players.map { player ->
             val updatedHand = player.hand.copy()
             var copyCount = 0;
             println("PNB player = $player, deck size is ${mutableDeck.size}")
@@ -147,7 +148,7 @@ private object GameManager : IGameManager {
             TRACE(INFO) { "$player.name's hand:" + player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" } }
         }
 
-        return state.copy(
+        return gameState.copy(
             players = mutablePlayers,
             deck = mutableStateListOf<Card>().apply { addAll(mutableDeck) }
         )
