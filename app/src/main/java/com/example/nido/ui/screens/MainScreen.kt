@@ -180,12 +180,11 @@ fun MainScreen(
                     TRACE(DEBUG) { "Withdraw Cards: $cardsToWithdraw" }
                     // Remove cards from selected cards
                     selectedCards.removeAll(cardsToWithdraw)
-                    // Trick to force a UI refresh on the HandView
-                    // TODO REMOVE THIS TRICK
 
-                    val updatedHand = currentPlayer.hand.copy()
-                    currentPlayer.hand.cards.clear()
-                    currentPlayer.hand.cards.addAll(updatedHand.cards)
+                    // We need to put bacl the cards in the Hand
+                    // val updatedHand = currentPlayer.hand.copy()
+                    // currentPlayer.hand.cards.clear()
+                    currentPlayer.hand.cards.addAll(cardsToWithdraw)
                 },
                 onSkip = {gameManager.processSkip()},
                 cardWidth = Constants.CARD_ON_MAT_WIDTH.dp,
