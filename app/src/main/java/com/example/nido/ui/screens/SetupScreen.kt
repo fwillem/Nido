@@ -91,7 +91,7 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
                     Text("Add Player")
                 }
 
-                // ✅ Button to remove AI players
+                // ✅ Button to remove players
                 Button(
                     modifier = Modifier
                         .weight(1f)
