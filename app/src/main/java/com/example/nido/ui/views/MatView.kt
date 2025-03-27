@@ -140,12 +140,12 @@ fun MatView(
                 // This allow the player to understand that he cannot play, he can either press the skip button to speedup the action
                 // Or wait for the counter to expire
                 TRACE(VERBOSE) { "Local player has no valid combination" }
-                var skipCount by remember { mutableStateOf(5) }
+                var skipTimerCount by remember { mutableStateOf(5) }
                 // Use LaunchedEffect to decrement skipCount every 500ms.
                 LaunchedEffect(Unit) {
-                    while (skipCount > 0) {
+                    while (skipTimerCount > 0) {
                         delay(800L)
-                        skipCount--
+                        skipTimerCount--
                     }
                     onSkip()
 
@@ -160,7 +160,7 @@ fun MatView(
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Skip ($skipCount)", fontSize = 16.sp, lineHeight = 16.sp)
+                    Text("Skip ($skipTimerCount)", fontSize = 16.sp, lineHeight = 16.sp)
                 }
             } else if (selectedCards.isNotEmpty()) {
                 TRACE(DEBUG) { "Player has a valid combination" }
