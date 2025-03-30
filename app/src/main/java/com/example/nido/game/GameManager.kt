@@ -2,6 +2,7 @@ package com.example.nido.game
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
@@ -15,6 +16,7 @@ import com.example.nido.data.model.PlayerActionType
 import com.example.nido.data.model.Hand
 import com.example.nido.events.AppEvent
 import kotlin.Int
+import com.example.nido.game.GamePhase
 
 enum class gameManagerMoveResult {
     ROUND_OVER,
@@ -22,13 +24,14 @@ enum class gameManagerMoveResult {
     NEXT_PLAYER,
     INVALID_MOVE
 }
+
 private object GameManager : IGameManager {
     private var gameViewModel: GameViewModel? = null
     override val gameState: State<GameState>
         get() = getViewModel().gameState
 
 
-   override fun initialize(viewModel: GameViewModel) {
+    override fun initialize(viewModel: GameViewModel) {
         if (gameViewModel != null) {
             // Already initialized; the user may have changed the orientation of the phone or moved the app in background
             TRACE(DEBUG) { "GameManager already initialized; reattaching." }
@@ -38,7 +41,8 @@ private object GameManager : IGameManager {
     }
 
     private fun getViewModel(): GameViewModel {
-        return gameViewModel ?: throw IllegalStateException("GameManager has not been initialized!") // 🚨 Prevent usage before initialization
+        return gameViewModel
+            ?: throw IllegalStateException("GameManager has not been initialized!") // 🚨 Prevent usage before initialization
     }
 
 
@@ -58,11 +62,15 @@ private object GameManager : IGameManager {
         // TODO For debug we will simplify, the right value is :  val startingPlayerIndex = (0 until selectedPlayers.size).random()
         val startingPlayerIndex = -1
 
-        val initializedPlayers = GameRules.initializePlayerScores(selectedPlayers, selectedPointLimit)
+        val initializedPlayers =
+            GameRules.initializePlayerScores(selectedPlayers, selectedPointLimit)
+
 
         // Set up initial state
         val initialState = GameState(
-            players = initializedPlayers, // ✅ Players now have the correct starting score
+
+            players = initializedPlayers,
+
             pointLimit = selectedPointLimit,
             deck = mutableStateListOf<Card>().apply { addAll(deck) },
             startingPlayerIndex = startingPlayerIndex,
@@ -70,8 +78,9 @@ private object GameManager : IGameManager {
             currentCombinationOnMat = Combination(mutableListOf()),
             discardPile = mutableStateListOf(),
             skipCount = 0,
-            screen = GameScreens.PLAYING
+            gamePhase = GamePhase.Setup
         )
+
 
         // Update the state without dealing.
         getViewModel().updateGameState(initialState)
@@ -89,20 +98,30 @@ private object GameManager : IGameManager {
     override fun startNewRound() {
         val currentState = gameState.value
 
-        // Reshuffle the existing deck.
+        // ♻️ Reshuffle the deck
         val reshuffledDeck = DeckRepository.shuffleDeck(currentState.deck.toMutableList())
-        println("PNB : Reshuffle New Deck (${reshuffledDeck.size})")
         val mutableDeck = mutableStateListOf<Card>().apply { addAll(reshuffledDeck) }
 
-        // Calculate new starting index: next player after previous starting player.
+        // 🔄 Determine new starting player
         val newStartingPlayerIndex = (currentState.startingPlayerIndex + 1) % currentState.players.size
+        val clearedPlayers = currentState.players.map { it.copy(hand = Hand()) }
 
-        // Clear all players' hands.
-        val clearedPlayers = currentState.players.map { player ->
-            player.copy(hand = Hand())  // Assuming Hand() creates an empty hand.
+        // 🎯 Identify the player who starts
+        val currentPlayer = clearedPlayers[newStartingPlayerIndex]
+
+        // ⚙️ Determine the turn state based on player type
+        val initialTurnState = when {
+            currentPlayer.playerType == PlayerType.AI -> TurnState.AIProcessing
+            currentPlayer.playerType == PlayerType.REMOTE -> TurnState.RemoteProcessing
+            else -> TurnState.WaitingForSelection
         }
 
-        // Reset round-specific state.
+        val turnInfo = TurnInfo(
+            state = initialTurnState,
+            canSkip = false // ⛔ First player must play!
+        )
+
+        // 📦 Rebuild the state
         var newState = currentState.copy(
             players = clearedPlayers,
             deck = mutableDeck,
@@ -111,14 +130,21 @@ private object GameManager : IGameManager {
             skipCount = 0,
             startingPlayerIndex = newStartingPlayerIndex,
             currentPlayerIndex = newStartingPlayerIndex,
-            screen = GameScreens.PLAYING,
-            turnId = currentState.turnId + 1
+            turnId = currentState.turnId + 1,
+            gamePhase = GamePhase.Round( // 🧠 NEW phase logic
+                RoundPhase.PlayerTurn(
+                    playerId = currentPlayer.id,
+                    turnInfo = turnInfo
+                )
+            )
         )
 
-        // Deal cards for the new round.
+        // 🃏 Deal cards!
         newState = dealCards(newState)
+
+        // ✅ Update state
         getViewModel().updateGameState(newState)
-        TRACE(INFO) { "New round started: ${getViewModel().gameState}" }
+        TRACE(INFO) { "🆕 New round started: ${getViewModel().gameState}" }
     }
 
 
@@ -136,7 +162,7 @@ private object GameManager : IGameManager {
 
                     updatedHand.addCard(card)
                 } else {
-                    TRACE (FATAL) { "Deck is empty before dealing all cards!" }
+                    TRACE(FATAL) { "Deck is empty before dealing all cards!" }
                 }
             }
             player.copy(hand = updatedHand)
@@ -154,7 +180,8 @@ private object GameManager : IGameManager {
         )
     }
 
-    private fun getCurrentPlayer(): Player = gameState.value.players[gameState.value.currentPlayerIndex]
+    private fun getCurrentPlayer(): Player =
+        gameState.value.players[gameState.value.currentPlayerIndex]
 
     override fun skipTurn() {
         TRACE(DEBUG) { "${getCurrentPlayer().name} is skipping turn" }
@@ -164,11 +191,8 @@ private object GameManager : IGameManager {
         println("PNB skipTurn : ${newSkipCount}")
 
 
-
-
-
         //
-        if (newSkipCount >= (currentGameState.players.size-1)) {
+        if (newSkipCount >= (currentGameState.players.size - 1)) {
             // All players have skipped: discard the current playmat
             TRACE(INFO) { "All players but one skipped! Discarding current playmat , ${getCurrentPlayer().name} will restart." }
 
@@ -204,9 +228,12 @@ private object GameManager : IGameManager {
     /**
      * Play a combination of cards.Returns true if the player won.
      */
-    override fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) : gameManagerMoveResult {
+    override fun playCombination(
+        selectedCards: List<Card>,
+        cardToKeep: Card?
+    ): gameManagerMoveResult {
         val currentGameState = gameState.value
-        var moveResult : gameManagerMoveResult = gameManagerMoveResult.NEXT_PLAYER
+        var moveResult: gameManagerMoveResult = gameManagerMoveResult.NEXT_PLAYER
 
         if (selectedCards.isEmpty()) {
             TRACE(FATAL) { " No cards selected" }
@@ -218,7 +245,12 @@ private object GameManager : IGameManager {
         val newCombination = Combination(selectedCards.toMutableList())
 
         // Validate the move.
-        if (!GameRules.isValidMove(currentCombination, newCombination, getCurrentPlayer().hand.cards.size)) {
+        if (!GameRules.isValidMove(
+                currentCombination,
+                newCombination,
+                getCurrentPlayer().hand.cards.size
+            )
+        ) {
             TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
             return gameManagerMoveResult.INVALID_MOVE
         }
@@ -333,18 +365,19 @@ private object GameManager : IGameManager {
     override fun processAIMove() {
         val currentPlayer = getCurrentPlayer()
         if (currentPlayer.playerType == PlayerType.AI) {
-            TRACE(DEBUG) {"AI is playing (${currentPlayer.name})" }
+            TRACE(DEBUG) { "AI is playing (${currentPlayer.name})" }
             handleAIMove(currentPlayer)
         } else {
-            TRACE(ERROR) {"Not AI's turn!" }
+            TRACE(ERROR) { "Not AI's turn!" }
         }
     }
+
     override fun processSkip() {
         val currentPlayer = getCurrentPlayer()
         if (currentPlayer.playerType == PlayerType.AI) {
-            TRACE(WARNING) {" AI not supposed to skip via this function" }
+            TRACE(WARNING) { " AI not supposed to skip via this function" }
         } else {
-            TRACE(INFO) {"Local player ${currentPlayer.name} skips" }
+            TRACE(INFO) { "Local player ${currentPlayer.name} skips" }
             skipTurn()
         }
     }
@@ -359,12 +392,13 @@ private object GameManager : IGameManager {
             } else {
                 TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
                 // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
-                val playMoveResult = playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
+                val playMoveResult =
+                    playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
 
                 // Here we need to test is game is ended
                 if (playMoveResult == gameManagerMoveResult.GAME_OVER) {
                     TRACE(DEBUG, tag = "handleAIMove") { "Game Over" }
-                  // onEndGame() not done here, will be done upon reception of the GAME_OVER event
+                    // onEndGame() not done here, will be done upon reception of the GAME_OVER event
                 }
             }
 
@@ -377,7 +411,11 @@ private object GameManager : IGameManager {
     override fun isValidMove(selectedCards: List<Card>): Boolean {
         val currentCombination = gameState.value.currentCombinationOnMat
         val selectedCombination = Combination(selectedCards.toMutableList())
-        return GameRules.isValidMove(currentCombination, selectedCombination, getCurrentPlayer().hand.cards.size)
+        return GameRules.isValidMove(
+            currentCombination,
+            selectedCombination,
+            getCurrentPlayer().hand.cards.size
+        )
     }
 
     override fun isGameOver(): Boolean {
@@ -392,21 +430,21 @@ private object GameManager : IGameManager {
         return GameRules.getPlayerRankings(gameState.value.players)
     }
 
-    override fun getPlayerHandScores() : List<Pair<Player, Int>> {
+    override fun getPlayerHandScores(): List<Pair<Player, Int>> {
         return GameRules.getPlayerHandScores(gameState.value.players)
     }
 
-    override fun getCurrentPlayerHandSize() : Int {
+    override fun getCurrentPlayerHandSize(): Int {
         return getCurrentPlayer().hand.cards.size
     }
 
-    override fun isCurrentPlayerLocal() : Boolean {
+    override fun isCurrentPlayerLocal(): Boolean {
         return getCurrentPlayer().playerType == PlayerType.LOCAL
     }
 
     // This function checks if the player is able to make a valid move
     // In this current implementation, the function needs to check the union of cards in the selectedcard and the hand
-    override fun currentPlayerHasValidCombination() : Boolean {
+    override fun currentPlayerHasValidCombination(): Boolean {
         // Consider both the remaining hand and the selected cards.
         val fullHand = getCurrentPlayer().hand.cards.toMutableList().apply {
             addAll(gameState.value.selectedCards)
@@ -419,7 +457,13 @@ private object GameManager : IGameManager {
         val playmatCombination = gameState.value.currentCombinationOnMat
 
         // Look for a valid move that beats the current playmat combination.
-        return (possibleMoves.find { GameRules.isValidMove(playmatCombination, it, fullHand.size) } != null)
+        return (possibleMoves.find {
+            GameRules.isValidMove(
+                playmatCombination,
+                it,
+                fullHand.size
+            )
+        } != null)
     }
 
 
@@ -486,7 +530,6 @@ private object GameManager : IGameManager {
             TRACE(ERROR) { "⚠️ Invalid playerIndex: $playerIndex" }
         }
     }
-
 
 
 }

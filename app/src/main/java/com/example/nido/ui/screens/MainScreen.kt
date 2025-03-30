@@ -38,7 +38,6 @@ import com.example.nido.data.model.Combination
 import com.example.nido.data.model.PlayerAction
 import com.example.nido.data.model.PlayerActionType
 import com.example.nido.game.GameState
-import com.example.nido.game.GameScreens
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.gameManagerMoveResult
@@ -48,6 +47,10 @@ import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.theme.NidoColors
 import androidx.compose.runtime.CompositionLocalProvider
 import com.example.nido.game.FakeGameManager
+import com.example.nido.game.GamePhase
+import com.example.nido.game.RoundPhase
+import com.example.nido.game.TurnInfo
+import com.example.nido.game.TurnState
 
 
 @Composable
@@ -365,10 +368,19 @@ fun PreviewMainScreen() {
             Card(4, "RED")
         ))
     }
+    val turnInfo = TurnInfo(
+        state = TurnState.WaitingForSelection,
+        canSkip = true
+    )
 
     // 🚀 Build a dummy game state.
     val dummyGameState = GameState(
-        screen = GameScreens.PLAYING,
+        gamePhase = GamePhase.Round( // 🧠 NEW phase logic
+            RoundPhase.PlayerTurn(
+                playerId = dummyPlayers[0].id,
+                turnInfo = turnInfo
+            )
+        ),
         pointLimit = 100,
         players = dummyPlayers,
         startingPlayerIndex = 0,

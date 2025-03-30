@@ -31,6 +31,11 @@ interface Player {
     val playerType: PlayerType
     var score: Int
     val hand: Hand
+    /**
+     * Indicates whether this player is managed by this device's game logic.
+     * This allows the app to distinguish between local user input and remote-synchronized input.
+     */
+    val isLocallyManaged : Boolean
 
     /**
      * Called when it's the player's turn.
@@ -47,6 +52,7 @@ interface Player {
         name: String = this.name,
         avatar: String = this.avatar,
         score: Int = this.score,
-        hand: Hand = this.hand
+        hand: Hand = this.hand,
+        isLocallyManaged: Boolean = this.isLocallyManaged
     ): Player
 }
