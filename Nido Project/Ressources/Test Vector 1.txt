@@ -1,0 +1,72 @@
+Test Vector 1
+
+1 blue
+7 red
+9 mocha
+2 mocha
+3 red
+5 blue
+8 green
+9 red
+1 mocha
+
+
+Combinations are:
+973 (red)
+921 (blue)
+99 (same value)
+97 (red)
+93 (blue)
+92 (mocha)
+91 (mocha)
+85 (green)
+73 (red)
+21 (mocha)
+11 (same value
+9 (red)
+9 (mocha)
+8 (green)
+7 (red)
+5 (green)
+3 (red)
+2 (mocha)
+1 (mocha)
+1 (green)
+
+Test Vector 2
+
+1 mocha
+7 red
+9 mocha
+2 mocha
+3 red
+5 blue
+8 green
+9 red
+1 red
+
+9731 (red)
+973 (red)
+921 (mocha)
+731 (red)
+99 (value)
+97 (red)
+93 (red)
+92 (mocha)
+91 (red)
+85 (green)
+73 (red)
+71 (red)
+31 (red)
+21 (red)
+21 (mocha)
+11 (value)
+9 (red)
+9 (black)
+8 (green)
+7 (red)
+5 (green)
+3 (red)
+2 (mocha)
+1 (mocha)
+1 (red)
