@@ -9,8 +9,7 @@ import com.example.nido.utils.Constants
 import com.example.nido.events.AppEvent
 
 data class GameState(
-    val screen: GameScreens = GameScreens.MENU,
-   // val numberOfPlayers: Int = 2,
+    val gamePhase: GamePhase = GamePhase.Menu,
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     val players: List<Player> = emptyList(),
     val startingPlayerIndex: Int = 0,
@@ -28,7 +27,7 @@ data class GameState(
     override fun toString(): String {
         return """
             🔍 GameState Debug Info:
-            💠 Screen: $screen
+            💠 Phase: $gamePhase
             💠 Point Limit: $pointLimit
             💠 Nb of players: ${players.size}
             💠 Starting Player Index: $startingPlayerIndex
@@ -47,7 +46,8 @@ data class GameState(
 
     fun deepCopy(): GameState {
         return GameState(
-            screen = this.screen,
+
+            gamePhase = this.gamePhase,
             pointLimit = this.pointLimit,
             players = this.players.map { it.copy() }, // Deep copy players
             startingPlayerIndex = this.startingPlayerIndex,
@@ -64,10 +64,3 @@ data class GameState(
     }
 }
 
-enum class GameScreens {
-    MENU,
-    SETUP,
-    PLAYING,
-    GAMEOVER,
-    ROUND_OVER
-}

@@ -49,12 +49,13 @@ class GameViewModel : ViewModel() {
         if (oldState.startingPlayerIndex != newState.startingPlayerIndex) changes.add("startingPlayerIndex: ${oldState.startingPlayerIndex} ➝ ${newState.startingPlayerIndex}")
         if (oldState.currentPlayerIndex != newState.currentPlayerIndex) changes.add("currentPlayerIndex: ${oldState.currentPlayerIndex} ➝ ${newState.currentPlayerIndex}")
         if (oldState.currentCombinationOnMat != newState.currentCombinationOnMat) changes.add("currentCombinationOnMat: ${oldState.currentCombinationOnMat} ➝ ${newState.currentCombinationOnMat}")
-        if (oldState.screen != newState.screen) changes.add("screen: ${oldState.screen} ➝ ${newState.screen}")
         if (oldState.soundOn != newState.soundOn) changes.add("soundOn: ${oldState.soundOn} ➝ ${newState.soundOn}")
         if (oldState.gameEvent != newState.gameEvent) changes.add("gameEvent: ${oldState.gameEvent} ➝ ${newState.gameEvent}")
         if (oldState.skipCount != newState.skipCount) changes.add("skipCount: ${oldState.skipCount} ➝ ${newState.skipCount}")
         if (oldState.pointLimit != newState.pointLimit) changes.add("pointLimit: ${oldState.pointLimit} ➝ ${newState.pointLimit}")
         if (oldState.turnId != newState.turnId) changes.add("turnId: ${oldState.turnId} ➝ ${newState.turnId}")
+        if (oldState.gamePhase != newState.gamePhase) changes.add("gamePhase: ${oldState.gamePhase} ➝ ${newState.gamePhase}")
+
 
 
 
@@ -75,12 +76,12 @@ class GameViewModel : ViewModel() {
             currentPlayerIndex = newState.currentPlayerIndex,
             currentCombinationOnMat = newState.currentCombinationOnMat,
             skipCount = newState.skipCount,
-            screen = newState.screen,
+            gamePhase = newState.gamePhase,
             pointLimit = newState.pointLimit,
             soundOn = newState.soundOn,
             gameEvent = newState.gameEvent,
-            turnId = newState.turnId
-        )
+            turnId = newState.turnId,
+            )
         // 🛠️ Check again after update to avoid crashes
         if (_gameState.value.players.isNotEmpty() && _gameState.value.currentPlayerIndex in _gameState.value.players.indices) {
            // println("PNB Après updateGameState: currentHand(${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards.size}) = ${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards}")

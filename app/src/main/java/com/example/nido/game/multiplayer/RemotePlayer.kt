@@ -5,15 +5,16 @@ import com.example.nido.game.IGameManager
 import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
-
+import java.util.UUID
 
 
 class RemotePlayer(
-    override val id: String,
+    override val id: String = UUID.randomUUID().toString(),
     override val name: String,
     override val avatar: String,
     override var score: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
-    override val hand: Hand = Hand()
+    override val hand: Hand = Hand(),
+    override val isLocallyManaged: Boolean = true
 ) : Player {
     override val playerType: PlayerType = PlayerType.REMOTE
 
@@ -34,12 +35,13 @@ class RemotePlayer(
         name: String,
         avatar: String,
         score: Int,
-        hand: Hand
+        hand: Hand,
+        isLocallyManaged: Boolean
     ): Player {
-        return RemotePlayer(id, name, avatar, score, hand)
+        return RemotePlayer(id, name, avatar, score, hand, isLocallyManaged)
     }
 
     override fun toString(): String {
-        return "RemotePlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand)"
+        return "RemotePlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand, isLocallyManaged=$isLocallyManaged)"
     }
 }

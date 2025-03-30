@@ -4,15 +4,17 @@ import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.*
 import com.example.nido.game.IGameManager
 import com.example.nido.utils.Constants
+import java.util.UUID
 
 val AIPLayerComments = listOf("That's my choice", "What do you think about that", "I'm thinking about it", "This move will make me win")
 
 class AIPlayer(
-    override val id: String,
+    override val id: String = UUID.randomUUID().toString(),
     override val name: String,
     override val avatar: String,
     override var score: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
-    override val hand: Hand = Hand()
+    override val hand: Hand = Hand(),
+    override val isLocallyManaged: Boolean = true
 ) : Player {
     override val playerType: PlayerType = PlayerType.AI
 
@@ -52,12 +54,13 @@ class AIPlayer(
         name: String,
         avatar: String,
         score: Int,
-        hand: Hand
+        hand: Hand,
+        isLocallyManaged: Boolean
     ): Player {
-        return AIPlayer(id, name, avatar, score, hand)
+        return AIPlayer(id, name, avatar, score, hand, isLocallyManaged)
     }
 
     override fun toString(): String {
-        return "AIPlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand)"
+        return "AIPlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand, isLocallyManaged=$isLocallyManaged)"
     }
 }
