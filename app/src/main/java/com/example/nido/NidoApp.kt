@@ -11,41 +11,39 @@ import androidx.compose.ui.Modifier
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.AppScreen
-import com.example.nido.ui.AppScreenSaver
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.MutableState // Potentially needed for explicit typing
 import com.example.nido.ui.screens.MainScreen
 import com.example.nido.ui.screens.SetupScreen
 import com.example.nido.ui.screens.ScoreScreen
 
+
+
 @Composable
 fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
     val gameManager = LocalGameManager.current
 
-    // Use rememberSaveable with the AppScreenSaver. No need for mutableStateOf here.
-  //  var currentScreen: AppScreen by rememberSaveable(saver = AppScreenSaver) { AppScreen.Setup }
-
-    var currentScreen: AppScreen by rememberSaveable(saver = AppScreenSaver) {
-        mutableStateOf<AppScreen>(AppScreen.Setup) // Add <AppScreen> here
-    }
+    // Store the String route, use the constant for the initial value
+    var currentRoute by rememberSaveable { mutableStateOf(AppScreen.Routes.SETUP) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        when (currentScreen) {
-            is AppScreen.Setup -> SetupScreen(
+        // Navigate based on the route string constant
+        when (currentRoute) {
+            AppScreen.Routes.SETUP -> SetupScreen(
                 onGameStart = { selectedPlayers, selectedPointLimit ->
                     gameManager.startNewGame(selectedPlayers, selectedPointLimit)
-                    currentScreen = AppScreen.Game
+                    currentRoute = AppScreen.Routes.GAME // Navigate using constant
                 },
                 modifier = modifier.padding(innerPadding)
             )
-            is AppScreen.Game -> MainScreen(
-                onEndGame = { currentScreen = AppScreen.Score },
+            AppScreen.Routes.GAME -> MainScreen(
+                onEndGame = { currentRoute = AppScreen.Routes.SCORE }, // Navigate using constant
                 modifier = modifier.padding(innerPadding),
                 viewModel = viewModel
             )
-            is AppScreen.Score -> ScoreScreen(
-                onContinue = { currentScreen = AppScreen.Setup },
-                onEndGame = { currentScreen = AppScreen.Setup },
+            AppScreen.Routes.SCORE -> ScoreScreen(
+                onContinue = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
+                onEndGame = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
                 modifier = modifier.padding(innerPadding)
             )
         }
