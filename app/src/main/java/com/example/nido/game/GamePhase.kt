@@ -27,8 +27,8 @@ sealed class TurnState(val localOnly: Boolean = false) {
     object Selecting : TurnState(localOnly = true)              // Actively selecting cards (LOCAL ONLY)
     object ConfirmingMove : TurnState(localOnly = true)         // Ready to commit a move (LOCAL ONLY)
     object NoValidMove : TurnState()            // No valid move available, will skip (after timeout)
-    object AllInOpportunity : TurnState()       // Special case: all others skipped, player must play full hand or one card
-    object AIProcessing : TurnState()           // AI is thinking (UX delay)
+    object AllInOpportunity : TurnState()       // Special case: all others skipped, player can play full hand or one card
+    object AIProcessing : TurnState()           // AI is thinking (this is a transient state guarded by a timer for UX matter)
     object RemoteProcessing : TurnState()       // Remote player move pending
 }
 

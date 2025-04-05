@@ -3,42 +3,49 @@ package com.example.nido.ui.screens
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.AppScreen
+import com.example.nido.ui.AppScreenSaver
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.MutableState // Potentially needed for explicit typing
 import com.example.nido.ui.screens.MainScreen
-import com.example.nido.ui.screens.ScoreScreen
 import com.example.nido.ui.screens.SetupScreen
+import com.example.nido.ui.screens.ScoreScreen
 
 @Composable
-fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) { // Receive viewModel
+fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
+    val gameManager = LocalGameManager.current
 
-    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+    // Use rememberSaveable with the AppScreenSaver. No need for mutableStateOf here.
+  //  var currentScreen: AppScreen by rememberSaveable(saver = AppScreenSaver) { AppScreen.Setup }
 
-    var currentScreen by rememberSaveable { mutableStateOf("SetupScreen") }
-
+    var currentScreen: AppScreen by rememberSaveable(saver = AppScreenSaver) {
+        mutableStateOf<AppScreen>(AppScreen.Setup) // Add <AppScreen> here
+    }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         when (currentScreen) {
-            "SetupScreen" -> SetupScreen(
+            is AppScreen.Setup -> SetupScreen(
                 onGameStart = { selectedPlayers, selectedPointLimit ->
-                    gameManager.startNewGame(selectedPlayers, selectedPointLimit) // Use viewModel
-                    currentScreen = "GameScreen"
+                    gameManager.startNewGame(selectedPlayers, selectedPointLimit)
+                    currentScreen = AppScreen.Game
                 },
                 modifier = modifier.padding(innerPadding)
             )
-
-            "GameScreen" -> MainScreen(
-                onEndGame = { currentScreen = "ScoreScreen" },
+            is AppScreen.Game -> MainScreen(
+                onEndGame = { currentScreen = AppScreen.Score },
                 modifier = modifier.padding(innerPadding),
-                viewModel = viewModel // Pass viewModel to MainScreen
+                viewModel = viewModel
             )
-
-            "ScoreScreen" -> ScoreScreen(
-                onContinue = { currentScreen = "SetupScreen" },
-                onEndGame = { currentScreen = "SetupScreen" },
+            is AppScreen.Score -> ScoreScreen(
+                onContinue = { currentScreen = AppScreen.Setup },
+                onEndGame = { currentScreen = AppScreen.Setup },
                 modifier = modifier.padding(innerPadding)
             )
         }
