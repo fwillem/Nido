@@ -99,7 +99,6 @@ fun MainScreen(
     // Dynamically build the action buttons map based on the current player's type.
     val actionButtonsMap: Map<String, () -> Unit> = if (currentPlayer.playerType == PlayerType.LOCAL) {
         mapOf(
-            "Sort Mode: ${sortMode.name}" to { toggleSortMode() },
             "Quit" to { onEndGame() },
             "Skip" to { gameManager.processSkip() }  // Process skip for local players.
         )
@@ -216,7 +215,7 @@ fun MainScreen(
                 cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
                 sortMode = sortMode,
                 onDoubleClick = toggleSortMode,
-
+                onSortMode = toggleSortMode,
                 onSelectCard = { card ->
                     if (selectedCards.contains(card)) {
                         // Unselect the card: remove it from selectedCards and add it back to the hand.

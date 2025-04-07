@@ -9,7 +9,7 @@ import com.example.nido.utils.Constants
 import com.example.nido.events.AppEvent
 
 data class GameState(
-    val gamePhase: GamePhase = GamePhase.Menu,
+    val gamePhase: GamePhase = GamePhase.Idle,
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     val players: List<Player> = emptyList(),
     val startingPlayerIndex: Int = 0,
