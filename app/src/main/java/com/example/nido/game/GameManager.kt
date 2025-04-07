@@ -78,7 +78,7 @@ private object GameManager : IGameManager {
             currentCombinationOnMat = Combination(mutableListOf()),
             discardPile = mutableStateListOf(),
             skipCount = 0,
-            gamePhase = GamePhase.Setup
+            gamePhase = GamePhase.Idle
         )
 
 

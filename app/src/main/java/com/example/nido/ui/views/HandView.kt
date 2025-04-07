@@ -27,6 +27,7 @@ fun HandView(
     cardHeight: Dp,
     sortMode: SortMode,
     onDoubleClick: () -> Unit,
+    onSortMode: () -> Unit,
     onSelectCard: (Card) -> Unit
 ) {
     val density = LocalDensity.current
