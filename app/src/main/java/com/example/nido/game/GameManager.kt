@@ -16,7 +16,8 @@ import com.example.nido.data.model.PlayerActionType
 import com.example.nido.data.model.Hand
 import com.example.nido.events.AppEvent
 import kotlin.Int
-import com.example.nido.game.GamePhase
+import com.example.nido.game.events.GameEvent
+
 
 enum class gameManagerMoveResult {
     ROUND_OVER,
@@ -96,131 +97,18 @@ private object GameManager : IGameManager {
      * 🏁 Updates startingIndex to be the next player after the one who started the previous round.
      */
     override fun startNewRound() {
-        val currentState = gameState.value
-
-        // ♻️ Reshuffle the deck
-        val reshuffledDeck = DeckRepository.shuffleDeck(currentState.deck.toMutableList())
-        val mutableDeck = mutableStateListOf<Card>().apply { addAll(reshuffledDeck) }
-
-        // 🔄 Determine new starting player
-        val newStartingPlayerIndex = (currentState.startingPlayerIndex + 1) % currentState.players.size
-        val clearedPlayers = currentState.players.map { it.copy(hand = Hand()) }
-
-        // 🎯 Identify the player who starts
-        val currentPlayer = clearedPlayers[newStartingPlayerIndex]
-
-        // ⚙️ Determine the turn state based on player type
-        val initialTurnState = when {
-            currentPlayer.playerType == PlayerType.AI -> TurnState.AIProcessing
-            currentPlayer.playerType == PlayerType.REMOTE -> TurnState.RemoteProcessing
-            else -> TurnState.WaitingForSelection
-        }
-
-        val turnInfo = TurnInfo(
-            state = initialTurnState,
-            canSkip = false // ⛔ First player must play!
-        )
-
-        // 📦 Rebuild the state
-        var newState = currentState.copy(
-            players = clearedPlayers,
-            deck = mutableDeck,
-            currentCombinationOnMat = Combination(mutableListOf()),
-            discardPile = mutableStateListOf(),
-            skipCount = 0,
-            startingPlayerIndex = newStartingPlayerIndex,
-            currentPlayerIndex = newStartingPlayerIndex,
-            turnId = currentState.turnId + 1,
-            gamePhase = GamePhase.Round( // 🧠 NEW phase logic
-                RoundPhase.PlayerTurn(
-                    playerId = currentPlayer.id,
-                    turnInfo = turnInfo
-                )
-            )
-        )
-
-        // 🃏 Deal cards!
-        newState = dealCards(newState)
-
-        // ✅ Update state
-        getViewModel().updateGameState(newState)
-        TRACE(INFO) { "🆕 New round started: ${getViewModel().gameState}" }
+        TRACE(DEBUG) { "startNewRound()" }
+        dispatchEvent(GameEvent.NewRoundStarted)
     }
 
-
-    private fun dealCards(gameState: GameState): GameState {
-        val mutableDeck = gameState.deck.toMutableList()
-        val mutablePlayers = gameState.players.map { player ->
-            val updatedHand = player.hand.copy()
-            var copyCount = 0;
-            println("PNB player = $player, deck size is ${mutableDeck.size}")
-            repeat(Constants.HAND_SIZE) {
-                if (mutableDeck.isNotEmpty()) {
-                    val card = mutableDeck.removeAt(0)
-                    copyCount++
-                    println("PNB Card dealt: $card , ($copyCount)")
-
-                    updatedHand.addCard(card)
-                } else {
-                    TRACE(FATAL) { "Deck is empty before dealing all cards!" }
-                }
-            }
-            player.copy(hand = updatedHand)
-        }
-
-        // Trace each player's name and their hand
-        mutablePlayers.forEach { player ->
-
-            TRACE(INFO) { "$player.name's hand:" + player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" } }
-        }
-
-        return gameState.copy(
-            players = mutablePlayers,
-            deck = mutableStateListOf<Card>().apply { addAll(mutableDeck) }
-        )
-    }
 
     private fun getCurrentPlayer(): Player =
         gameState.value.players[gameState.value.currentPlayerIndex]
 
     override fun skipTurn() {
-        TRACE(DEBUG) { "${getCurrentPlayer().name} is skipping turn" }
-        val currentGameState = gameState.value
-        val newSkipCount = currentGameState.skipCount + 1
+        TRACE(DEBUG) { "skipTurn()" }
+        dispatchEvent(GameEvent.PlayerSkipped)
 
-        println("PNB skipTurn : ${newSkipCount}")
-
-
-        //
-        if (newSkipCount >= (currentGameState.players.size - 1)) {
-            // All players have skipped: discard the current playmat
-            TRACE(INFO) { "All players but one skipped! Discarding current playmat , ${getCurrentPlayer().name} will restart." }
-
-            val discardedCards = currentGameState.currentCombinationOnMat.cards
-            val newDiscardPile = mutableStateListOf<Card>().apply {
-                addAll(currentGameState.discardPile)
-                addAll(discardedCards)
-            }
-            // Reset currentCombinationOnMat and skipCount, but keep currentPlayerIndex unchanged.
-            val updatedState = currentGameState.copy(
-                currentCombinationOnMat = Combination(mutableListOf()),
-                discardPile = newDiscardPile,
-                skipCount = 0,
-            )
-            getViewModel().updateGameState(updatedState)
-
-            // We move to the next player
-            nextTurn()
-        } else {
-            println("PNB We just update the new skipcount")
-
-            // We just update the new skipcount
-            val updatedState = currentGameState.copy(skipCount = newSkipCount)
-            getViewModel().updateGameState(updatedState)
-
-            // We move to the next player
-            nextTurn()
-        }
 
 
     }
@@ -531,10 +419,19 @@ private object GameManager : IGameManager {
         }
     }
 
-
+    private fun dispatchEvent(event: GameEvent) {
+        val currentState = gameState.value
+        val result = gameReducer(currentState, event)
+        getViewModel().updateGameState(result.newState)
+        // Optionally: Process any follow-up events
+        result.followUpEvents.forEach { followUp ->
+            dispatchEvent(followUp)
+        }
+    }
 }
 
 // Internal helper function to expose GameManager as IGameManager within the module.
 internal fun getGameManagerInstance(): IGameManager = GameManager
+
 
 
