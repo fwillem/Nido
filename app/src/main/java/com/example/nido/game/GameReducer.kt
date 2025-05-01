@@ -2,11 +2,11 @@ package com.example.nido.game
 import androidx.compose.runtime.mutableStateListOf
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
-import com.example.nido.game.GameState
 import com.example.nido.game.events.GameEvent
-import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.DEBUG
+import com.example.nido.utils.TraceLogLevel.VERBOSE
 import com.example.nido.utils.TraceLogLevel.FATAL
 import com.example.nido.utils.TraceLogLevel.INFO
 import com.example.nido.data.model.Hand
@@ -18,7 +18,7 @@ data class ReducerResult(
     val followUpEvents: List<GameEvent> = emptyList()
 )
 
-fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
+fun gameReducer(state: GameState,  event: GameEvent): ReducerResult {
 
     var reducerResult = ReducerResult(state)
 
@@ -30,28 +30,27 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
         is GameEvent.CardPlayed -> {
          }
         is GameEvent.NextTurn -> {
-            // Update currentPlayerIndex and increment turnId.
-            val nextIndex = (state.currentPlayerIndex + 1) % state.players.size
+            return nextTurn(state)
           }
         is GameEvent.PlayerSkipped -> {
-
+            return skipTurn(state)
         }
         is GameEvent.RoundEnded -> {
 
         }
         is GameEvent.GameEnded -> {
         }
-
-
-
     }
     return reducerResult
 }
 
 private fun startNewRound(state: GameState) : ReducerResult {
-    // Reshuffle the deck
-    val reshuffledDeck = DeckRepository.shuffleDeck(state.deck.toMutableList())
-    val mutableDeck = mutableStateListOf<Card>().apply { addAll(reshuffledDeck) }
+
+    //  Generate the deck
+    val deck = DeckRepository.generateDeck(shuffle = true, nbOfPlayers = state.players.size)
+    TRACE(VERBOSE) { "Brand new deck generated!(${deck.size}): $deck" }
+
+    val mutableDeck = mutableStateListOf<Card>().apply { addAll(deck) }
 
     // Determine new starting player index.
     val newStartingPlayerIndex = (state.startingPlayerIndex + 1) % state.players.size
@@ -100,16 +99,18 @@ private fun startNewRound(state: GameState) : ReducerResult {
     return ReducerResult(newState = newState)
 }
 
-private fun skipTurn(gameState: GameState) : ReducerResult
+private fun skipTurn(gameState: GameState ) : ReducerResult
 {
 
-        TRACE(DEBUG) { "${getCurrentPlayer().name} is skipping turn" }
+        val player = gameState.players[gameState.currentPlayerIndex]
+
+        TRACE(DEBUG) { "${player.name} is skipping turn" }
         val newSkipCount = gameState.skipCount + 1
 
         //
         if (newSkipCount >= (gameState.players.size - 1)) {
             // All players have skipped: discard the current playmat
-            TRACE(INFO) { "All players but one skipped! Discarding current playmat , ${getCurrentPlayer().name} will restart." }
+            TRACE(INFO) { "All players but one skipped! Discarding current playmat , ${player.name} will restart." }
 
             val discardedCards = gameState.currentCombinationOnMat.cards
             val newDiscardPile = mutableStateListOf<Card>().apply {
@@ -122,18 +123,14 @@ private fun skipTurn(gameState: GameState) : ReducerResult
                 discardPile = newDiscardPile,
                 skipCount = 0,
             )
-            getViewModel().updateGameState(updatedState)
 
-            // We move to the next player
-            nextTurn()
+            return ReducerResult(newState = updatedState, followUpEvents = listOf(GameEvent.NextTurn))
+
         } else {
 
             // We just update the new skipcount
-            val updatedState = currentGameState.copy(skipCount = newSkipCount)
-            getViewModel().updateGameState(updatedState)
-
-            // We move to the next player
-            nextTurn()
+            val updatedState = gameState.copy(skipCount = newSkipCount)
+            return ReducerResult(newState = updatedState, followUpEvents = listOf(GameEvent.NextTurn))
         }
 }
 
@@ -142,7 +139,7 @@ private fun dealCards(gameState: GameState): GameState {
     val mutablePlayers = gameState.players.map { player ->
         val updatedHand = player.hand.copy()
         var copyCount = 0;
-        println("PNB player = $player, deck size is ${mutableDeck.size}")
+        println("PNB PNB_DEAL player = $player, deck size is ${mutableDeck.size}")
         repeat(Constants.HAND_SIZE) {
             if (mutableDeck.isNotEmpty()) {
                 val card = mutableDeck.removeAt(0)
@@ -167,5 +164,20 @@ private fun dealCards(gameState: GameState): GameState {
         players = mutablePlayers,
         deck = mutableStateListOf<Card>().apply { addAll(mutableDeck) }
     )
+}
+
+private fun nextTurn(gameState: GameState ) : ReducerResult
+{
+    val nextIndex = (gameState.currentPlayerIndex + 1) % gameState.players.size
+
+    val newState = gameState.copy(
+        currentPlayerIndex = nextIndex,
+        turnId = gameState.turnId + 1
+    )
+
+    val nextPlayer = newState.players[nextIndex]
+    TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
+
+    return ReducerResult(newState)
 }
 

@@ -55,9 +55,7 @@ private object GameManager : IGameManager {
     override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
         TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit" }
 
-        //  Generate the deck
-        val deck = DeckRepository.generateDeck(shuffle = true, nbOfPlayers = selectedPlayers.size)
-        TRACE(VERBOSE) { "Brand new deck generated!: $deck" }
+
 
         // Choose a random starting player.
         // TODO For debug we will simplify, the right value is :  val startingPlayerIndex = (0 until selectedPlayers.size).random()
@@ -73,7 +71,6 @@ private object GameManager : IGameManager {
             players = initializedPlayers,
 
             pointLimit = selectedPointLimit,
-            deck = mutableStateListOf<Card>().apply { addAll(deck) },
             startingPlayerIndex = startingPlayerIndex,
             currentPlayerIndex = startingPlayerIndex,
             currentCombinationOnMat = Combination(mutableListOf()),
@@ -108,9 +105,6 @@ private object GameManager : IGameManager {
     override fun skipTurn() {
         TRACE(DEBUG) { "skipTurn()" }
         dispatchEvent(GameEvent.PlayerSkipped)
-
-
-
     }
 
     /**

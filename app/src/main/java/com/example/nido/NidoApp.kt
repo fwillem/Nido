@@ -29,6 +29,15 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         // Navigate based on the route string constant
         when (currentRoute) {
+            AppScreen.Routes.SPLASH -> SplashScreen(
+                onTimeout = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
+                modifier = modifier.padding(innerPadding)
+            )
+            AppScreen.Routes.LANDING -> LandingScreen(
+                onSetup = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
+                onGame = { currentRoute = AppScreen.Routes.GAME }, // Navigate using constant
+                modifier = modifier.padding(innerPadding)
+            )
             AppScreen.Routes.SETUP -> SetupScreen(
                 onGameStart = { selectedPlayers, selectedPointLimit ->
                     gameManager.startNewGame(selectedPlayers, selectedPointLimit)
