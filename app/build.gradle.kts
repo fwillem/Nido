@@ -4,6 +4,28 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+import java.io.ByteArrayOutputStream
+
+/**
+ * Run a command and return its stdout (trimmed).
+ * If the command fails or produces nothing, returns an empty string.
+ */
+fun execAndGetStdout(vararg cmd: String): String {
+    val stdout = ByteArrayOutputStream()
+    exec {
+        commandLine(*cmd)
+        standardOutput = stdout
+        isIgnoreExitValue = true
+    }
+    return stdout.toString().trim()
+}
+
+// Try to read the most recent tag; if there isn't one yet, fall back to short SHA
+val gitTag: String = execAndGetStdout("git", "describe", "--tags", "--abbrev=0")
+    .takeIf { it.isNotEmpty() }
+    ?: execAndGetStdout("git", "rev-parse", "--short", "HEAD")
+
+
 android {
     namespace = "com.example.nido"
     compileSdk = 35
@@ -13,9 +35,12 @@ android {
         minSdk = 25
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = gitTag
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // <-- add this line to generate a String resource named "git_tag"
+        resValue("string", "git_tag", gitTag)
     }
 
     buildTypes {
