@@ -7,13 +7,18 @@ import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import com.example.nido.ui.dialogs.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.example.nido.R
-
+import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import com.example.nido.ui.components.VersionLabel
 
 @Composable
 fun SplashScreen(onTimeout: () -> Unit, modifier: Modifier = Modifier) {
@@ -36,5 +41,8 @@ fun SplashScreen(onTimeout: () -> Unit, modifier: Modifier = Modifier) {
                 .fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+
+        VersionLabel()
+
     }
 }

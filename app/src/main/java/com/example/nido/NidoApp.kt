@@ -24,13 +24,13 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
     val gameManager = LocalGameManager.current
 
     // Store the String route, use the constant for the initial value
-    var currentRoute by rememberSaveable { mutableStateOf(AppScreen.Routes.SETUP) }
+    var currentRoute by rememberSaveable { mutableStateOf(AppScreen.Routes.SPLASH) }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         // Navigate based on the route string constant
         when (currentRoute) {
             AppScreen.Routes.SPLASH -> SplashScreen(
-                onTimeout = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
+                onTimeout = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.LANDING -> LandingScreen(

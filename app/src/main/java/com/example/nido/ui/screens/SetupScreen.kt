@@ -13,6 +13,7 @@ import com.example.nido.data.model.Player
 import com.example.nido.utils.Constants
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
+import com.example.nido.ui.components.VersionLabel
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.preview.NidoPreview
@@ -134,6 +135,8 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
             ) {
                 Text("Start Game")
             }
+
+            VersionLabel()
         }
     }
 }
