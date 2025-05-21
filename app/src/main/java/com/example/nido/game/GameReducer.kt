@@ -1,5 +1,6 @@
 package com.example.nido.game
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberUpdatedState
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.game.events.GameEvent
@@ -213,8 +214,8 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
 
             }
 
-    // 🟢 Return the result with new state and follow-up events
-    return ReducerResult(newState, followUpEvents)
+    // 🟢 Return the resul. I cannot return updat with new state and follow-up events
+    return ReducerResult(updatedState, followUpEvents)
 }
 
 
