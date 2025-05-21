@@ -25,15 +25,15 @@ fun gameReducer(state: GameState,  event: GameEvent): ReducerResult {
     when (event) {
 
         is GameEvent.NewRoundStarted -> {
-            return startNewRound(state)
+            return handleNewRoundStarted(state)
         }
         is GameEvent.CardPlayed -> {
          }
         is GameEvent.NextTurn -> {
-            return nextTurn(state)
+            return handleNextTurn(state)
           }
         is GameEvent.PlayerSkipped -> {
-            return skipTurn(state)
+            return handlePlayerSkipped(state)
         }
         is GameEvent.RoundEnded -> {
 
@@ -44,7 +44,7 @@ fun gameReducer(state: GameState,  event: GameEvent): ReducerResult {
     return reducerResult
 }
 
-private fun startNewRound(state: GameState) : ReducerResult {
+private fun handleNewRoundStarted(state: GameState) : ReducerResult {
 
     //  Generate the deck
     val deck = DeckRepository.generateDeck(shuffle = true, nbOfPlayers = state.players.size)
@@ -99,7 +99,7 @@ private fun startNewRound(state: GameState) : ReducerResult {
     return ReducerResult(newState = newState)
 }
 
-private fun skipTurn(gameState: GameState ) : ReducerResult
+private fun handlePlayerSkipped(gameState: GameState ) : ReducerResult
 {
 
         val player = gameState.players[gameState.currentPlayerIndex]
@@ -166,7 +166,7 @@ private fun dealCards(gameState: GameState): GameState {
     )
 }
 
-private fun nextTurn(gameState: GameState ) : ReducerResult
+private fun handleNextTurn(gameState: GameState ) : ReducerResult
 {
     val nextIndex = (gameState.currentPlayerIndex + 1) % gameState.players.size
 

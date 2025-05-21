@@ -10,7 +10,7 @@ import com.example.nido.events.AppEvent
         fun initialize(viewModel: GameViewModel)
         fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int)
         fun startNewRound()
-        fun playCombination(selectedCards: List<Card>, cardToKeep: Card?): gameManagerMoveResult
+        fun playCombination(selectedCards: List<Card>, cardToKeep: Card?)
         fun skipTurn()
         fun processAIMove()
         fun processSkip()

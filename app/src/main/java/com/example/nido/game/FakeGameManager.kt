@@ -99,8 +99,8 @@ class FakeGameManager : IGameManager {
         // Simulate skipping a turn
     }
 
-    override fun playCombination(selectedCards: List<Card>, cardToKeep: Card?): gameManagerMoveResult {
-        return gameManagerMoveResult.NEXT_PLAYER  // Fake result
+    override fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) {
+        // Simulate playing a combination
     }
 
     override fun processAIMove() {
