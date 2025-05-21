@@ -1,8 +1,7 @@
 package com.example.nido.game.events
 
 import com.example.nido.data.model.Card
-import com.example.nido.game.TurnInfo
-
+import com.example.nido.events.AppEvent
 sealed class GameEvent() {
     object NewRoundStarted : GameEvent()
     data class CardPlayed(
@@ -11,6 +10,8 @@ sealed class GameEvent() {
         val cardKept: Card? = null
     ) : GameEvent()
     object PlayerSkipped : GameEvent()
+    data class ShowDialog(val dialogEvent: AppEvent.GameEvent) : GameEvent()
+
     object NextTurn : GameEvent()
     object RoundEnded : GameEvent()
     object GameEnded : GameEvent()
