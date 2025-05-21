@@ -21,11 +21,11 @@ sealed class RoundPhase {
 // Sub-states for a player's turn
 sealed class TurnState(val localOnly: Boolean = false) {
     object WaitingForSelection : TurnState(localOnly = true)    // Player is waiting to select cards (LOCAL ONLY)
-    object Selecting : TurnState(localOnly = true)              // Actively selecting cards (LOCAL ONLY)
-    object WaitForConfirmingMove : TurnState(localOnly = true)         // Ready to commit a move i.e. the selected cards form a valid combination(LOCAL ONLY)
-    object NoValidMove : TurnState()            // No valid move available, will skip (after timeout)
-    object AIProcessing : TurnState()           // AI is thinking (this is a transient state guarded by a timer for UX matter)
-    object RemoteProcessing : TurnState()       // Remote player move pending
+     object Selecting : TurnState(localOnly = true)              // Actively selecting cards (LOCAL ONLY)
+     object WaitForConfirmingMove : TurnState(localOnly = true)         // Ready to commit a move i.e. the selected cards form a valid combination(LOCAL ONLY)
+     object NoValidMove : TurnState()            // No valid move available, will skip (after timeout)
+     object AIProcessing : TurnState()           // AI is thinking (this is a transient state guarded by a timer for UX matter)
+     object RemoteProcessing : TurnState()       // Remote player move pending
 }
 
 data class TurnInfo(

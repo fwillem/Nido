@@ -40,7 +40,6 @@ import com.example.nido.data.model.PlayerActionType
 import com.example.nido.game.GameState
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
-import com.example.nido.game.gameManagerMoveResult
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.screens.MainScreen
 import com.example.nido.ui.theme.NidoTheme
@@ -364,7 +363,7 @@ fun PreviewMainScreen() {
     }
     val turnInfo = TurnInfo(
         state = TurnState.WaitingForSelection,
-        canSkip = true
+        // canSkip = true
     )
 
     // 🚀 Build a dummy game state.

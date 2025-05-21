@@ -16,13 +16,6 @@ class GameViewModel : ViewModel() {
     fun updateGameState(newState: GameState) {
 
 
-        // 🛠️ Check if players exist and currentPlayerIndex is valid
-        if (_gameState.value.players.isNotEmpty() && _gameState.value.currentPlayerIndex in _gameState.value.players.indices) {
-          //  println("PNB Avant updateGameState: currentHand(${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards.size}) = ${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards}")
-        } else {
-           // println("PNB Avant updateGameState: Invalid currentPlayerIndex (${_gameState.value.currentPlayerIndex}) or no players!")
-        }
-
         val oldState = _gameState.value  // Get the previous state
 
         // Log the full new state.
@@ -83,12 +76,8 @@ class GameViewModel : ViewModel() {
             gameEvent = newState.gameEvent,
             turnId = newState.turnId,
             )
-        // 🛠️ Check again after update to avoid crashes
-        if (_gameState.value.players.isNotEmpty() && _gameState.value.currentPlayerIndex in _gameState.value.players.indices) {
-           // println("PNB Après updateGameState: currentHand(${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards.size}) = ${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards}")
-        } else {
-           // println("PNB Après updateGameState: Invalid currentPlayerIndex (${_gameState.value.currentPlayerIndex}) or no players!")
-        }
+
+
     }
 
     fun updatePlayerHand(playerIndex: Int, newHand: Hand) {

@@ -68,8 +68,8 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
     }
     val turnInfo = TurnInfo(
         state = initialTurnState,
-        canSkip = false,      // First player must play.
-        canGoAllIn = false    // At the first turn, user cannot go all in.
+        //canSkip = false,      // First player must play.
+        // canGoAllIn = false    // At the first turn, user cannot go all in.
     )
 
     // Rebuild the state with updated values.
@@ -213,6 +213,7 @@ private fun handlePlayerSkipped(gameState: GameState ) : ReducerResult
 
         TRACE(DEBUG) { "${player.name} is skipping turn" }
         val newSkipCount = gameState.skipCount + 1
+        var updatedState = gameState
 
         //
         if (newSkipCount >= (gameState.players.size - 1)) {
@@ -225,20 +226,20 @@ private fun handlePlayerSkipped(gameState: GameState ) : ReducerResult
                 addAll(discardedCards)
             }
             // Reset currentCombinationOnMat and skipCount, but keep currentPlayerIndex unchanged.
-            val updatedState = gameState.copy(
+            updatedState = gameState.copy(
                 currentCombinationOnMat = Combination(mutableListOf()),
                 discardPile = newDiscardPile,
                 skipCount = 0,
             )
-
-            return ReducerResult(newState = updatedState, followUpEvents = listOf(GameEvent.NextTurn))
-
         } else {
 
             // We just update the new skipcount
-            val updatedState = gameState.copy(skipCount = newSkipCount)
-            return ReducerResult(newState = updatedState, followUpEvents = listOf(GameEvent.NextTurn))
+            updatedState = gameState.copy(skipCount = newSkipCount)
+
         }
+
+    return ReducerResult(newState = updatedState, followUpEvents = listOf(GameEvent.NextTurn))
+
 }
 
 private fun dealCards(gameState: GameState): GameState {
@@ -246,12 +247,10 @@ private fun dealCards(gameState: GameState): GameState {
     val mutablePlayers = gameState.players.map { player ->
         val updatedHand = player.hand.copy()
         var copyCount = 0;
-        println("PNB PNB_DEAL player = $player, deck size is ${mutableDeck.size}")
         repeat(Constants.HAND_SIZE) {
             if (mutableDeck.isNotEmpty()) {
                 val card = mutableDeck.removeAt(0)
                 copyCount++
-                println("PNB Card dealt: $card , ($copyCount)")
 
                 updatedHand.addCard(card)
             } else {

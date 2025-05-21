@@ -52,10 +52,7 @@ class FakeGameManager : IGameManager {
 
     private val currentPlayerId = dummyLocalPlayer.id
 
-    val turnInfo = TurnInfo(
-        state = TurnState.WaitingForSelection,
-        canSkip = true
-    )
+    val turnInfo = TurnInfo(state = TurnState.WaitingForSelection)
 
     // ✅ Create a fake game state for previews/tests
     private val _gameState = mutableStateOf(
