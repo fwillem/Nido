@@ -121,101 +121,18 @@ private object GameManager : IGameManager {
             return
         }
 
-        // Create the new combination based on selected cards.
-        val currentCombination = currentGameState.currentCombinationOnMat
-        val newCombination = Combination(selectedCards.toMutableList())
-
-        // Validate the move.
-        if (!GameRules.isValidMove(
-                currentCombination,
-                newCombination,
-                getCurrentPlayer().hand.cards.size
-            )
-        ) {
-            TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
+        if (selectedCards.isEmpty()) {
+            TRACE(FATAL) { "No cards selected" }
             return
         }
 
+        val event = GameEvent.CardPlayed(
+            playerId = getCurrentPlayer().id,
+            playedCards = selectedCards,
+            cardKept = cardToKeep,
+        )
 
-        /**
-         * Update the current player's hand by removing the played cards (note that for human players, card has already been removed by HandView)
-         */
-
-        val updatedHand = getCurrentPlayer().hand.copy().apply { removeCombination(newCombination) }
-        val updatedPlayers = currentGameState.players.toMutableList().apply {
-            this[currentGameState.currentPlayerIndex] = getCurrentPlayer().copy(hand = updatedHand)
-        }
-
-        // We need to figure out here if the player won
-        if (GameRules.hasPlayerWonTheRound(updatedHand)) {
-            TRACE(INFO) { "${getCurrentPlayer().name} is playing: $newCombination " }
-            TRACE(INFO) { "😍 ${getCurrentPlayer().name}  😎 won! " }
-
-            /**
-             * The player won the round !
-             * Update the scores
-             * Understand if the game is over
-             */
-            GameRules.updatePlayersScores(updatedPlayers)
-            val gameOver = GameRules.isGameOver(updatedPlayers, currentGameState.pointLimit)
-
-            if (gameOver) {
-
-                TRACE(INFO) { "Game is over! 🍾" }
-                TRACE(INFO) { "SetDialogEvent GameOver" }
-
-                GameManager.setDialogEvent(
-                    AppEvent.GameEvent.GameOver(
-                        playerRankings = GameRules.getPlayerRankings(updatedPlayers),
-                    )
-                )
-
-            } else {
-                TRACE(INFO) { "SetDialogEvent RoundOver" }
-
-                GameManager.setDialogEvent(
-                    AppEvent.GameEvent.RoundOver(
-                        winner = getCurrentPlayer(),
-                        playersHandScore = GameRules.getPlayerHandScores(updatedPlayers),
-                    )
-                )
-
-                // TRACE(INFO) { "We need to Start a new round" }
-                // startNewRound() start new round is now called in the handling of the GameEvent
-
-            }
-
-        } else {
-            // Build a new discard pile:
-            // It consists of the existing discard pile plus the cards from the current combination
-            // excluding the card chosen by the player to keep.
-            val discardedCards = currentCombination.cards.filter { it != cardToKeep }
-
-            val newDiscardPile = mutableStateListOf<Card>().apply {
-                addAll(currentGameState.discardPile)
-                addAll(discardedCards)
-            }
-
-            TRACE(INFO) { "${getCurrentPlayer().name} is playing: $newCombination and is keeping: $cardToKeep, $discardedCards moves to discard pile" }
-
-
-            // If a card was chosen to keep, add it back to the player's hand.
-            cardToKeep?.let { updatedHand.addCard(it) }
-
-            // Update the game state.
-            val updatedState = currentGameState.copy(
-                players = updatedPlayers,
-                currentCombinationOnMat = newCombination,
-                discardPile = newDiscardPile,
-                skipCount = 0
-            )
-
-            getViewModel().updateGameState(updatedState)
-
-            nextTurn()
-
-        }
-
+        dispatchEvent(event)
     }
 
 
@@ -402,10 +319,20 @@ private object GameManager : IGameManager {
     private fun dispatchEvent(event: GameEvent) {
         val currentState = gameState.value
         val result = gameReducer(currentState, event)
+
+        TRACE(DEBUG) { "AI DONT PLAY BEFORE updateGameState: event=$event, playmat=${gameState.value.currentCombinationOnMat}" }
+
         getViewModel().updateGameState(result.newState)
-        // Optionally: Process any follow-up events
+        TRACE(DEBUG) { "AI DONT PLAY AFTER updateGameState: event=$event, newPlaymat=${result.newState.currentCombinationOnMat}" }
+
         result.followUpEvents.forEach { followUp ->
-            dispatchEvent(followUp)
+            when (followUp) {
+                is GameEvent.ShowDialog -> {
+                    // Use the dialogEvent directly!
+                    setDialogEvent(followUp.dialogEvent)
+                }
+                else -> dispatchEvent(followUp)
+            }
         }
     }
 }

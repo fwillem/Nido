@@ -11,6 +11,9 @@ import com.example.nido.utils.TraceLogLevel.FATAL
 import com.example.nido.utils.TraceLogLevel.INFO
 import com.example.nido.data.model.Hand
 import com.example.nido.data.repository.DeckRepository
+import com.example.nido.events.AppEvent
+import com.example.nido.game.rules.GameRules
+
 
 
 data class ReducerResult(
@@ -28,6 +31,9 @@ fun gameReducer(state: GameState,  event: GameEvent): ReducerResult {
             return handleNewRoundStarted(state)
         }
         is GameEvent.CardPlayed -> {
+            // In the reducer, inside CardPlayed branch
+            TRACE(DEBUG) { "AI DONT PLAY Reducer: CardPlayed by ${event.playerId}, setting playmat to ${event.playedCards}" }
+            return handleCardPlayed(state, event.playedCards, event.cardKept)
          }
         is GameEvent.NextTurn -> {
             return handleNextTurn(state)
@@ -39,6 +45,11 @@ fun gameReducer(state: GameState,  event: GameEvent): ReducerResult {
 
         }
         is GameEvent.GameEnded -> {
+        }
+
+        is GameEvent.ShowDialog -> {
+            // Usually, you don't want to change state in reducer for UI dialogs.
+            // Just return the current state.
         }
     }
     return reducerResult
@@ -98,6 +109,114 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
 
     return ReducerResult(newState = newState)
 }
+
+private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardToKeep: Card?) : ReducerResult
+{
+
+
+    // Create the new combination based on selected cards.
+            val currentCombination = state.currentCombinationOnMat
+            val newCombination = Combination(selectedCards.toMutableList())
+            val player = state.players[state.currentPlayerIndex]
+
+
+            // Validate the move.
+            if (!GameRules.isValidMove(
+                    currentCombination,
+                    newCombination,
+                    player.hand.cards.size
+                )
+            ) {
+                TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
+                return ReducerResult(state)
+            }
+
+
+            /**
+             * Update the current player's hand by removing the played cards (note that for human players, card has already been removed by HandView)
+             */
+
+            val updatedHand = player.hand.copy().apply { removeCombination(newCombination) }
+            val updatedPlayers = state.players.toMutableList().apply {
+                this[state.currentPlayerIndex] = player.copy(hand = updatedHand)
+            }
+
+            val followUpEvents = mutableListOf<GameEvent>()
+            var newState = state
+
+            // We need to figure out here if the player won
+            if (GameRules.hasPlayerWonTheRound(updatedHand)) {
+                TRACE(INFO) { "${player.name} is playing: $newCombination " }
+                TRACE(INFO) { "😍 ${player.name}  😎 won! " }
+
+                /**
+                 * The player won the round !
+                 * Update the scores
+                 * Understand if the game is over
+                 */
+                GameRules.updatePlayersScores(updatedPlayers)
+                val gameOver = GameRules.isGameOver(updatedPlayers, state.pointLimit)
+
+                if (gameOver) {
+
+                    TRACE(INFO) { "Game is over! 🍾" }
+                    TRACE(INFO) { "SetDialogEvent GameOver" }
+
+                    // Add a ShowDialog follow-up event for game over
+                    followUpEvents += GameEvent.ShowDialog(
+                        AppEvent.GameEvent.GameOver(
+                            playerRankings = GameRules.getPlayerRankings(updatedPlayers)
+                        )
+                    )
+
+                } else {
+                    TRACE(INFO) { "SetDialogEvent RoundOver" }
+
+                    followUpEvents += GameEvent.ShowDialog(
+                        AppEvent.GameEvent.RoundOver(
+                            winner = player,
+                            playersHandScore = GameRules.getPlayerHandScores(updatedPlayers)
+                        )
+                    )
+
+                }
+                // Update newState with updated players (and any round/game state if needed)
+                newState = state.copy(players = updatedPlayers)
+
+            } else {
+                // Build a new discard pile:
+                // It consists of the existing discard pile plus the cards from the current combination
+                // excluding the card chosen by the player to keep.
+                val discardedCards = currentCombination.cards.filter { it != cardToKeep }
+
+                val newDiscardPile = mutableStateListOf<Card>().apply {
+                    addAll(state.discardPile)
+                    addAll(discardedCards)
+                }
+
+                TRACE(INFO) { "${player.name} is playing: $newCombination and is keeping: $cardToKeep, $discardedCards moves to discard pile" }
+
+
+                // If a card was chosen to keep, add it back to the player's hand.
+                cardToKeep?.let { updatedHand.addCard(it) }
+
+                // Update the game state.
+                val updatedState = state.copy(
+                    players = updatedPlayers,
+                    currentCombinationOnMat = newCombination,
+                    discardPile = newDiscardPile,
+                    skipCount = 0
+                )
+
+                // 🟢 Add a NextTurn follow-up event
+                followUpEvents += GameEvent.NextTurn
+
+            }
+
+    // 🟢 Return the result with new state and follow-up events
+    return ReducerResult(newState, followUpEvents)
+}
+
 
 private fun handlePlayerSkipped(gameState: GameState ) : ReducerResult
 {

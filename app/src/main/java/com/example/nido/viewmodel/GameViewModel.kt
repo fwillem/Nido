@@ -15,6 +15,7 @@ class GameViewModel : ViewModel() {
 
     fun updateGameState(newState: GameState) {
 
+
         // 🛠️ Check if players exist and currentPlayerIndex is valid
         if (_gameState.value.players.isNotEmpty() && _gameState.value.currentPlayerIndex in _gameState.value.players.indices) {
           //  println("PNB Avant updateGameState: currentHand(${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards.size}) = ${_gameState.value.players[_gameState.value.currentPlayerIndex].hand.cards}")
