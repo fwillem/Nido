@@ -13,7 +13,7 @@ sealed class GameEvent() {
     data class ShowDialog(val dialogEvent: AppEvent.GameEvent) : GameEvent()
 
     object NextTurn : GameEvent()
-    object RoundEnded : GameEvent()
-    object GameEnded : GameEvent()
+    object RoundOver : GameEvent()
+    object GameOver : GameEvent()
     // Add additional events as needed.
 }

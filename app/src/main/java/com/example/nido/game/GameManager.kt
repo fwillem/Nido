@@ -19,13 +19,6 @@ import kotlin.Int
 import com.example.nido.game.events.GameEvent
 
 
-enum class gameManagerMoveResult {
-    ROUND_OVER,
-    GAME_OVER,
-    NEXT_PLAYER,
-    INVALID_MOVE
-}
-
 private object GameManager : IGameManager {
     private var gameViewModel: GameViewModel? = null
     override val gameState: State<GameState>
@@ -320,10 +313,7 @@ private object GameManager : IGameManager {
         val currentState = gameState.value
         val result = gameReducer(currentState, event)
 
-        TRACE(DEBUG) { "AI DONT PLAY BEFORE updateGameState: event=$event, playmat=${gameState.value.currentCombinationOnMat}" }
-
         getViewModel().updateGameState(result.newState)
-        TRACE(DEBUG) { "AI DONT PLAY AFTER updateGameState: event=$event, newPlaymat=${result.newState.currentCombinationOnMat}" }
 
         result.followUpEvents.forEach { followUp ->
             when (followUp) {
