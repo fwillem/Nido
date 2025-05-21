@@ -113,13 +113,12 @@ private object GameManager : IGameManager {
     override fun playCombination(
         selectedCards: List<Card>,
         cardToKeep: Card?
-    ): gameManagerMoveResult {
+    ) {
         val currentGameState = gameState.value
-        var moveResult: gameManagerMoveResult = gameManagerMoveResult.NEXT_PLAYER
 
         if (selectedCards.isEmpty()) {
             TRACE(FATAL) { " No cards selected" }
-            return gameManagerMoveResult.INVALID_MOVE
+            return
         }
 
         // Create the new combination based on selected cards.
@@ -134,7 +133,7 @@ private object GameManager : IGameManager {
             )
         ) {
             TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView
-            return gameManagerMoveResult.INVALID_MOVE
+            return
         }
 
 
@@ -171,9 +170,6 @@ private object GameManager : IGameManager {
                     )
                 )
 
-                // The game is over..
-                moveResult = gameManagerMoveResult.GAME_OVER
-
             } else {
                 TRACE(INFO) { "SetDialogEvent RoundOver" }
 
@@ -187,8 +183,6 @@ private object GameManager : IGameManager {
                 // TRACE(INFO) { "We need to Start a new round" }
                 // startNewRound() start new round is now called in the handling of the GameEvent
 
-                // Round is over
-                moveResult = gameManagerMoveResult.ROUND_OVER
             }
 
         } else {
@@ -220,10 +214,8 @@ private object GameManager : IGameManager {
 
             nextTurn()
 
-            moveResult = gameManagerMoveResult.NEXT_PLAYER
         }
 
-        return moveResult
     }
 
 
@@ -274,14 +266,8 @@ private object GameManager : IGameManager {
             } else {
                 TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
                 // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
-                val playMoveResult =
-                    playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
+                playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
 
-                // Here we need to test is game is ended
-                if (playMoveResult == gameManagerMoveResult.GAME_OVER) {
-                    TRACE(DEBUG, tag = "handleAIMove") { "Game Over" }
-                    // onEndGame() not done here, will be done upon reception of the GAME_OVER event
-                }
             }
 
         } else {

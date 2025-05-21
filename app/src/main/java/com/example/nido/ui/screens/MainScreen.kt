@@ -168,11 +168,6 @@ fun MainScreen(
                         TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
                         val playMoveResult = gameManager.playCombination(playedCards, cardToKeep)
 
-                        if (playMoveResult == gameManagerMoveResult.GAME_OVER) {
-                            TRACE(DEBUG, tag = "MatView:onPlayCombination") { "Game Over" }
-                            // onEndGame() No we don't end the game this way anymore, this is now done in
-                            // gameState.gameEvent handler
-                        }
                         selectedCards.clear() // Clear selection after a valid move.
                     } else {
                         TRACE(FATAL, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
