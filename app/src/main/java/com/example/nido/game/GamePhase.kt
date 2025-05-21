@@ -20,12 +20,10 @@ sealed class RoundPhase {
 
 // Sub-states for a player's turn
 sealed class TurnState(val localOnly: Boolean = false) {
-   // object FirstTurn : TurnState()       // TODO Doesn't seem usefull anymore since we are using canSkip flag. First turn of the round, player is forced to play one card
     object WaitingForSelection : TurnState(localOnly = true)    // Player is waiting to select cards (LOCAL ONLY)
     object Selecting : TurnState(localOnly = true)              // Actively selecting cards (LOCAL ONLY)
     object WaitForConfirmingMove : TurnState(localOnly = true)         // Ready to commit a move i.e. the selected cards form a valid combination(LOCAL ONLY)
     object NoValidMove : TurnState()            // No valid move available, will skip (after timeout)
-//    object NewTurn : TurnState()                // TODO Doesn't seem usefull anymore since we are using canSkip and canGoAllIn flags Special case: all others skipped thus the turn is re-started, player can play full hand or one card
     object AIProcessing : TurnState()           // AI is thinking (this is a transient state guarded by a timer for UX matter)
     object RemoteProcessing : TurnState()       // Remote player move pending
 }

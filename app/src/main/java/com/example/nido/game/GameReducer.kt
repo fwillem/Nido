@@ -22,40 +22,26 @@ data class ReducerResult(
     val followUpEvents: List<GameEvent> = emptyList()
 )
 
-fun gameReducer(state: GameState,  event: GameEvent): ReducerResult {
-
-    var reducerResult = ReducerResult(state)
-
-    when (event) {
-
-        is GameEvent.NewRoundStarted -> {
-            return handleNewRoundStarted(state)
+fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
+    return when (event) {
+        is GameEvent.NewRoundStarted -> handleNewRoundStarted(state)
+        is GameEvent.CardPlayed -> handleCardPlayed(state, event.playedCards, event.cardKept)
+        is GameEvent.NextTurn -> handleNextTurn(state)
+        is GameEvent.PlayerSkipped -> handlePlayerSkipped(state)
+        is GameEvent.RoundOver -> {
+            // No-op for now; reserved for future use.
+            ReducerResult(state)
         }
-        is GameEvent.CardPlayed -> {
-            // In the reducer, inside CardPlayed branch
-            TRACE(DEBUG) { "AI DONT PLAY Reducer: CardPlayed by ${event.playerId}, setting playmat to ${event.playedCards}" }
-            return handleCardPlayed(state, event.playedCards, event.cardKept)
-         }
-        is GameEvent.NextTurn -> {
-            return handleNextTurn(state)
-          }
-        is GameEvent.PlayerSkipped -> {
-            return handlePlayerSkipped(state)
+        is GameEvent.GameOver -> {
+            // No-op for now; reserved for future use.
+            ReducerResult(state)
         }
-        is GameEvent.RoundEnded -> {
-
-        }
-        is GameEvent.GameEnded -> {
-        }
-
         is GameEvent.ShowDialog -> {
-            // Usually, you don't want to change state in reducer for UI dialogs.
-            // Just return the current state.
+            // No state change for UI events.
+            ReducerResult(state)
         }
     }
-    return reducerResult
 }
-
 private fun handleNewRoundStarted(state: GameState) : ReducerResult {
 
     //  Generate the deck
@@ -169,6 +155,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                             playerRankings = GameRules.getPlayerRankings(updatedPlayers)
                         )
                     )
+                    followUpEvents += GameEvent.GameOver
 
                 } else {
                     TRACE(INFO) { "SetDialogEvent RoundOver" }
@@ -202,7 +189,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                 cardToKeep?.let { updatedHand.addCard(it) }
 
                 // Update the game state.
-                val updatedState = state.copy(
+                newState = state.copy(
                     players = updatedPlayers,
                     currentCombinationOnMat = newCombination,
                     discardPile = newDiscardPile,
@@ -215,7 +202,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
             }
 
     // 🟢 Return the resul. I cannot return updat with new state and follow-up events
-    return ReducerResult(updatedState, followUpEvents)
+    return ReducerResult(newState, followUpEvents)
 }
 
 
