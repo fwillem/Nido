@@ -22,6 +22,13 @@ import com.example.nido.ui.theme.NidoColors
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.example.nido.data.model.Card
+import com.example.nido.events.AppEvent
+import com.example.nido.ui.LocalGameManager
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.DEBUG
+import com.example.nido.utils.TraceLogLevel.INFO
+
+
 @Composable
 fun TurnActionButtons(
     turnInfo: TurnInfo,
@@ -30,7 +37,7 @@ fun TurnActionButtons(
     onPlayCombination: (List<Card>, Card?) -> Unit,
     onWithdrawCards: (List<Card>) -> Unit,
     onSkip: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 
 ) {
     // Assert only one main action button is visible
@@ -107,8 +114,10 @@ private fun SkipButtonWithTimer(onSkip: () -> Unit) {
 private fun PlayButton(
     playmat: SnapshotStateList<Card>?,
     selectedCards: SnapshotStateList<Card>,
-    onPlayCombination: (List<Card>, Card?) -> Unit
+    onPlayCombination: (List<Card>, Card?) -> Unit,
 ) {
+    val gameManager = LocalGameManager.current  // Retrieve injected GameManager
+
     Button(
         onClick = {
             val candidateCards = playmat?.toList() ?: emptyList()
@@ -122,6 +131,37 @@ private fun PlayButton(
                     selectedCards.clear()
                 }
                 else -> {
+
+
+
+                    TRACE(DEBUG) {
+                        "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}"
+                    }
+                    TRACE(INFO) { "setDialogEvent : CardSelection" }
+
+                    // TODO TOREMOVE SHALL USE A gameManager function ot check if use won the ron
+                    // used to be : if (selectedCards.size == gameManager.getCurrentPlayerHandSize()) {
+                    if (gameManager.getCurrentPlayerHandSize() == 0) {
+                        // The player played its remaining cards, he probably won, we provide an automatic "card to keep" that won't be used anyway
+                        onPlayCombination(selectedCards.toList(), candidateCards.first())
+                        selectedCards.clear()
+                    } else {
+                        gameManager.setDialogEvent(
+                            AppEvent.GameEvent.CardSelection(
+                                candidateCards = candidateCards,
+                                selectedCards = selectedCards.toList(),
+                                onConfirm = { chosenCard ->
+                                    onPlayCombination(selectedCards.toList(), chosenCard)
+                                    selectedCards.clear()
+                                    gameManager.clearDialogEvent()
+                                },
+                                onCancel = {
+                                    gameManager.clearDialogEvent()
+                                }
+                            )
+                        )
+                    }
+
                     // Add dialog logic if needed
                 }
             }
