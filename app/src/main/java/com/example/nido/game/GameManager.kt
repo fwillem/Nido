@@ -66,10 +66,6 @@ private object GameManager : IGameManager {
             pointLimit = selectedPointLimit,
             startingPlayerIndex = startingPlayerIndex,
             currentPlayerIndex = startingPlayerIndex,
-            currentCombinationOnMat = Combination(mutableListOf()),
-            discardPile = mutableStateListOf(),
-            skipCount = 0,
-            gamePhase = GamePhase.Idle
         )
 
 

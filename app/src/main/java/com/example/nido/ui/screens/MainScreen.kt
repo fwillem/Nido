@@ -49,7 +49,6 @@ import com.example.nido.game.FakeGameManager
 import com.example.nido.game.GamePhase
 import com.example.nido.game.RoundPhase
 import com.example.nido.game.TurnInfo
-import com.example.nido.game.TurnState
 
 
 @Composable
@@ -361,19 +360,11 @@ fun PreviewMainScreen() {
             Card(4, "RED")
         ))
     }
-    val turnInfo = TurnInfo(
-        state = TurnState.WaitingForSelection,
-        // canSkip = true
-    )
+    val turnInfo = TurnInfo()
 
     // 🚀 Build a dummy game state.
     val dummyGameState = GameState(
-        gamePhase = GamePhase.Round( // 🧠 NEW phase logic
-            RoundPhase.PlayerTurn(
-                playerId = dummyPlayers[0].id,
-                turnInfo = turnInfo
-            )
-        ),
+        playerId = dummyPlayers[0].id,
         pointLimit = 100,
         players = dummyPlayers,
         startingPlayerIndex = 0,

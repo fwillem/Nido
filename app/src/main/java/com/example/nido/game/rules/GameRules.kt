@@ -8,6 +8,8 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.utils.Constants
 import com.example.nido.data.model.Hand
+import com.example.nido.data.model.*
+import com.example.nido.game.*
 
 
 object GameRules {
@@ -188,4 +190,64 @@ fun <T> List<T>.combinations(k: Int): List<List<T>> {
         }
     }
     return result
+}
+
+
+fun calculateTurnInfo(
+    gameState: GameState,
+    selectedCards: List<Card>? = null // Nullable with default value
+): TurnInfo {
+    val currentPlayer = gameState.players[gameState.currentPlayerIndex]
+    val isLocal = currentPlayer.playerType == PlayerType.LOCAL
+
+    // 1️⃣ All buttons hidden if not local player's turn
+    if (!isLocal) {
+        return TurnInfo(
+            canSkip = false,
+            canGoAllIn = false,
+            displaySkip = false,
+            displaySkipCounter = false,
+            displayPlay = false,
+            displayRemove = false
+        )
+    }
+
+    // 2️⃣ Can Skip: Only false for first play of round (start of round, not start of game); true otherwise
+    val isFirstMoveOfRound = gameState.currentCombinationOnMat.cards.isEmpty() && gameState.skipCount == 0
+
+    // 3️⃣ Can Go All In: True at start of a round (not start of game) AND hand is a valid combination
+    val canGoAllIn = isFirstMoveOfRound &&
+            GameRules.isValidCombination(Combination(currentPlayer.hand.cards.toMutableList()))
+
+    // 4️⃣ Must Skip (forced skip): no valid move and has cards (so, counter button)
+    val possibleMoves = GameRules.findValidCombinations(currentPlayer.hand.cards)
+    val playmatCombo = gameState.currentCombinationOnMat
+    val canPlayAny = possibleMoves.any {
+        GameRules.isValidMove(playmatCombo, it, currentPlayer.hand.cards.size)
+    }
+    val mustSkip = !canPlayAny && currentPlayer.hand.cards.isNotEmpty()
+
+    // 5️⃣ Display logic for buttons
+    val canSkip = !isFirstMoveOfRound
+    val displaySkip = canSkip && !mustSkip
+    val displaySkipCounter = mustSkip // Timer skip if forced to skip
+
+    // 6️⃣ Play button: selected combination is valid and is their turn
+    val hasSelection = !selectedCards.isNullOrEmpty()
+    val selectedCombination = Combination((selectedCards ?: emptyList()).toMutableList())
+    val playButtonEnabled = hasSelection && GameRules.isValidMove(
+        playmatCombo, selectedCombination, currentPlayer.hand.cards.size
+    )
+
+    // 7️⃣ Remove button: show if there's a selection, regardless of validity
+    val displayRemove = hasSelection
+
+    return TurnInfo(
+        canSkip = canSkip,
+        canGoAllIn = canGoAllIn,
+        displaySkip = displaySkip,
+        displaySkipCounter = displaySkipCounter,
+        displayPlay = playButtonEnabled,
+        displayRemove = displayRemove
+    )
 }

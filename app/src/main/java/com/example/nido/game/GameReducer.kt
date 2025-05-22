@@ -58,19 +58,7 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
     // Identify the starting player.
     val currentPlayer = clearedPlayers[newStartingPlayerIndex]
 
-    // Determine the initial turn state based on player type.
-    val initialTurnState = when {
-        currentPlayer.playerType == com.example.nido.data.model.PlayerType.AI ->
-            TurnState.AIProcessing
-        currentPlayer.playerType == com.example.nido.data.model.PlayerType.REMOTE ->
-            TurnState.RemoteProcessing
-        else -> TurnState.WaitingForSelection
-    }
-    val turnInfo = TurnInfo(
-        state = initialTurnState,
-        //canSkip = false,      // First player must play.
-        // canGoAllIn = false    // At the first turn, user cannot go all in.
-    )
+    val turnInfo = TurnInfo()
 
     // Rebuild the state with updated values.
     var newState = state.copy(
@@ -83,12 +71,8 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
         startingPlayerIndex = newStartingPlayerIndex,
         currentPlayerIndex = newStartingPlayerIndex,
         turnId = state.turnId + 1,
-        gamePhase = GamePhase.Round(
-            RoundPhase.PlayerTurn(
-                playerId = currentPlayer.id,
-                turnInfo = turnInfo
-            )
-        )
+        playerId = currentPlayer.id,
+        turnInfo = turnInfo
     )
     // Deal cards to each player.
     newState = dealCards(newState)

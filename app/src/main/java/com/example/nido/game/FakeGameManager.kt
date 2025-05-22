@@ -52,17 +52,13 @@ class FakeGameManager : IGameManager {
 
     private val currentPlayerId = dummyLocalPlayer.id
 
-    val turnInfo = TurnInfo(state = TurnState.WaitingForSelection)
+    val turnInfo = TurnInfo()
 
     // ✅ Create a fake game state for previews/tests
     private val _gameState = mutableStateOf(
         GameState(
-            gamePhase = GamePhase.Round( // 🧠 NEW phase logic
-                RoundPhase.PlayerTurn(
-                    playerId = currentPlayerId,
-                    turnInfo = turnInfo
-                )
-            ),
+            playerId = currentPlayerId,
+            turnInfo = turnInfo,
             pointLimit = 15,
             players = listOf(dummyLocalPlayer, dummyAIPlayer1, dummyAIPlayer2),
             startingPlayerIndex = 0,
