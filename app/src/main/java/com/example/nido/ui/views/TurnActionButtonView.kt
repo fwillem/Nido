@@ -29,7 +29,9 @@ fun TurnActionButtons(
     selectedCards: SnapshotStateList<Card>,
     onPlayCombination: (List<Card>, Card?) -> Unit,
     onWithdrawCards: (List<Card>) -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
+    modifier: Modifier = Modifier
+
 ) {
     // Assert only one main action button is visible
     require(
@@ -37,10 +39,11 @@ fun TurnActionButtons(
     ) { "Only one of displaySkipCounter, displaySkip, displayPlay should be true!" }
 
 
+
     Row(
+        modifier = modifier,
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp)
     ) {
         // Skip with counter (timer)
         if (turnInfo.displaySkipCounter) {

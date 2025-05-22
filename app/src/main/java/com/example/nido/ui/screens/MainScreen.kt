@@ -160,7 +160,7 @@ fun MainScreen(
                 playerHandSize = gameManager.getCurrentPlayerHandSize(),
                 onPlayCombination = { playedCards, cardToKeep ->  // ✅ Use a different name
 
-                    // TODO TOREMOVE println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
+                    println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
 
                     if (gameManager.isValidMove(playedCards)) {
                         TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
