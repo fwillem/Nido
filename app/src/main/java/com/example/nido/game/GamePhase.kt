@@ -18,28 +18,12 @@ sealed class RoundPhase {
     object RoundOver : RoundPhase()             // End of round, ready to start a new round
 }
 
-// Sub-states for a player's turn
-sealed class TurnState(val localOnly: Boolean = false) {
-    object WaitingForSelection : TurnState(localOnly = true)    // Player is waiting to select cards (LOCAL ONLY)
-     object Selecting : TurnState(localOnly = true)              // Actively selecting cards (LOCAL ONLY)
-     object WaitForConfirmingMove : TurnState(localOnly = true)         // Ready to commit a move i.e. the selected cards form a valid combination(LOCAL ONLY)
-     object NoValidMove : TurnState()            // No valid move available, will skip (after timeout)
-     object AIProcessing : TurnState()           // AI is thinking (this is a transient state guarded by a timer for UX matter)
-     object RemoteProcessing : TurnState()       // Remote player move pending
-}
-
 data class TurnInfo(
-    val state: TurnState,
-    val canSkip: Boolean = true,                // false = player must play, he cannot skip
+    val canSkip: Boolean = false,                // false = player must play, he cannot skip
     val canGoAllIn: Boolean = false,            // Use can play all its card if he does have a valid combination, whatever the number opf cards currently on the mat
     val displaySkip: Boolean = false,           // tells if skip button should be displayed
     val displayPlay: Boolean = false,           // tells if play button should be displayed
     val displaySkipCounter: Boolean = false,    // tells if the skip button with counter should be displayed
+    val displayRemove: Boolean = false          // tells if the
 )
 
-// Helper for debug/runtime checks
-fun verifyStateForPlayer(playerType: PlayerType, state: TurnState) {
-    if (playerType != PlayerType.LOCAL && state.localOnly) {
-        throw IllegalStateException("State $state is LOCAL ONLY but current player is $playerType")
-    }
-}

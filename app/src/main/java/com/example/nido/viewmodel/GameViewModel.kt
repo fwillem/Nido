@@ -48,7 +48,10 @@ class GameViewModel : ViewModel() {
         if (oldState.skipCount != newState.skipCount) changes.add("skipCount: ${oldState.skipCount} ➝ ${newState.skipCount}")
         if (oldState.pointLimit != newState.pointLimit) changes.add("pointLimit: ${oldState.pointLimit} ➝ ${newState.pointLimit}")
         if (oldState.turnId != newState.turnId) changes.add("turnId: ${oldState.turnId} ➝ ${newState.turnId}")
-        if (oldState.gamePhase != newState.gamePhase) changes.add("gamePhase: ${oldState.gamePhase} ➝ ${newState.gamePhase}")
+        if (oldState.turnInfo != newState.turnInfo) changes.add("turnInfo: ${oldState.turnInfo} ➝ ${newState.turnInfo}")
+        if (oldState.playerId != newState.playerId) changes.add("playerId: ${oldState.playerId} ➝ ${newState.playerId}")
+
+
 
 
 
@@ -70,7 +73,8 @@ class GameViewModel : ViewModel() {
             currentPlayerIndex = newState.currentPlayerIndex,
             currentCombinationOnMat = newState.currentCombinationOnMat,
             skipCount = newState.skipCount,
-            gamePhase = newState.gamePhase,
+            turnInfo = newState.turnInfo,
+            playerId = newState.playerId,
             pointLimit = newState.pointLimit,
             soundOn = newState.soundOn,
             gameEvent = newState.gameEvent,
