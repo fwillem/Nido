@@ -2,53 +2,38 @@ package com.example.nido.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Card
+import com.example.nido.data.model.Combination
+import com.example.nido.data.model.Hand
+import com.example.nido.data.model.PlayerType
+import com.example.nido.events.AppEvent
+import com.example.nido.game.FakeGameManager
+import com.example.nido.game.GameState
 import com.example.nido.game.GameViewModel
-import com.example.nido.ui.views.ActionButtonsView
+import com.example.nido.game.LocalPlayer
+import com.example.nido.game.TurnInfo
+import com.example.nido.game.ai.AIPlayer
+import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.dialogs.*
+import com.example.nido.ui.theme.NidoColors
+import com.example.nido.ui.theme.NidoTheme
+import com.example.nido.ui.views.CommentsView
 import com.example.nido.ui.views.HandView
 import com.example.nido.ui.views.MatView
 import com.example.nido.ui.views.PlayersRowView
 import com.example.nido.utils.Constants
+import com.example.nido.utils.Constants.AI_THINKING_DURATION_MS
 import com.example.nido.utils.SortMode
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
-import com.example.nido.data.model.PlayerType
-import com.example.nido.events.AppEvent
-import com.example.nido.utils.Constants.AI_THINKING_DURATION_MS
-import com.example.nido.ui.dialogs.*
-
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.nido.data.model.CardColor
-import com.example.nido.data.model.Hand
-import com.example.nido.data.model.Player
-import com.example.nido.data.model.Combination
-import com.example.nido.data.model.PlayerAction
-import com.example.nido.data.model.PlayerActionType
-import com.example.nido.game.GameState
-import com.example.nido.game.LocalPlayer
-import com.example.nido.game.ai.AIPlayer
-import com.example.nido.ui.LocalGameManager
-import com.example.nido.ui.screens.MainScreen
-import com.example.nido.ui.theme.NidoTheme
-import com.example.nido.ui.theme.NidoColors
-import androidx.compose.runtime.CompositionLocalProvider
-import com.example.nido.game.FakeGameManager
-import com.example.nido.game.GamePhase
-import com.example.nido.game.RoundPhase
-import com.example.nido.game.TurnInfo
 
 
 @Composable
@@ -69,7 +54,11 @@ fun MainScreen(
         }
     }
     val currentHand by remember { derivedStateOf { currentPlayer.hand.cards } }
-    val playmatCards by remember { derivedStateOf { gameState.currentCombinationOnMat?.cards ?: emptyList() } }
+    val playmatCards by remember {
+        derivedStateOf {
+            gameState.currentCombinationOnMat?.cards ?: emptyList()
+        }
+    }
     val discardPile by remember { derivedStateOf { gameState.discardPile } }
     val players by remember { derivedStateOf { gameState.players } }
     val currentTurnIndex by remember { derivedStateOf { gameState.currentPlayerIndex } }
@@ -95,6 +84,7 @@ fun MainScreen(
     TRACE(VERBOSE) { "Recomposing MainScreen : current player is ${currentPlayer.name}" }
 
     // Dynamically build the action buttons map based on the current player's type.
+    /*
     val actionButtonsMap: Map<String, () -> Unit> = if (currentPlayer.playerType == PlayerType.LOCAL) {
         mapOf(
             "Quit" to { onEndGame() },
@@ -107,6 +97,16 @@ fun MainScreen(
             "Play AI Move" to { gameManager.processAIMove() }
         )
     }
+
+     */
+    val actionButtonsMap: Map<String, () -> Unit> =
+        mapOf(
+            "Sort Mode: ${sortMode.name}" to { toggleSortMode() },
+            "Quit" to {
+                gameManager.setDialogEvent(AppEvent.GameEvent.QuitGame)
+            },
+        )
+
 
     Column(
         modifier = Modifier
@@ -122,17 +122,17 @@ fun MainScreen(
                 .background(Color.DarkGray),
             contentAlignment = Alignment.Center
         ) {
-            ActionButtonsView(actionButtonsMap)
+            CommentsView(actionButtonsMap)
         }
 
         // 🔹 Player Information Row
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height( Constants.PLAYERS_ROW_HEIGHT.dp)
+                .height(Constants.PLAYERS_ROW_HEIGHT.dp)
                 .background(NidoColors.PlayersRowBackground),
 
-        contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
             PlayersRowView(
                 players = players,
@@ -163,7 +163,10 @@ fun MainScreen(
                     println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
 
                     if (gameManager.isValidMove(playedCards)) {
-                        TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
+                        TRACE(
+                            DEBUG,
+                            tag = "MatView:onPlayCombination"
+                        ) { "✅ Move is valid! Playing: $playedCards" }
                         val playMoveResult = gameManager.playCombination(playedCards, cardToKeep)
 
                         selectedCards.clear() // Clear selection after a valid move.
@@ -181,7 +184,7 @@ fun MainScreen(
                     // currentPlayer.hand.cards.clear()
                     currentPlayer.hand.cards.addAll(cardsToWithdraw)
                 },
-                onSkip = {gameManager.processSkip()},
+                onSkip = { gameManager.processSkip() },
                 cardWidth = Constants.CARD_ON_MAT_WIDTH.dp,
                 cardHeight = Constants.CARD_ON_MAT_HEIGHT.dp
             )
@@ -195,7 +198,6 @@ fun MainScreen(
                 .background(NidoColors.HandViewBackground),
             contentAlignment = Alignment.Center
         ) {
-
 
 
             // TODO TOREMOVE println("PNB currentHand(${currentHand.size}) = $currentHand")
@@ -215,16 +217,25 @@ fun MainScreen(
                         selectedCards.remove(card)
                         val currentHand = currentPlayer.hand.copy().apply { addCard(card) }
                         gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
-                        TRACE(DEBUG, tag = "HandView:onSelectCard") { "Card unselected: ${card.value}, ${card.color}" }
+                        TRACE(
+                            DEBUG,
+                            tag = "HandView:onSelectCard"
+                        ) { "Card unselected: ${card.value}, ${card.color}" }
                     } else {
                         // Select the card: remove it from the hand and add it to selectedCards.
                         val currentHand = currentPlayer.hand.copy()
                         if (currentHand.removeCard(card)) {
                             selectedCards.add(card)
                             gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
-                            TRACE(DEBUG, tag = "HandView:onSelectCard") { "Card selected: ${card.value}, ${card.color}" }
+                            TRACE(
+                                DEBUG,
+                                tag = "HandView:onSelectCard"
+                            ) { "Card selected: ${card.value}, ${card.color}" }
                         } else {
-                            TRACE(ERROR, tag = "HandView:onSelectCard") { "Failed to remove card: ${card.value}, ${card.color}" }
+                            TRACE(
+                                ERROR,
+                                tag = "HandView:onSelectCard"
+                            ) { "Failed to remove card: ${card.value}, ${card.color}" }
                         }
                     }
                 }
@@ -240,6 +251,7 @@ fun MainScreen(
             is AppEvent.GameEvent.CardSelection -> {
                 CardSelectionDialog(event = event)
             }
+
             is AppEvent.GameEvent.RoundOver -> {
                 RoundOverDialog(event = event,
                     onExit = {
@@ -247,15 +259,23 @@ fun MainScreen(
                     }
                 )
             }
+
             is AppEvent.GameEvent.GameOver -> {
                 GameOverDialog(event = event, onExit = onEndGame)
             }
+
             is AppEvent.PlayerEvent.PlayerLeft -> {
                 PlayerLeftDialog(event = event)
             }
+
             is AppEvent.PlayerEvent.ChatMessage -> {
                 ChatMessageDialog(event = event)
             }
+
+            is AppEvent.GameEvent.QuitGame -> {
+                QuitGameDialog(onConfirm = onEndGame, onCancel = {})
+            }
+
             else -> {
                 TRACE(FATAL) { "Unknown event type: ${gameState.gameEvent}" }
             }
@@ -276,10 +296,6 @@ fun MainScreen(
 }
 
 
-
-
-
-
 @Preview(
     name = "Landscape MainScreen Preview",
     widthDp = 800, // 🚀 wider than it is tall
@@ -291,74 +307,88 @@ fun MainScreen(
 fun PreviewMainScreen() {
     // 🚀 Create dummy players using SimplePlayer.
     val dummyPlayers = listOf(
-        LocalPlayer (
+        LocalPlayer(
             id = "1",
             name = "Alice",
             avatar = "",
-            hand = Hand(mutableStateListOf(
-                // 9 cards for the current player's hand
-                Card(2, "RED"),
-                Card(3, "RED"),
-                Card(4, "GREEN"),
-                Card(3, "MOCHA"),
-                Card(3, "PINK"),
-                Card(3, "GREEN"),
-                Card(2, "BLUE"),
-                Card(5, "ORANGE"),
-                Card(4, "RED")
-            ))
+            hand = Hand(
+                mutableStateListOf(
+                    // 9 cards for the current player's hand
+                    Card(2, "RED"),
+                    Card(3, "RED"),
+                    Card(4, "GREEN"),
+                    Card(3, "MOCHA"),
+                    Card(3, "PINK"),
+                    Card(3, "GREEN"),
+                    Card(2, "BLUE"),
+                    Card(5, "ORANGE"),
+                    Card(4, "RED")
+                )
+            )
         ),
         AIPlayer(
             id = "2",
             name = "Bob",
             avatar = "",
             score = 0,
-            hand = Hand(mutableStateListOf(
-                Card(2, "BLUE"),
-                Card(5, "MOCHA")
-            ))
+            hand = Hand(
+                mutableStateListOf(
+                    Card(2, "BLUE"),
+                    Card(5, "MOCHA")
+                )
+            )
         ),
         AIPlayer(
             id = "3",
             name = "Carol",
             avatar = "",
-            hand = Hand(mutableStateListOf(
-                Card(2, "PINK"),
-                Card(3, "MOCHA"),
-                Card(4, "GREEN")
-            ))
+            hand = Hand(
+                mutableStateListOf(
+                    Card(2, "PINK"),
+                    Card(3, "MOCHA"),
+                    Card(4, "GREEN")
+                )
+            )
         )
     )
 
     // 🚀 Create a dummy playmat with a couple of cards.
-    val dummyPlaymat = Combination(mutableStateListOf(
-        Card(3, "RED"),
-        Card(3, "MOCHA")
-    ))
+    val dummyPlaymat = Combination(
+        mutableStateListOf(
+            Card(3, "RED"),
+            Card(3, "MOCHA")
+        )
+    )
 
     // 🚀 Create dummy selected cards (for example, 2 cards).
     val dummySelectedCards = mutableStateListOf<Card>().apply {
-        addAll(listOf(
-            Card(4, "GREEN"),
-            Card(5, "PINK")
-        ))
+        addAll(
+            listOf(
+                Card(4, "GREEN"),
+                Card(5, "PINK")
+            )
+        )
     }
 
     // 🚀 Create a dummy discard pile with a couple of cards.
     val dummyDiscardPile = mutableStateListOf<Card>().apply {
-        addAll(listOf(
-            Card(2, "BLUE"),
-            Card(3, "ORANGE")
-        ))
+        addAll(
+            listOf(
+                Card(2, "BLUE"),
+                Card(3, "ORANGE")
+            )
+        )
     }
 
     // 🚀 Create a dummy deck with a few cards.
     val dummyDeck = mutableStateListOf<Card>().apply {
-        addAll(listOf(
-            Card(2, "RED"),
-            Card(3, "RED"),
-            Card(4, "RED")
-        ))
+        addAll(
+            listOf(
+                Card(2, "RED"),
+                Card(3, "RED"),
+                Card(4, "RED")
+            )
+        )
     }
     val turnInfo = TurnInfo()
 

@@ -21,6 +21,9 @@ sealed class AppEvent {
             val onConfirm: (Card) -> Unit,
             val onCancel: () -> Unit
         ) : GameEvent()
+
+        object QuitGame : GameEvent()
+
     }
 
     // Player-related events.

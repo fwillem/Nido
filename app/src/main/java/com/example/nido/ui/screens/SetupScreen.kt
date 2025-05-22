@@ -1,41 +1,108 @@
 package com.example.nido.ui.screens
 
+
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+//import androidx.compose.ui.text.input.KeyboardActions
+//import androidx.compose.ui.text.input.KeyboardOptions
+
+import androidx.compose.foundation.text.KeyboardActions // Added import
+import androidx.compose.foundation.text.KeyboardOptions // Added import
+
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Player
-import com.example.nido.utils.Constants
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.ui.components.VersionLabel
+import com.example.nido.ui.preview.NidoPreview
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
-import com.example.nido.ui.preview.NidoPreview
-
+import com.example.nido.utils.Constants
 
 
 @Composable
+fun EditablePlayerName(
+    name: String,
+    onNameChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var editing by remember { mutableStateOf(false) }
+    var internalName by remember { mutableStateOf(TextFieldValue(name)) }
+
+    if (editing) {
+        OutlinedTextField(
+            value = internalName,
+            onValueChange = { internalName = it.copy(text = it.text.take(16)) },
+            singleLine = true,
+            modifier = modifier,
+            label = { Text("Your Name") },
+            trailingIcon = {
+                IconButton(onClick = {
+                    val trimmed = internalName.text.trim().ifBlank { "Jil" }
+                    onNameChange(trimmed)
+                    editing = false
+                }) {
+                    Icon(Icons.Default.Check, contentDescription = "Done")
+                }
+            },
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    val trimmed = internalName.text.trim().ifBlank { "Jil" }
+                    onNameChange(trimmed)
+                    editing = false
+                }
+            )
+        )
+    } else {
+        Row(
+            modifier = modifier
+                .clickable {
+                    editing = true
+                    internalName = TextFieldValue(name)
+                }
+                .padding(vertical = 4.dp, horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("👤", fontSize = 20.sp)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(name, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = "Edit",
+                modifier = Modifier.size(16.dp).padding(start = 6.dp)
+            )
+        }
+    }
+}
+@Composable
 fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = Modifier) {
-    // ✅ Viking AI Players (Names + Emojis)
     val aiPlayers = listOf(
-        "Thorstein" to "⚡",  // God of Thunder vibes ⚡
-        "Erik" to "🪓",       // Erik the Red, famous Viking explorer 🪓
-        "Bjorn" to "🐻",      // Bjorn Ironside (means "Bear") 🐻
-        "Lagertha" to "🛡",   // Shieldmaiden, strong female warrior 🛡
-        "Freydis" to "🔥",    // Fearless explorer, fire spirit 🔥
-        "Astrid" to "🌙"      // Mystical and wise 🌙
+        "Thorstein" to "⚡",
+        "Erik" to "🪓",
+        "Bjorn" to "🐻",
+        "Lagertha" to "🛡",
+        "Freydis" to "🔥",
+        "Astrid" to "🌙"
     )
 
-    // ✅ Default player: YOU (local human player)
-    var selectedPlayers by remember { mutableStateOf<List<Player>>(listOf(LocalPlayer(id = "0",name = "Jil",avatar = "👤"))) }
+    var selectedPlayers by remember {
+        mutableStateOf<List<Player>>(
+            listOf(LocalPlayer(id = "0", name = "Jil", avatar = "👤"))
+        )
+    }
 
-    // ✅ Game Point Limit (Slider)
     var selectedPointLimit by remember { mutableStateOf(Constants.GAME_DEFAULT_POINT_LIMIT) }
     val stepSize = 5
     val validSteps = (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
@@ -44,42 +111,47 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
         modifier = Modifier
             .fillMaxSize()
             .background(NidoColors.ScoreScreenBackground)
-            .padding (24.dp)
-    )
-    {
+            .padding(24.dp)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
             Text("Game Setup", style = MaterialTheme.typography.headlineSmall)
-
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Players (${selectedPlayers.size}) :")
-                // ✅ Display current selected players
-                selectedPlayers.forEach { player ->
-                    Text("${player.avatar} ${player.name}    ")
+                // Editable name for the first (local) player
+                EditablePlayerName(
+                    name = selectedPlayers[0].name,
+                    onNameChange = { newName ->
+                        selectedPlayers = selectedPlayers.toMutableList().also {
+                            it[0] = it[0].copy(name = newName)
+                        }
+                    }
+                )
+                // The AI players (show as static text)
+                selectedPlayers.drop(1).forEach { player ->
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("${player.avatar} ${player.name}", fontSize = 18.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ✅ Buttons shall have the same width
+            // Buttons (same width)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // ✅ Button to add AI players
                 Button(
-                    modifier = Modifier
-                        .weight(1f)
-                    ,
+                    modifier = Modifier.weight(1f),
                     onClick = {
-                        if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {  // Max 6 players (1 Human + 5 AI)
-                            val nextAI = aiPlayers[selectedPlayers.size - 1] // Pick next AI from list
+                        if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
+                            val nextAI = aiPlayers[selectedPlayers.size - 1]
                             selectedPlayers = selectedPlayers + AIPlayer(
                                 id = (selectedPlayers.size).toString(),
                                 name = nextAI.first,
@@ -87,16 +159,13 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
                             )
                         }
                     },
-                    enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS  // Disable button if max players reached
+                    enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS
                 ) {
                     Text("Add Player")
                 }
 
-                // ✅ Button to remove players
                 Button(
-                    modifier = Modifier
-                        .weight(1f)
-                    ,
+                    modifier = Modifier.weight(1f),
                     onClick = {
                         if (selectedPlayers.size > 1) {
                             selectedPlayers = selectedPlayers.dropLast(1)
@@ -108,13 +177,9 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
                 }
             }
 
-
             Spacer(modifier = Modifier.height(16.dp))
 
-
-            // ✅ Slider to select point limit
             Text("Point Limit: $selectedPointLimit")
-
             Slider(
                 value = selectedPointLimit.toFloat(),
                 onValueChange = { newValue ->
@@ -123,15 +188,14 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
                             ?: Constants.GAME_DEFAULT_POINT_LIMIT
                 },
                 valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
-                steps = (validSteps.size - 2) // Ensure correct steps
+                steps = (validSteps.size - 2)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ✅ Start Game Button
             Button(
                 onClick = { onGameStart(selectedPlayers, selectedPointLimit) },
-                enabled = selectedPlayers.size >= 2  // Ensure at least 2 players
+                enabled = selectedPlayers.size >= 2
             ) {
                 Text("Start Game")
             }
@@ -141,13 +205,8 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
     }
 }
 
-/**
- * 🎨 **Preview for SetupScreen**
- * ✅ Simulates the screen without running the full app.
- */
 // @Preview(showBackground = true)
 @NidoPreview(name = "SetupScreeny")
-
 @Composable
 fun SetupScreenPreview() {
     NidoTheme {
