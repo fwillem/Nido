@@ -1,0 +1,23 @@
+import androidx.compose.runtime.Composable
+
+@Composable
+fun QuitGameDialog(
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text("Quit game?") },
+        text = { Text("Do you really want to quit ?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("YES")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) {
+                Text("CANCEL")
+            }
+        }
+    )
+}
