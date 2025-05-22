@@ -137,144 +137,17 @@ fun MatView(
                 }
             }
 
-            /*
-
-             */
             TurnActionButtons(
                 turnInfo = turnInfo,
                 playmat = playmat,
                 selectedCards = selectedCards,
                 onPlayCombination = onPlayCombination,
                 onWithdrawCards = onWithdrawCards,
-                onSkip = onSkip
+                onSkip = onSkip,
+                modifier = Modifier.align(Alignment.CenterEnd) // <-- THIS IS THE KEY PART
+
             )
 
-            /***
-             * Old button implementation
-             *
-             *
-            // Button section
-            if (!gameManager.isCurrentPlayerLocal()) {
-                // Button isn't visible to non-local players
-
-            }
-            // TODO TOREMOVE SHALL USE A gameManager function ot check if use won the round instead of checking HandSize ==0
-            else if (!gameManager.currentPlayerHasValidCombination() && (gameManager.getCurrentPlayerHandSize()!=0)) {
-                // The player has no valid combination, show a skip button that will automatically be 'pressed' after a delay
-                // This allow the player to understand that he cannot play, he can either press the skip button to speedup the action
-                // Or wait for the counter to expire
-                TRACE(VERBOSE) { "Local player has no valid combination" }
-                var skipTimerCount by remember { mutableStateOf(5) }
-                // Use LaunchedEffect to decrement skipCount every 500ms.
-                LaunchedEffect(Unit) {
-                    while (skipTimerCount > 0) {
-                        delay(800L)
-                        skipTimerCount--
-                    }
-                    onSkip()
-
-                }
-                Button(
-                    onClick = { onSkip() },
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NidoColors.PlayMatButtonBackground.copy(alpha = 0.8f),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text("Skip ($skipTimerCount)", fontSize = 16.sp, lineHeight = 16.sp)
-                }
-            } else if (selectedCards.isNotEmpty()) {
-                TRACE(DEBUG) { "Player has a valid combination" }
-                val currentCombination = if (playmat != null) Combination(playmat) else Combination(mutableStateListOf())
-                if (GameRules.isValidMove(currentCombination, Combination(selectedCards),playerHandSize)) {
-                    Button(
-                        onClick = {
-
-                            val candidateCards = playmat?.toList() ?: emptyList()
-                            when {
-                                candidateCards.isEmpty() -> {
-                                    TRACE(DEBUG) { "No card to keep" }
-                                    onPlayCombination(selectedCards.toList(), null)
-                                    selectedCards.clear()
-                                }
-                                candidateCards.size == 1 -> {
-                                    TRACE(DEBUG) { "Only one candidate: commit immediately ${candidateCards.first()}" }
-                                    onPlayCombination(selectedCards.toList(), candidateCards.first())
-                                    selectedCards.clear()
-                                }
-                                else -> {
-                                    TRACE(DEBUG) {
-                                        "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}"
-                                    }
-                                    TRACE(INFO) { "setDialogEvent : CardSelection" }
-
-                                    // TODO TOREMOVE SHALL USE A gameManager function ot check if use won the ron
-                                    // used to be : if (selectedCards.size == gameManager.getCurrentPlayerHandSize()) {
-                                    if (gameManager.getCurrentPlayerHandSize() == 0) {
-                                        // The player played its remaining cards, he probably won
-                                        onPlayCombination(selectedCards.toList(), candidateCards.first())
-                                        selectedCards.clear()
-                                    } else {
-                                        gameManager.setDialogEvent(
-                                            AppEvent.GameEvent.CardSelection(
-                                                candidateCards = candidateCards,
-                                                selectedCards = selectedCards.toList(),
-                                                onConfirm = { chosenCard ->
-                                                    onPlayCombination(selectedCards.toList(), chosenCard)
-                                                    selectedCards.clear()
-                                                    gameManager.clearDialogEvent()
-                                                },
-                                                onCancel = {
-                                                    gameManager.clearDialogEvent()
-                                                }
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = NidoColors.PlayMatButtonBackground.copy(alpha = 0.8f),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text("Play", fontSize = 16.sp, lineHeight = 16.sp)
-                    }
-                } else {
-                    Button(
-                        onClick = { onWithdrawCards(selectedCards.toList()) },
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(8.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = NidoColors.PlayMatButtonBackground.copy(alpha = 0.8f),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text("Remove", fontSize = 16.sp, lineHeight = 16.sp)
-                    }
-                }
-            } else {
-                Button(
-                    onClick = { onSkip() },
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NidoColors.PlayMatButtonBackground.copy(alpha = 0.8f),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text("Skip", fontSize = 16.sp, lineHeight = 16.sp)
-                }
-            }
-            */
         }
     }
 }
