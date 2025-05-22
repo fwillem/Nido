@@ -54,6 +54,7 @@ import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.game.FakeGameManager
 import androidx.compose.runtime.CompositionLocalProvider
 import com.example.nido.ui.components.VersionLabel
+import com.example.nido.game.rules.calculateTurnInfo
 
 
 @Composable
@@ -75,7 +76,11 @@ fun MatView(
                 "SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }} \n"
     }
 
-    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+    val gameManager = LocalGameManager.current  // Retrieve injected GameManager
+
+    // Get the current GameState and TurnInfo
+    val gameState = gameManager.gameState.value
+    val turnInfo = calculateTurnInfo(gameState, selectedCards)
 
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -131,6 +136,23 @@ fun MatView(
                     }
                 }
             }
+
+            /*
+
+             */
+            TurnActionButtons(
+                turnInfo = turnInfo,
+                playmat = playmat,
+                selectedCards = selectedCards,
+                onPlayCombination = onPlayCombination,
+                onWithdrawCards = onWithdrawCards,
+                onSkip = onSkip
+            )
+
+            /***
+             * Old button implementation
+             *
+             *
             // Button section
             if (!gameManager.isCurrentPlayerLocal()) {
                 // Button isn't visible to non-local players
@@ -252,6 +274,7 @@ fun MatView(
                     Text("Skip", fontSize = 16.sp, lineHeight = 16.sp)
                 }
             }
+            */
         }
     }
 }
