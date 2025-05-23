@@ -29,12 +29,18 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
         // Navigate based on the route string constant
         when (currentRoute) {
             AppScreen.Routes.SPLASH -> SplashScreen(
-                onTimeout = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
+                onTimeout = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.LANDING -> LandingScreen(
                 onSetup = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
-                onGame = { currentRoute = AppScreen.Routes.GAME }, // Navigate using constant
+                onGame = {
+                    // Use latest saved preferences
+                    val players = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) }
+                    val pointLimit = viewModel.savedPointLimit.value
+                    gameManager.startNewGame(players, pointLimit)
+                    currentRoute = AppScreen.Routes.GAME
+                         }, // Navigate using constant
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.SETUP -> SetupScreen(
@@ -47,19 +53,19 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
                     viewModel.savePointLimit(selectedPointLimit)
                     TRACE(INFO) { "Saved SetupScreen preferences: players = $selectedPlayers, pointLimit = $selectedPointLimit" }
 
-                    gameManager.startNewGame(selectedPlayers, selectedPointLimit)
-                    currentRoute = AppScreen.Routes.GAME // Navigate using constant
+                    currentRoute = AppScreen.Routes.LANDING // Navigate using constant
                 },
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.GAME -> MainScreen(
                 onEndGame = { currentRoute = AppScreen.Routes.SCORE }, // Navigate using constant
+                onQuitGame = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
                 modifier = modifier.padding(innerPadding),
                 viewModel = viewModel
             )
             AppScreen.Routes.SCORE -> ScoreScreen(
-                onContinue = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
-                onEndGame = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
+                onContinue = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
+                onEndGame = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
                 modifier = modifier.padding(innerPadding)
             )
         }

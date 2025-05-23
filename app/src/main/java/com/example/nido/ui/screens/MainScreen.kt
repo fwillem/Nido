@@ -39,6 +39,7 @@ import com.example.nido.utils.TraceLogLevel.*
 @Composable
 fun MainScreen(
     onEndGame: () -> Unit,
+    onQuitGame: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: IGameViewModelPreview
 ) {
@@ -194,7 +195,7 @@ fun MainScreen(
             is AppEvent.GameEvent.GameOver -> GameOverDialog(event = event, onExit = onEndGame)
             is AppEvent.PlayerEvent.PlayerLeft -> PlayerLeftDialog(event = event)
             is AppEvent.PlayerEvent.ChatMessage -> ChatMessageDialog(event = event)
-            is AppEvent.GameEvent.QuitGame -> QuitGameDialog(onConfirm = onEndGame, onCancel = {})
+            is AppEvent.GameEvent.QuitGame -> QuitGameDialog(onConfirm = onQuitGame, onCancel = {})
             else -> TRACE(FATAL) { "Unknown event type: ${gameState.gameEvent}" }
         }
     }
@@ -333,6 +334,7 @@ fun PreviewMainScreen() {
         CompositionLocalProvider(LocalGameManager provides FakeGameManager()) {
             MainScreen(
                 onEndGame = {},
+                onQuitGame = {},
                 viewModel = fakeViewModel // Pass the fake ViewModel!
             )
         }
