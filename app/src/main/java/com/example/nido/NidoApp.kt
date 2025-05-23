@@ -15,6 +15,7 @@ import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
+import java.util.UUID
 
 
 @Composable
@@ -37,6 +38,8 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.SETUP -> SetupScreen(
+                initialPlayers = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) },
+                initialPointLimit = viewModel.savedPointLimit.value,
                 onGameStart = { selectedPlayers, selectedPointLimit ->
 
                     //  Save user preferences before starting the game

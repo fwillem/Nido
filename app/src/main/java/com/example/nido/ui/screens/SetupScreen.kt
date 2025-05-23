@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
@@ -30,6 +31,7 @@ import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.utils.Constants
 import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_AVATAR
 import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_NAME
+import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
 import java.util.UUID
 
 
@@ -89,7 +91,11 @@ fun EditablePlayerName(
     }
 }
 @Composable
-fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = Modifier) {
+fun SetupScreen(
+    initialPlayers: List<Player>,
+    initialPointLimit: Int,
+    onGameStart: (List<Player>, Int) -> Unit,
+    modifier: Modifier = Modifier) {
     val aiPlayers = listOf(
         "Thorstein" to "⚡",
         "Erik" to "🪓",
@@ -99,13 +105,9 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
         "Astrid" to "🌙"
     )
 
-    var selectedPlayers by remember {
-        mutableStateOf<List<Player>>(
-            listOf(LocalPlayer(id = UUID.randomUUID().toString(), name = DEFAULT_LOCAL_PLAYER_NAME, avatar = DEFAULT_LOCAL_PLAYER_AVATAR))
-        )
-    }
+    var selectedPlayers by rememberSaveable { mutableStateOf(initialPlayers) }
+    var selectedPointLimit by rememberSaveable { mutableStateOf(initialPointLimit) }
 
-    var selectedPointLimit by remember { mutableStateOf(Constants.GAME_DEFAULT_POINT_LIMIT) }
     val stepSize = 5
     val validSteps = (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
 
@@ -213,6 +215,14 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
 @Composable
 fun SetupScreenPreview() {
     NidoTheme {
-        SetupScreen(onGameStart = { _, _ -> })
+        SetupScreen(
+            initialPlayers = listOf(
+                LocalPlayer(id = "0", name = "Jil", avatar = "👤"),
+                AIPlayer(id = "1", name = "Thorstein", avatar = "⚡"),
+                AIPlayer(id = "2", name = "Erik", avatar = "🪓"),
+                AIPlayer(id = "3", name = "Bjorn", avatar = "🐻"),
+            ),
+            initialPointLimit = GAME_DEFAULT_POINT_LIMIT,
+            onGameStart = { _, _ -> })
     }
 }
