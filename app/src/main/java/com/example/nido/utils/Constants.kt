@@ -51,4 +51,11 @@ object Constants {
     const val NB_OF_DISCARDED_CARDS_TO_SHOW = 4
     const val AI_THINKING_DURATION_MS = 1200L
 
+    const val DEFAULT_LOCAL_PLAYER_NAME = "Jil"
+    const val DEFAULT_LOCAL_PLAYER_AVATAR = "👤"
+
+
+    // APP CONSTANTS
+    const val DATASTORE_NAME = "nido_preferences"
+
 }
