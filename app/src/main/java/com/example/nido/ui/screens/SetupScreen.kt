@@ -1,9 +1,14 @@
 package com.example.nido.ui.screens
 
 
+//import androidx.compose.ui.text.input.KeyboardActions
+//import androidx.compose.ui.text.input.KeyboardOptions
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
@@ -12,12 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
-//import androidx.compose.ui.text.input.KeyboardActions
-//import androidx.compose.ui.text.input.KeyboardOptions
-
-import androidx.compose.foundation.text.KeyboardActions // Added import
-import androidx.compose.foundation.text.KeyboardOptions // Added import
-
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +28,9 @@ import com.example.nido.ui.preview.NidoPreview
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.utils.Constants
+import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_AVATAR
+import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_NAME
+import java.util.UUID
 
 
 @Composable
@@ -99,7 +101,7 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
 
     var selectedPlayers by remember {
         mutableStateOf<List<Player>>(
-            listOf(LocalPlayer(id = "0", name = "Jil", avatar = "👤"))
+            listOf(LocalPlayer(id = UUID.randomUUID().toString(), name = DEFAULT_LOCAL_PLAYER_NAME, avatar = DEFAULT_LOCAL_PLAYER_AVATAR))
         )
     }
 
@@ -153,7 +155,8 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
                         if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
                             val nextAI = aiPlayers[selectedPlayers.size - 1]
                             selectedPlayers = selectedPlayers + AIPlayer(
-                                id = (selectedPlayers.size).toString(),
+                                // id = (selectedPlayers.size).toString(),
+                                id = UUID.randomUUID().toString(),
                                 name = nextAI.first,
                                 avatar = nextAI.second
                             )
@@ -197,7 +200,7 @@ fun SetupScreen(onGameStart: (List<Player>, Int) -> Unit, modifier: Modifier = M
                 onClick = { onGameStart(selectedPlayers, selectedPointLimit) },
                 enabled = selectedPlayers.size >= 2
             ) {
-                Text("Start Game")
+                Text("Save")
             }
 
             VersionLabel()

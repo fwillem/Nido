@@ -3,20 +3,18 @@ package com.example.nido.ui.screens
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
-import com.example.nido.game.GameViewModel
-import com.example.nido.ui.LocalGameManager
-import com.example.nido.ui.AppScreen
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.MutableState // Potentially needed for explicit typing
-import com.example.nido.ui.screens.MainScreen
-import com.example.nido.ui.screens.SetupScreen
-import com.example.nido.ui.screens.ScoreScreen
-
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import com.example.nido.data.SavedPlayer
+import com.example.nido.game.GameViewModel
+import com.example.nido.ui.AppScreen
+import com.example.nido.ui.LocalGameManager
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.*
 
 
 @Composable
@@ -40,6 +38,12 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
             )
             AppScreen.Routes.SETUP -> SetupScreen(
                 onGameStart = { selectedPlayers, selectedPointLimit ->
+
+                    //  Save user preferences before starting the game
+                    viewModel.savePlayers(selectedPlayers.map { SavedPlayer.fromPlayer(it) })
+                    viewModel.savePointLimit(selectedPointLimit)
+                    TRACE(INFO) { "Saved SetupScreen preferences: players = $selectedPlayers, pointLimit = $selectedPointLimit" }
+
                     gameManager.startNewGame(selectedPlayers, selectedPointLimit)
                     currentRoute = AppScreen.Routes.GAME // Navigate using constant
                 },
