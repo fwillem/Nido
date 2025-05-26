@@ -15,6 +15,8 @@ import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.analytics
 import java.util.UUID
 
 
@@ -33,7 +35,11 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.LANDING -> LandingScreen(
-                onSetup = { currentRoute = AppScreen.Routes.SETUP }, // Navigate using constant
+                onSetup = {
+                    Firebase.analytics.logEvent("setup_button_clicked", null)
+
+                    currentRoute = AppScreen.Routes.SETUP
+                          }, // Navigate using constant
                 onGame = {
                     // Use latest saved preferences
                     val players = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) }
