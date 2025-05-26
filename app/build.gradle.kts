@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
 }
 
 import java.io.ByteArrayOutputStream
@@ -83,6 +84,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences) // Persistent storage for app settings
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.json) // Use of Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+
+
 }
