@@ -35,8 +35,18 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         viewModelScope.launch {
             NidoPreferences.playersFlow(context).collect { playersOrNull ->
                 if (playersOrNull == null) {
-                    TRACE(INFO) { "No players found in DataStore. Using default player: ${Constants.DEFAULT_LOCAL_PLAYER_NAME} ${Constants.DEFAULT_LOCAL_PLAYER_AVATAR} (LOCAL)." }
-                    _savedPlayersState.value = listOf(SavedPlayer(Constants.DEFAULT_LOCAL_PLAYER_NAME, Constants.DEFAULT_LOCAL_PLAYER_AVATAR, PlayerType.LOCAL))
+                    TRACE(INFO) { "No players found in DataStore. Using default players." }
+                    _savedPlayersState.value = listOf(
+                        SavedPlayer(
+                            Constants.DEFAULT_LOCAL_PLAYER_NAME,
+                            Constants.DEFAULT_LOCAL_PLAYER_AVATAR, PlayerType.LOCAL
+                        ),
+                        SavedPlayer(
+                            Constants.DEFAULT_SECOND_PLAYER_NAME,
+                            Constants.DEFAULT_SECOND_PLAYER_AVATAR,
+                            PlayerType.AI // Assuming the second player is AI by default
+                        )
+                    )
                 } else {
                     TRACE(DEBUG) { "Loaded players from DataStore: $playersOrNull" }
                     _savedPlayersState.value = playersOrNull

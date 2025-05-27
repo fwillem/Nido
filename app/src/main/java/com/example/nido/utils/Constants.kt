@@ -52,7 +52,10 @@ object Constants {
     const val AI_THINKING_DURATION_MS = 1200L
 
     const val DEFAULT_LOCAL_PLAYER_NAME = "Jil"
-    const val DEFAULT_LOCAL_PLAYER_AVATAR = "👤"
+    const val DEFAULT_LOCAL_PLAYER_AVATAR = "👩"
+
+    const val DEFAULT_SECOND_PLAYER_NAME = "Bibi"
+    const val DEFAULT_SECOND_PLAYER_AVATAR = "👤"
 
 
     // APP CONSTANTS
