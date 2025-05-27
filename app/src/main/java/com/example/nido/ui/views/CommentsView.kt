@@ -18,13 +18,15 @@ fun CommentsView(actions: Map<String, () -> Unit>) {
     ) {
         // Text zone - 80%
         Box(
-            modifier = Modifier.weight(0.8f, fill = true)
+            modifier = Modifier.weight(0.8f, fill = true),
+            contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Hello",
+                text = "Nido",
                 fontSize = 16.sp,
                 lineHeight = 8.sp,
-                modifier = Modifier.padding(end = 4.dp, start = 36.dp)
+                // modifier = Modifier.padding(end = 4.dp, start = 36.dp)
+                // Removed padding to ensure text is perfectly centered
             )
         }
 

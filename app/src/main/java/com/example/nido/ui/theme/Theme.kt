@@ -34,6 +34,9 @@ object NidoColors {
     val SetupScreenBackground = Color(0xFF228B22)
     val ScoreScreenBackground = Color(0xFF228B22)
     val ScoreScreenWinner = Color(0xFFAEEA00)
+    val LandingMainStroke = Color(0xFF006400)
+    val LandingButtonsBackground = Color(0xFF006400)
+    val LandingMainBackground = Color(0xFF228B22)
 
 
     val DialogTitleBackground = Color(0xFF228B22)

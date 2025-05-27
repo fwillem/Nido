@@ -31,7 +31,7 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
         // Navigate based on the route string constant
         when (currentRoute) {
             AppScreen.Routes.SPLASH -> SplashScreen(
-                onTimeout = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
+                onExit = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.LANDING -> LandingScreen(
@@ -61,6 +61,7 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
 
                     currentRoute = AppScreen.Routes.LANDING // Navigate using constant
                 },
+                onCancel = { currentRoute = AppScreen.Routes.LANDING }, // No action needed
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.GAME -> MainScreen(
