@@ -32,7 +32,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val version = getString(R.string.git_tag) // ← This works in an Activity
+        /*
+        val branch = getString(R.string.branch_name)
+        val buildTime = getString(R.string.build_time)
 
         val bundle = Bundle().apply {
 
@@ -40,6 +42,8 @@ class MainActivity : ComponentActivity() {
             putString("Main_Activity", "xxx")
         }
 
+
+         */
         Firebase.analytics.logEvent("nido_test", null)
 
 

@@ -57,6 +57,7 @@ object Constants {
     const val DEFAULT_SECOND_PLAYER_NAME = "Bibi"
     const val DEFAULT_SECOND_PLAYER_AVATAR = "👤"
 
+    const val SPLASH_SCREEN_TIMEOUT = 4000L
 
     // APP CONSTANTS
     const val DATASTORE_NAME = "nido_preferences"

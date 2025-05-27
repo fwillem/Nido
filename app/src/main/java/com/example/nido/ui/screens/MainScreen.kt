@@ -22,6 +22,7 @@ import com.example.nido.game.TurnInfo
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.IGameViewModelPreview
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.components.NidoScreenScaffold
 import com.example.nido.ui.dialogs.*
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
@@ -54,7 +55,11 @@ fun MainScreen(
         }
     }
     val currentHand by remember { derivedStateOf { currentPlayer.hand.cards } }
-    val playmatCards by remember { derivedStateOf { gameState.currentCombinationOnMat?.cards ?: emptyList() } }
+    val playmatCards by remember {
+        derivedStateOf {
+            gameState.currentCombinationOnMat?.cards ?: emptyList()
+        }
+    }
     val discardPile by remember { derivedStateOf { gameState.discardPile } }
     val players by remember { derivedStateOf { gameState.players } }
     val currentTurnIndex by remember { derivedStateOf { gameState.currentPlayerIndex } }
@@ -85,105 +90,123 @@ fun MainScreen(
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 🔹 Top Row: Action Buttons
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(20.dp)
-                .background(Color.DarkGray),
-            contentAlignment = Alignment.Center
-        ) {
-            CommentsView(actionButtonsMap)
-        }
+        Column {
+            // 🔹 Top Row: Action Buttons
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(20.dp)
+                    .background(Color.DarkGray),
+                contentAlignment = Alignment.Center
+            ) {
+                CommentsView(actionButtonsMap)
+            }
 
-        // 🔹 Player Information Row
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(Constants.PLAYERS_ROW_HEIGHT.dp)
-                .background(NidoColors.PlayersRowBackground),
-            contentAlignment = Alignment.Center
-        ) {
-            PlayersRowView(
-                players = players,
-                currentTurnIndex = currentTurnIndex,
-                turnID = gameState.turnId
-            )
-        }
+            // 🔹 Player Information Row
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Constants.PLAYERS_ROW_HEIGHT.dp)
+                    .background(NidoColors.PlayersRowBackground),
+                contentAlignment = Alignment.Center
+            ) {
+                PlayersRowView(
+                    players = players,
+                    currentTurnIndex = currentTurnIndex,
+                    turnID = gameState.turnId
+                )
+            }
 
-        // 🔹 Middle Section: MatView (Playmat + Discard Pile)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1.1f)
-                .background(NidoColors.MatViewBackground),
-            contentAlignment = Alignment.Center
-        ) {
-            val playmatSnapshotList = playmat?.cards?.let { cardList ->
-                mutableStateListOf<Card>().apply { addAll(cardList) }
-            } ?: mutableStateListOf()
+            // 🔹 Middle Section: MatView (Playmat + Discard Pile)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1.1f)
+                    .background(NidoColors.MatViewBackground),
+                contentAlignment = Alignment.Center
+            ) {
+                val playmatSnapshotList = playmat?.cards?.let { cardList ->
+                    mutableStateListOf<Card>().apply { addAll(cardList) }
+                } ?: mutableStateListOf()
 
-            MatView(
-                playmat = playmatSnapshotList,
-                discardPile = discardPile,
-                selectedCards = selectedCards,
-                playerHandSize = gameManager.getCurrentPlayerHandSize(),
-                onPlayCombination = { playedCards, cardToKeep ->
-                    println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
-                    if (gameManager.isValidMove(playedCards)) {
-                        TRACE(DEBUG, tag = "MatView:onPlayCombination") { "✅ Move is valid! Playing: $playedCards" }
-                        val playMoveResult = gameManager.playCombination(playedCards, cardToKeep)
-                        selectedCards.clear()
-                    } else {
-                        TRACE(FATAL, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
-                    }
-                },
-                onWithdrawCards = { cardsToWithdraw ->
-                    TRACE(DEBUG) { "Withdraw Cards: $cardsToWithdraw" }
-                    selectedCards.removeAll(cardsToWithdraw)
-                    currentPlayer.hand.cards.addAll(cardsToWithdraw)
-                },
-                onSkip = { gameManager.processSkip() },
-                cardWidth = Constants.CARD_ON_MAT_WIDTH.dp,
-                cardHeight = Constants.CARD_ON_MAT_HEIGHT.dp
-            )
-        }
-
-        // 🔹 Bottom Section: HandView (Player's Hand)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(NidoColors.HandViewBackground),
-            contentAlignment = Alignment.Center
-        ) {
-            HandView(
-                hand = com.example.nido.data.model.Hand(
-                    mutableStateListOf<Card>().apply { addAll(currentHand) }
-                ),
-                cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
-                cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
-                sortMode = sortMode,
-                onDoubleClick = toggleSortMode,
-                onSortMode = toggleSortMode,
-                onSelectCard = { card ->
-                    if (selectedCards.contains(card)) {
-                        selectedCards.remove(card)
-                        val currentHand = currentPlayer.hand.copy().apply { addCard(card) }
-                        gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
-                        TRACE(DEBUG, tag = "HandView:onSelectCard") { "Card unselected: ${card.value}, ${card.color}" }
-                    } else {
-                        val currentHand = currentPlayer.hand.copy()
-                        if (currentHand.removeCard(card)) {
-                            selectedCards.add(card)
-                            gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
-                            TRACE(DEBUG, tag = "HandView:onSelectCard") { "Card selected: ${card.value}, ${card.color}" }
+                MatView(
+                    playmat = playmatSnapshotList,
+                    discardPile = discardPile,
+                    selectedCards = selectedCards,
+                    playerHandSize = gameManager.getCurrentPlayerHandSize(),
+                    onPlayCombination = { playedCards, cardToKeep ->
+                        println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
+                        if (gameManager.isValidMove(playedCards)) {
+                            TRACE(
+                                DEBUG,
+                                tag = "MatView:onPlayCombination"
+                            ) { "✅ Move is valid! Playing: $playedCards" }
+                            val playMoveResult =
+                                gameManager.playCombination(playedCards, cardToKeep)
+                            selectedCards.clear()
                         } else {
-                            TRACE(ERROR, tag = "HandView:onSelectCard") { "Failed to remove card: ${card.value}, ${card.color}" }
+                            TRACE(FATAL, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
+                        }
+                    },
+                    onWithdrawCards = { cardsToWithdraw ->
+                        TRACE(DEBUG) { "Withdraw Cards: $cardsToWithdraw" }
+                        selectedCards.removeAll(cardsToWithdraw)
+                        currentPlayer.hand.cards.addAll(cardsToWithdraw)
+                    },
+                    onSkip = { gameManager.processSkip() },
+                    cardWidth = Constants.CARD_ON_MAT_WIDTH.dp,
+                    cardHeight = Constants.CARD_ON_MAT_HEIGHT.dp
+                )
+            }
+
+            // 🔹 Bottom Section: HandView (Player's Hand)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(NidoColors.HandViewBackground),
+                contentAlignment = Alignment.Center
+            ) {
+                HandView(
+                    hand = com.example.nido.data.model.Hand(
+                        mutableStateListOf<Card>().apply { addAll(currentHand) }
+                    ),
+                    cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
+                    cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
+                    sortMode = sortMode,
+                    onDoubleClick = toggleSortMode,
+                    onSortMode = toggleSortMode,
+                    onSelectCard = { card ->
+                        if (selectedCards.contains(card)) {
+                            selectedCards.remove(card)
+                            val currentHand = currentPlayer.hand.copy().apply { addCard(card) }
+                            gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
+                            TRACE(
+                                DEBUG,
+                                tag = "HandView:onSelectCard"
+                            ) { "Card unselected: ${card.value}, ${card.color}" }
+                        } else {
+                            val currentHand = currentPlayer.hand.copy()
+                            if (currentHand.removeCard(card)) {
+                                selectedCards.add(card)
+                                gameManager.updatePlayerHand(
+                                    gameState.currentPlayerIndex,
+                                    currentHand
+                                )
+                                TRACE(
+                                    DEBUG,
+                                    tag = "HandView:onSelectCard"
+                                ) { "Card selected: ${card.value}, ${card.color}" }
+                            } else {
+                                TRACE(
+                                    ERROR,
+                                    tag = "HandView:onSelectCard"
+                                ) { "Failed to remove card: ${card.value}, ${card.color}" }
+                            }
                         }
                     }
-                }
-            )
+                )
+            }
         }
     }
 
@@ -191,7 +214,10 @@ fun MainScreen(
     if (gameState.gameEvent != null) {
         when (val event = gameState.gameEvent) {
             is AppEvent.GameEvent.CardSelection -> CardSelectionDialog(event = event)
-            is AppEvent.GameEvent.RoundOver -> RoundOverDialog(event = event, onExit = { gameManager.startNewRound() })
+            is AppEvent.GameEvent.RoundOver -> RoundOverDialog(
+                event = event,
+                onExit = { gameManager.startNewRound() })
+
             is AppEvent.GameEvent.GameOver -> GameOverDialog(event = event, onExit = onEndGame)
             is AppEvent.PlayerEvent.PlayerLeft -> PlayerLeftDialog(event = event)
             is AppEvent.PlayerEvent.ChatMessage -> ChatMessageDialog(event = event)
@@ -212,7 +238,13 @@ fun MainScreen(
 // --- PREVIEW STUB VIEWMODEL ---
 class FakeGameViewModelForPreview(
     initialGameState: GameState,
-    initialSavedPlayers: List<SavedPlayer> = listOf(SavedPlayer("PreviewUser", "👤", PlayerType.LOCAL)),
+    initialSavedPlayers: List<SavedPlayer> = listOf(
+        SavedPlayer(
+            "PreviewUser",
+            "👤",
+            PlayerType.LOCAL
+        )
+    ),
     initialPointLimit: Int = 100
 ) : IGameViewModelPreview {
     private val _gameState = mutableStateOf(initialGameState)
@@ -227,12 +259,15 @@ class FakeGameViewModelForPreview(
     override fun updateGameState(newState: GameState) {
         _gameState.value = newState
     }
+
     override fun updatePlayerHand(playerIndex: Int, newHand: Hand) {
         // Not used in preview, but could be mocked for interactivity if needed.
     }
+
     override fun savePlayers(players: List<SavedPlayer>) {
         _savedPlayers.value = players
     }
+
     override fun savePointLimit(limit: Int) {
         _savedPointLimit.value = limit
     }

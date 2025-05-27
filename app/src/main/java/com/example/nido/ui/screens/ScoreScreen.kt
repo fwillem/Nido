@@ -29,6 +29,11 @@ import com.example.nido.ui.views.HandView
 import com.example.nido.utils.Constants
 import com.example.nido.utils.SortMode
 import com.example.nido.ui.views.PlayerScoreView
+import com.example.nido.ui.components.NidoScreenScaffold
+import androidx.compose.ui.unit.Dp   // The Dp type itself
+import androidx.compose.ui.unit.dp   // The .dp extension property for Int/Float
+
+
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -42,19 +47,17 @@ fun ScoreScreen(
     val rankings = gameManager.getPlayerRankings() // ✅ Now gets (Player, Rank) pairs
     val winners = gameManager.getGameWinners() // ✅ Overall winners
 
-    Box(
-        modifier = Modifier.background(NidoColors.SetupScreenBackground)
-    ) {
+    NidoScreenScaffold (cardInnerPaddingVertical = 8.dp,cardInnerPaddingHorizontal = 80.dp, outerPaddingHorizontal = 64.dp, outerPaddingVertical = 8.dp) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
                 .verticalScroll(
                     rememberScrollState()
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-                Text("🏆  Winner${if(winners.size > 1) "s" else ""}: ${winners.joinToString(", ") { it.name }}",
+            Text(
+                "🏆  Winner${if (winners.size > 1) "s" else ""}: ${winners.joinToString(", ") { it.name }}",
                 fontSize = 28.sp,
                 color = NidoColors.ScoreScreenWinner
             )
@@ -64,7 +67,7 @@ fun ScoreScreen(
             // ✅ Display Ranked Players (with ranking numbers)
             rankings.forEach { (player, rank) ->
                 PlayerScoreView(player = player, rank = rank)
-             //   Spacer(modifier = Modifier.height(4.dp))
+                //   Spacer(modifier = Modifier.height(4.dp))
             }
 
             Spacer(modifier = Modifier.height(8.dp))

@@ -53,7 +53,6 @@ import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.game.FakeGameManager
 import androidx.compose.runtime.CompositionLocalProvider
-import com.example.nido.ui.components.VersionLabel
 import com.example.nido.game.rules.calculateTurnInfo
 
 
@@ -116,7 +115,6 @@ fun MatView(
                 .background(NidoColors.PlaymatBackground)
                 .fillMaxSize()
         ) {
-            VersionLabel()
             // Playmat Row
             Row(
                 modifier = Modifier.padding(8.dp),

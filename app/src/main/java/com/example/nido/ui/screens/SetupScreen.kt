@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Player
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
+import com.example.nido.ui.components.NidoScreenScaffold
 import com.example.nido.ui.components.VersionLabel
 import com.example.nido.ui.preview.NidoPreview
 import com.example.nido.ui.theme.NidoColors
@@ -95,6 +96,7 @@ fun SetupScreen(
     initialPlayers: List<Player>,
     initialPointLimit: Int,
     onGameStart: (List<Player>, Int) -> Unit,
+    onCancel : () -> Unit,
     modifier: Modifier = Modifier) {
     val aiPlayers = listOf(
         "Thorstein" to "⚡",
@@ -111,107 +113,118 @@ fun SetupScreen(
     val stepSize = 5
     val validSteps = (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(NidoColors.ScoreScreenBackground)
-            .padding(24.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text("Game Setup", style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Players (${selectedPlayers.size}) :")
-                // Editable name for the first (local) player
-                EditablePlayerName(
-                    name = selectedPlayers[0].name,
-                    onNameChange = { newName ->
-                        selectedPlayers = selectedPlayers.toMutableList().also {
-                            it[0] = it[0].copy(name = newName)
+    NidoScreenScaffold {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(4.dp)
+            ) {
+                Text("Game Setup", style = MaterialTheme.typography.headlineSmall)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Players (${selectedPlayers.size}) :")
+                    // Editable name for the first (local) player
+                    EditablePlayerName(
+                        name = selectedPlayers[0].name,
+                        onNameChange = { newName ->
+                            selectedPlayers = selectedPlayers.toMutableList().also {
+                                it[0] = it[0].copy(name = newName)
+                            }
                         }
+                    )
+                    // The AI players (show as static text)
+                    selectedPlayers.drop(1).forEach { player ->
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("${player.avatar} ${player.name}", fontSize = 18.sp)
                     }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Buttons (same width)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
+                                val nextAI = aiPlayers[selectedPlayers.size - 1]
+                                selectedPlayers = selectedPlayers + AIPlayer(
+                                    // id = (selectedPlayers.size).toString(),
+                                    id = UUID.randomUUID().toString(),
+                                    name = nextAI.first,
+                                    avatar = nextAI.second
+                                )
+                            }
+                        },
+                        enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS
+                    ) {
+                        Text("Add Player")
+                    }
+
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            if (selectedPlayers.size > 1) {
+                                selectedPlayers = selectedPlayers.dropLast(1)
+                            }
+                        },
+                        enabled = selectedPlayers.size > 1
+                    ) {
+                        Text("Remove Player")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Point Limit: $selectedPointLimit")
+                Slider(
+                    value = selectedPointLimit.toFloat(),
+                    onValueChange = { newValue ->
+                        selectedPointLimit =
+                            validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) }
+                                ?: Constants.GAME_DEFAULT_POINT_LIMIT
+                    },
+                    valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
+                    steps = (validSteps.size - 2)
                 )
-                // The AI players (show as static text)
-                selectedPlayers.drop(1).forEach { player ->
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("${player.avatar} ${player.name}", fontSize = 18.sp)
-                }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-            // Buttons (same width)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
-                            val nextAI = aiPlayers[selectedPlayers.size - 1]
-                            selectedPlayers = selectedPlayers + AIPlayer(
-                                // id = (selectedPlayers.size).toString(),
-                                id = UUID.randomUUID().toString(),
-                                name = nextAI.first,
-                                avatar = nextAI.second
-                            )
-                        }
-                    },
-                    enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly // Distribute buttons evenly
                 ) {
-                    Text("Add Player")
-                }
+                    Button(
+                        onClick = onCancel,
 
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        if (selectedPlayers.size > 1) {
-                            selectedPlayers = selectedPlayers.dropLast(1)
-                        }
-                    },
-                    enabled = selectedPlayers.size > 1
-                ) {
-                    Text("Remove Player")
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Button(
+                        onClick = { onGameStart(selectedPlayers, selectedPointLimit) },
+                        enabled = selectedPlayers.size >= 2
+                    ) {
+                        Text("Done")
+                    }
                 }
             }
+            Row(modifier = Modifier.align(Alignment.BottomEnd)) {
+                Spacer(modifier = Modifier.weight(1f))
+                VersionLabel(modifier = Modifier.align(Alignment.CenterVertically))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Point Limit: $selectedPointLimit")
-            Slider(
-                value = selectedPointLimit.toFloat(),
-                onValueChange = { newValue ->
-                    selectedPointLimit =
-                        validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) }
-                            ?: Constants.GAME_DEFAULT_POINT_LIMIT
-                },
-                valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
-                steps = (validSteps.size - 2)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Button(
-                onClick = { onGameStart(selectedPlayers, selectedPointLimit) },
-                enabled = selectedPlayers.size >= 2
-            ) {
-                Text("Save")
             }
-
-            VersionLabel()
         }
-    }
 }
 
 // @Preview(showBackground = true)
-@NidoPreview(name = "SetupScreeny")
+@NidoPreview(name = "SetupScreen")
 @Composable
 fun SetupScreenPreview() {
     NidoTheme {
@@ -223,6 +236,7 @@ fun SetupScreenPreview() {
                 AIPlayer(id = "3", name = "Bjorn", avatar = "🐻"),
             ),
             initialPointLimit = GAME_DEFAULT_POINT_LIMIT,
-            onGameStart = { _, _ -> })
+            onGameStart = { _, _ -> },
+            onCancel = {})
     }
 }

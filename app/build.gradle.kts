@@ -7,6 +7,8 @@ plugins {
 }
 
 import java.io.ByteArrayOutputStream
+        import java.text.SimpleDateFormat
+        import java.util.Date
 
 /**
  * Run a command and return its stdout (trimmed).
@@ -22,11 +24,15 @@ fun execAndGetStdout(vararg cmd: String): String {
     return stdout.toString().trim()
 }
 
-// Try to read the most recent tag; if there isn't one yet, fall back to short SHA
-val gitTag: String = execAndGetStdout("git", "describe", "--tags", "--abbrev=0")
-    .takeIf { it.isNotEmpty() }
-    ?: execAndGetStdout("git", "rev-parse", "--short", "HEAD")
+// Get current branch name
+val branchName: String = execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
+    .ifEmpty { "unknown" }
 
+// Current build date/time, formatted as yyyy-MM-dd_HH-mm-ss
+val buildTime: String = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(Date())
+
+// Concatenate for unique version name
+val versionName: String = "$branchName-$buildTime"
 
 android {
     namespace = "com.example.nido"
@@ -37,12 +43,13 @@ android {
         minSdk = 25
         targetSdk = 35
         versionCode = 1
-        versionName = gitTag
+        versionName = versionName  // <-- Branch name and build time!
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // <-- add this line to generate a String resource named "git_tag"
-        resValue("string", "git_tag", gitTag)
+        // Inject string resources for branch name and build time
+        resValue("string", "branch_name", branchName)
+        resValue("string", "build_time", buildTime)
     }
 
     buildTypes {
@@ -67,7 +74,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -84,11 +90,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.androidx.datastore.preferences) // Persistent storage for app settings
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.json) // Use of Firebase
+    implementation(libs.kotlinx.serialization.json)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-
-
 }
