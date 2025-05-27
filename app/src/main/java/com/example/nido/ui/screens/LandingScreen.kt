@@ -48,7 +48,7 @@ fun LandingScreen(
         ) {
             // Headline
             Text(
-                text = "Welcome to Nido!",
+                text = "Daring to challenge the gods ?",
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier
                     .padding(bottom = 8.dp)
