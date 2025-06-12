@@ -1,0 +1,8 @@
+v1.22 - 27/05/2025
+
+* Correction BUG lors d'un nouveau tour: le joueur était autorisé à passer (Skip) alors qu'il doit nécessairement jouer
+* Sauvegarde des paramètres du jeu, lorsqu'on relance l'application ceux-ci sont restitués
+* Modification de la navigation, création d'un Splash screen, et d'un écran d'accueil. Navigation en étoile vers le jeu (PLAY) et la configuration (SETUP)
+* Possibilité de changer le nom du joueur humain
+* Harmonisation de l'UI, correction de bugs graphiques
+
