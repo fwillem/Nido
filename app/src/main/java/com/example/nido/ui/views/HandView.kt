@@ -1,5 +1,6 @@
 package com.example.nido.ui.views
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -26,6 +27,7 @@ import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.views.CardView
 import com.example.nido.utils.TestData.generateTestHand1
 import com.example.nido.ui.components.VersionOptions.*
+import com.example.nido.utils.Constants.SELECTED_CARD_OFFSET
 
 @Composable
 fun HandView(
@@ -37,8 +39,6 @@ fun HandView(
     onSortMode: () -> Unit,
     onSelectCard: (Card) -> Unit
 ) {
-    val density = LocalDensity.current
-
     TRACE(VERBOSE) { "Recomposing HandView: ${hand.cards}" }
 
     Box(
@@ -46,10 +46,7 @@ fun HandView(
             .background(NidoColors.HandViewBackground2)
             .padding(bottom = 8.dp)
             .fillMaxSize()
-    )
-
-
-    {
+    ) {
         val sortedCards by remember(hand.cards, sortMode) {
             derivedStateOf { hand.cards.sortedByMode(sortMode) }
         }
@@ -61,50 +58,19 @@ fun HandView(
                 .align(Alignment.Center),
             horizontalArrangement = Arrangement.Center
         ) {
-            sortedCards.forEachIndexed { index, card ->
-                var offsetY by remember { mutableStateOf(0f) }
-                var dragging by remember { mutableStateOf(false) }
+            sortedCards.forEach { card ->
+                val animatedOffsetY by animateDpAsState(
+                    targetValue = if (card.isSelected) (-SELECTED_CARD_OFFSET).dp else 0.dp,
+                    label = "selectedCardLift"
+                )
 
                 Box(
                     modifier = Modifier
-                        .shadow(if (dragging) 8.dp else 0.dp)
-                        .offset(y = with(density) { offsetY.toDp() })
+                        .offset(y = animatedOffsetY)
                         .pointerInput(card) {
                             detectTapGestures(
+                                onTap = { onSelectCard(card) },
                                 onDoubleTap = { onDoubleClick() }
-                            )
-                        }
-                        .pointerInput(card) {
-                            detectDragGestures(
-                                onDragStart = {
-                                    dragging = true
-                                    TRACE(VERBOSE, tag = "HandView:onDragStart") {
-                                        "Dragging card: ${card.value}, ${card.color}, index = $index"
-                                    }
-                                },
-                                onDragEnd = {
-                                    dragging = false
-                                    TRACE(VERBOSE, tag = "HandView:onDragEnd") {
-                                        "Drag End card: ${card.value}, ${card.color}, index = $index"
-                                    }
-                                    // Drag threshold reached (cardHeight converted to pixels)
-                                    if (offsetY < -cardHeight.run { with(density) { toPx() } } / 2) {
-                                        onSelectCard(card)
-                                    } else {
-                                        TRACE(VERBOSE, tag = "HandView:onDragEnd") {
-                                            "Drag threshold not reached"
-                                        }
-                                    }
-                                    offsetY = 0f
-                                },
-                                onDragCancel = {
-                                    dragging = false
-                                    offsetY = 0f
-                                },
-                                onDrag = { change, dragAmount ->
-                                    change.consume()
-                                    offsetY += dragAmount.y
-                                }
                             )
                         }
                 ) {
@@ -116,14 +82,13 @@ fun HandView(
             }
         }
 
-        // Place VersionLabel at the bottom right
+        // Version label
         VersionLabel(
             option = SHORT,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(8.dp, end = 32.dp)
         )
-
     }
 }
 

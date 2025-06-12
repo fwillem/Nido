@@ -60,7 +60,6 @@ import com.example.nido.game.rules.calculateTurnInfo
 fun MatView(
     playmat: SnapshotStateList<Card>?,
     discardPile: SnapshotStateList<Card>,
-    selectedCards: SnapshotStateList<Card>,
     playerHandSize: Int,
     onPlayCombination: (List<Card>, Card?) -> Unit,  // Callback for committing a move
     onWithdrawCards: (List<Card>) -> Unit,             // Callback for withdrawing cards
@@ -71,15 +70,15 @@ fun MatView(
     TRACE(DEBUG) {
         "🟦 Recomposing MatView : \n" +
                 "Playmat : ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}\n" +
-                "DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}\n" +
-                "SelectedCards : ${selectedCards.joinToString { "${it.value} ${it.color}" }} \n"
+                "DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}\n"
+
     }
 
     val gameManager = LocalGameManager.current  // Retrieve injected GameManager
 
     // Get the current GameState and TurnInfo
     val gameState = gameManager.gameState.value
-    val turnInfo = calculateTurnInfo(gameState, selectedCards)
+    val turnInfo = calculateTurnInfo(gameState)
 
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -90,22 +89,8 @@ fun MatView(
                 .background(NidoColors.SelectedCardBackground)
                 .fillMaxSize()
         ) {
-            if (selectedCards.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.padding(8.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    for (card in selectedCards) {
-                        CardView(
-                            card = card,
-                            modifier = Modifier
-                                .width(cardWidth)
-                                .height(cardHeight)
-                                .padding(4.dp)
-                        )
-                    }
-                }
-            }
+
+            // emptied may be used later
         }
 
         // Right section: Playmat and Button
@@ -138,7 +123,6 @@ fun MatView(
             TurnActionButtons(
                 turnInfo = turnInfo,
                 playmat = playmat,
-                selectedCards = selectedCards,
                 onPlayCombination = onPlayCombination,
                 onWithdrawCards = onWithdrawCards,
                 onSkip = onSkip,
@@ -182,7 +166,6 @@ fun PreviewMatViewScenario1() {
             MatView(
                 playmat = playmatCards,
                 discardPile = discardPile,
-                selectedCards = selectedCards,
                 playerHandSize = FakeGameManager().getCurrentPlayerHandSize(),
                 onPlayCombination = onPlayCombination,
                 onWithdrawCards = onWithdrawCards,

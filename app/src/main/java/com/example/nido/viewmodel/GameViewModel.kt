@@ -109,7 +109,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
 
         // Compare other fields in GameState.
         if (oldState.deck != newState.deck) changes.add("🎴 deck: ${oldState.deck} ➝ ${newState.deck}")
-        if (oldState.selectedCards != newState.selectedCards) changes.add("🟩 selectedCards: ${oldState.selectedCards} ➝ ${newState.selectedCards}")
         if (oldState.discardPile != newState.discardPile) changes.add("🗑 discardPile: ${oldState.discardPile} ➝ ${newState.discardPile}")
         if (oldState.startingPlayerIndex != newState.startingPlayerIndex) changes.add("🔢 startingPlayerIndex: ${oldState.startingPlayerIndex} ➝ ${newState.startingPlayerIndex}")
         if (oldState.currentPlayerIndex != newState.currentPlayerIndex) changes.add("🎯 currentPlayerIndex: ${oldState.currentPlayerIndex} ➝ ${newState.currentPlayerIndex}")
@@ -133,7 +132,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         _gameState.value = _gameState.value.copy(
             players = if (newState.players.isNotEmpty()) newState.players else _gameState.value.players,
             deck = if (newState.deck.isNotEmpty()) newState.deck else _gameState.value.deck,
-            selectedCards = newState.selectedCards,
             discardPile = newState.discardPile,
             startingPlayerIndex = newState.startingPlayerIndex,
             currentPlayerIndex = newState.currentPlayerIndex,

@@ -189,7 +189,7 @@ private object GameManager : IGameManager {
         return GameRules.isValidMove(
             currentCombination,
             selectedCombination,
-            getCurrentPlayer().hand.cards.size
+            getCurrentPlayer().hand.cards
         )
     }
 
@@ -220,28 +220,20 @@ private object GameManager : IGameManager {
     // This function checks if the player is able to make a valid move
     // In this current implementation, the function needs to check the union of cards in the selectedcard and the hand
     override fun currentPlayerHasValidCombination(): Boolean {
-        // Consider both the remaining hand and the selected cards.
-        val fullHand = getCurrentPlayer().hand.cards.toMutableList().apply {
-            addAll(gameState.value.selectedCards)
-        }
+        val currentPlayer = getCurrentPlayer()
+        val handCards = currentPlayer.hand.cards
 
-        // Find all possible valid combinations from the full hand.
-        val possibleMoves: List<Combination> = GameRules.findValidCombinations(fullHand)
-
-        // Get the current combination on the playmat.
+        // All cards are in hand already — just find valid combos from there
+        val possibleMoves: List<Combination> = GameRules.findValidCombinations(handCards)
         val playmatCombination = gameState.value.currentCombinationOnMat
 
-        // Look for a valid move that beats the current playmat combination.
-        return (possibleMoves.find {
-            GameRules.isValidMove(
-                playmatCombination,
-                it,
-                fullHand.size
-            )
-        } != null)
+        return possibleMoves.any {
+            GameRules.isValidMove(playmatCombination, it, handCards)
+        }
     }
 
 
+/*
     override fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
         val currentGameState = gameState.value
         val currentPlayer = getCurrentPlayer()
@@ -277,6 +269,8 @@ private object GameManager : IGameManager {
         TRACE(DEBUG) { "Withdrawn cards ${cardsToWithdraw.joinToString()} returned to ${currentPlayer.name}'s hand." }
     }
 
+ */
+
     override fun setDialogEvent(event: AppEvent) {
         val currentState = gameState.value
         getViewModel().updateGameState(currentState.copy(gameEvent = event))
@@ -304,6 +298,11 @@ private object GameManager : IGameManager {
         } else {
             TRACE(ERROR) { "⚠️ Invalid playerIndex: $playerIndex" }
         }
+    }
+
+    override fun hasPlayedAllRemainingCards(): Boolean {
+        val currentPlayer = getCurrentPlayer()
+        return currentPlayer.hand.cards.all { it.isSelected }
     }
 
     private fun dispatchEvent(event: GameEvent) {

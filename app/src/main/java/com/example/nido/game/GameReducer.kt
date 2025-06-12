@@ -66,7 +66,6 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
         deck = mutableDeck,
         currentCombinationOnMat = Combination(mutableStateListOf()),
         discardPile = mutableStateListOf(),
-        selectedCards = mutableStateListOf(), // Clear any selected cards.
         skipCount = 0,
         startingPlayerIndex = newStartingPlayerIndex,
         currentPlayerIndex = newStartingPlayerIndex,
@@ -95,7 +94,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
             if (!GameRules.isValidMove(
                     currentCombination,
                     newCombination,
-                    player.hand.cards.size
+                    player.hand.cards
                 )
             ) {
                 TRACE(FATAL) { "Invalid combination! Move rejected." } // THis shall not happen here since it has been checked before in MatView

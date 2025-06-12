@@ -34,6 +34,7 @@ object Constants {
     const val PLAYERS_ROW_HEIGHT = 50
     const val MAT_VIEW_HEIGHT = 150
 
+    const val SELECTED_CARD_OFFSET = 32
     /*
     const val PLAYERS_ROW_COLOR = 0xFFF06400 // OK, This one is OK
 

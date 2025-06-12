@@ -14,7 +14,7 @@ import com.example.nido.events.AppEvent
         fun skipTurn()
         fun processAIMove()
         fun processSkip()
-        fun withdrawCardsFromMat(cardsToWithdraw: List<Card>)
+       // fun withdrawCardsFromMat(cardsToWithdraw: List<Card>)
         fun setDialogEvent(event: AppEvent)
         fun clearDialogEvent()
     }

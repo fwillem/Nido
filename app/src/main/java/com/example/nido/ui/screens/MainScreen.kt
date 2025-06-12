@@ -64,7 +64,6 @@ fun MainScreen(
     val players by remember { derivedStateOf { gameState.players } }
     val currentTurnIndex by remember { derivedStateOf { gameState.currentPlayerIndex } }
     val playmat by remember { derivedStateOf { gameState.currentCombinationOnMat } }
-    val selectedCards = gameState.selectedCards
 
     var sortMode by remember { mutableStateOf(SortMode.COLOR) }
     val toggleSortMode: () -> Unit = {
@@ -132,26 +131,31 @@ fun MainScreen(
                 MatView(
                     playmat = playmatSnapshotList,
                     discardPile = discardPile,
-                    selectedCards = selectedCards,
                     playerHandSize = gameManager.getCurrentPlayerHandSize(),
                     onPlayCombination = { playedCards, cardToKeep ->
-                        println("PNB On Play Combination currentHand(${currentHand.size}) = $currentHand")
                         if (gameManager.isValidMove(playedCards)) {
                             TRACE(
                                 DEBUG,
                                 tag = "MatView:onPlayCombination"
-                            ) { "✅ Move is valid! Playing: $playedCards" }
+                            ) { " Move is valid! Playing: $playedCards" }
+
+
                             val playMoveResult =
                                 gameManager.playCombination(playedCards, cardToKeep)
-                            selectedCards.clear()
+
+                            //  Deselect played cards before they go to the mat
+                            playedCards.forEach { it.isSelected = false }
+
                         } else {
                             TRACE(FATAL, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
                         }
                     },
                     onWithdrawCards = { cardsToWithdraw ->
                         TRACE(DEBUG) { "Withdraw Cards: $cardsToWithdraw" }
-                        selectedCards.removeAll(cardsToWithdraw)
-                        currentPlayer.hand.cards.addAll(cardsToWithdraw)
+
+                        // Unselect the cards
+                        cardsToWithdraw.forEach { it.isSelected = false }
+
                     },
                     onSkip = { gameManager.processSkip() },
                     cardWidth = Constants.CARD_ON_MAT_WIDTH.dp,
@@ -177,32 +181,11 @@ fun MainScreen(
                     onDoubleClick = toggleSortMode,
                     onSortMode = toggleSortMode,
                     onSelectCard = { card ->
-                        if (selectedCards.contains(card)) {
-                            selectedCards.remove(card)
-                            val currentHand = currentPlayer.hand.copy().apply { addCard(card) }
-                            gameManager.updatePlayerHand(gameState.currentPlayerIndex, currentHand)
-                            TRACE(
-                                DEBUG,
-                                tag = "HandView:onSelectCard"
-                            ) { "Card unselected: ${card.value}, ${card.color}" }
-                        } else {
-                            val currentHand = currentPlayer.hand.copy()
-                            if (currentHand.removeCard(card)) {
-                                selectedCards.add(card)
-                                gameManager.updatePlayerHand(
-                                    gameState.currentPlayerIndex,
-                                    currentHand
-                                )
-                                TRACE(
-                                    DEBUG,
-                                    tag = "HandView:onSelectCard"
-                                ) { "Card selected: ${card.value}, ${card.color}" }
-                            } else {
-                                TRACE(
-                                    ERROR,
-                                    tag = "HandView:onSelectCard"
-                                ) { "Failed to remove card: ${card.value}, ${card.color}" }
-                            }
+                        card.isSelected = !card.isSelected
+
+                        TRACE(DEBUG, tag = "HandView:onSelectCard") {
+                            val status = if (card.isSelected) "selected" else "unselected"
+                            "Card $status: ${card.value}, ${card.color}"
                         }
                     }
                 )
@@ -348,7 +331,6 @@ fun PreviewMainScreen() {
         currentPlayerIndex = 0,
         currentCombinationOnMat = dummyPlaymat,
         discardPile = dummyDiscardPile,
-        selectedCards = dummySelectedCards,
         deck = dummyDeck,
         skipCount = 0,
         soundOn = true,

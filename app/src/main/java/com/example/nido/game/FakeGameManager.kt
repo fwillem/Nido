@@ -65,7 +65,6 @@ class FakeGameManager : IGameManager {
             currentPlayerIndex = 0,
             currentCombinationOnMat = Combination(mutableStateListOf(Card(3, "MOCHA"), Card(3, "GREEN"))),
             discardPile = mutableStateListOf(Card(2, "ORANGE")),
-            selectedCards = mutableStateListOf(),
             deck = mutableStateListOf(Card(7, "PINK")),
             skipCount = 0,
             soundOn = true,
@@ -104,9 +103,6 @@ class FakeGameManager : IGameManager {
         // Simulate a skip action
     }
 
-    override fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
-        // Simulate withdrawing cards
-    }
 
     override fun setDialogEvent(event: AppEvent) {
         // Simulate setting an event
@@ -120,7 +116,12 @@ class FakeGameManager : IGameManager {
         return true // Fake validation logic
     }
 
-    override fun isGameOver(): Boolean = false
+    override fun hasPlayedAllRemainingCards(): Boolean {
+        return false
+    }
+
+
+override fun isGameOver(): Boolean = false
 
     override fun getGameWinners(): List<Player> = listOf(dummyLocalPlayer)
 

@@ -23,8 +23,6 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
             getGameManagerInstance().playCombination(selectedCards, cardToKeep)
         override fun processAIMove() = getGameManagerInstance().processAIMove()
         override fun processSkip() = getGameManagerInstance().processSkip()
-        override fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) =
-            getGameManagerInstance().withdrawCardsFromMat(cardsToWithdraw)
         override fun setDialogEvent(event: AppEvent) = getGameManagerInstance().setDialogEvent(event)
         override fun clearDialogEvent() = getGameManagerInstance().clearDialogEvent()
         override fun isGameOver() = getGameManagerInstance().isGameOver()
@@ -35,6 +33,9 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
         override fun isCurrentPlayerLocal() = getGameManagerInstance().isCurrentPlayerLocal()
         override fun currentPlayerHasValidCombination() = getGameManagerInstance().currentPlayerHasValidCombination()
         override fun isValidMove(selectedCards: List<Card>) = getGameManagerInstance().isValidMove(selectedCards)
+        override fun hasPlayedAllRemainingCards() = getGameManagerInstance().hasPlayedAllRemainingCards()
+
+
         override fun updatePlayerHand(playerIndex: Int, hand: Hand) = getGameManagerInstance().updatePlayerHand(playerIndex, hand)
     }
 }
