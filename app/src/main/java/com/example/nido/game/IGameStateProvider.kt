@@ -15,5 +15,5 @@ interface IGameStateProvider {
     fun isCurrentPlayerLocal(): Boolean
     fun currentPlayerHasValidCombination(): Boolean
     fun isValidMove(selectedCards: List<Card>): Boolean
-
-    }
+    fun hasPlayedAllRemainingCards(): Boolean
+}

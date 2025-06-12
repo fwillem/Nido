@@ -27,7 +27,7 @@ class AIPlayer(
 
         // Look for a valid move that beats the current playmat combination.
         // TODO Refine the heuristic
-        val chosenCombination = possibleMoves.find { GameRules.isValidMove(playmatCombination, it, hand.cards.size) }
+        val chosenCombination = possibleMoves.find { GameRules.isValidMove(playmatCombination, it, hand.cards) }
 
         return if (chosenCombination != null) {
             // For AI, choose the first card of the current playmat (if available) as the card to keep.

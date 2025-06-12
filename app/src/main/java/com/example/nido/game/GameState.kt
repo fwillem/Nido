@@ -17,7 +17,6 @@ data class GameState(
     val currentPlayerIndex: Int = 0,
     val currentCombinationOnMat: Combination = Combination(mutableListOf()),
     val discardPile: SnapshotStateList<Card> = mutableStateListOf(),
-    val selectedCards: SnapshotStateList<Card> = mutableStateListOf(),
     val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
     val skipCount: Int = 0, // New property to track consecutive skips.
     val soundOn: Boolean = true,
@@ -37,7 +36,6 @@ data class GameState(
             💠 Skip Count: $skipCount
             💠 Current Combination on Mat: ${currentCombinationOnMat ?: "None"}
             💠 Discard Pile: ${discardPile.joinToString(", ") { it.toString() }}
-            💠 Selected Cards: ${selectedCards.joinToString(", ") { it.toString() }}
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
             💠 Sound On: $soundOn
             💠 Game Event: $gameEvent
@@ -56,7 +54,6 @@ data class GameState(
             startingPlayerIndex = this.startingPlayerIndex,
             currentPlayerIndex = this.currentPlayerIndex,
             currentCombinationOnMat = Combination(this.currentCombinationOnMat.cards.toMutableList()),
-            selectedCards = mutableStateListOf<Card>().apply { addAll(this@GameState.selectedCards) },
             discardPile = mutableStateListOf<Card>().apply { addAll(this@GameState.discardPile) },
             deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
             skipCount = this.skipCount,

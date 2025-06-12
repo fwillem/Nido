@@ -6,59 +6,50 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.nido.game.TurnInfo
-import com.example.nido.ui.theme.NidoColors
-import kotlinx.coroutines.delay
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.example.nido.data.model.Card
 import com.example.nido.events.AppEvent
+import com.example.nido.game.TurnInfo
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.theme.NidoColors
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.DEBUG
 import com.example.nido.utils.TraceLogLevel.INFO
-
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.snapshots.SnapshotStateList
 
 @Composable
 fun TurnActionButtons(
     turnInfo: TurnInfo,
     playmat: SnapshotStateList<Card>?,
-    selectedCards: SnapshotStateList<Card>,
     onPlayCombination: (List<Card>, Card?) -> Unit,
     onWithdrawCards: (List<Card>) -> Unit,
     onSkip: () -> Unit,
     modifier: Modifier = Modifier,
-
 ) {
-    // Assert only one main action button is visible
     require(
         listOf(turnInfo.displaySkipCounter, turnInfo.displaySkip, turnInfo.displayPlay).count { it } <= 1
     ) { "Only one of displaySkipCounter, displaySkip, displayPlay should be true!" }
 
-
+    val gameState = LocalGameManager.current.gameState.value
+    val currentPlayer = gameState.players[gameState.currentPlayerIndex]
+    val selectedCards = currentPlayer.hand.cards.filter { it.isSelected }
 
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Skip with counter (timer)
         if (turnInfo.displaySkipCounter) {
             SkipButtonWithTimer(onSkip)
         } else if (turnInfo.displaySkip) {
             SkipButton(onSkip)
-        }
-        else if (turnInfo.displayPlay) {
+        } else if (turnInfo.displayPlay) {
             PlayButton(
                 playmat = playmat,
                 selectedCards = selectedCards,
@@ -113,46 +104,43 @@ private fun SkipButtonWithTimer(onSkip: () -> Unit) {
 @Composable
 private fun PlayButton(
     playmat: SnapshotStateList<Card>?,
-    selectedCards: SnapshotStateList<Card>,
+    selectedCards: List<Card>,
     onPlayCombination: (List<Card>, Card?) -> Unit,
 ) {
-    val gameManager = LocalGameManager.current  // Retrieve injected GameManager
+    val gameManager = LocalGameManager.current
 
     Button(
         onClick = {
             val candidateCards = playmat?.toList() ?: emptyList()
             when {
                 candidateCards.isEmpty() -> {
-                    onPlayCombination(selectedCards.toList(), null)
-                    selectedCards.clear()
+                    onPlayCombination(selectedCards, null)
+                    selectedCards.forEach { it.isSelected = false }
                 }
+
                 candidateCards.size == 1 -> {
-                    onPlayCombination(selectedCards.toList(), candidateCards.first())
-                    selectedCards.clear()
+                    onPlayCombination(selectedCards, candidateCards.first())
+                    selectedCards.forEach { it.isSelected = false }
                 }
+
                 else -> {
-
-
-
                     TRACE(DEBUG) {
                         "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}"
                     }
                     TRACE(INFO) { "setDialogEvent : CardSelection" }
 
-                    // TODO TOREMOVE SHALL USE A gameManager function ot check if use won the ron
-                    // used to be : if (selectedCards.size == gameManager.getCurrentPlayerHandSize()) {
-                    if (gameManager.getCurrentPlayerHandSize() == 0) {
-                        // The player played its remaining cards, he probably won, we provide an automatic "card to keep" that won't be used anyway
-                        onPlayCombination(selectedCards.toList(), candidateCards.first())
-                        selectedCards.clear()
+                    if (gameManager.hasPlayedAllRemainingCards()) {
+                        // The player won
+                        onPlayCombination(selectedCards, candidateCards.first())
+                        selectedCards.forEach { it.isSelected = false }
                     } else {
                         gameManager.setDialogEvent(
                             AppEvent.GameEvent.CardSelection(
                                 candidateCards = candidateCards,
-                                selectedCards = selectedCards.toList(),
+                                selectedCards = selectedCards,
                                 onConfirm = { chosenCard ->
-                                    onPlayCombination(selectedCards.toList(), chosenCard)
-                                    selectedCards.clear()
+                                    onPlayCombination(selectedCards, chosenCard)
+                                    selectedCards.forEach { it.isSelected = false }
                                     gameManager.clearDialogEvent()
                                 },
                                 onCancel = {
@@ -161,8 +149,6 @@ private fun PlayButton(
                             )
                         )
                     }
-
-                    // Add dialog logic if needed
                 }
             }
         },
@@ -178,11 +164,14 @@ private fun PlayButton(
 
 @Composable
 private fun RemoveButton(
-    selectedCards: SnapshotStateList<Card>,
+    selectedCards: List<Card>,
     onWithdrawCards: (List<Card>) -> Unit
 ) {
     Button(
-        onClick = { onWithdrawCards(selectedCards.toList()) },
+        onClick = {
+            selectedCards.forEach { it.isSelected = false }
+            onWithdrawCards(selectedCards)
+        },
         colors = ButtonDefaults.buttonColors(
             containerColor = NidoColors.PlayMatButtonBackground.copy(alpha = 0.8f),
             contentColor = Color.White
