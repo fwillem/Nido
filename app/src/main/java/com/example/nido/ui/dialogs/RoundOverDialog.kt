@@ -21,11 +21,13 @@ import com.example.nido.data.model.PlayerAction
 import com.example.nido.data.model.PlayerActionType
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.TextButton
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.preview.NidoPreview
 
 @Composable
 fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver, onExit: () -> Unit) { // 🚀 Updated to use playersHandScore as List<Pair<Player, Int>>
@@ -34,7 +36,7 @@ fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver, onExit: () -> Unit) { /
     AlertDialog(
         onDismissRequest = { gameManager.clearDialogEvent() ; onExit()},
         title = {
-            Text("${event.winner.name} won this round!")
+            Text("${event.winner.name} won this round !")
         },
         text = {
             Column {
@@ -46,23 +48,18 @@ fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver, onExit: () -> Unit) { /
             }
         },
         confirmButton = {
-            Button(
-                onClick = { gameManager.clearDialogEvent() ; onExit()},
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Gray
-                )
+            TextButton(
+                onClick = { gameManager.clearDialogEvent() ; onExit()}
             ) {
-                Text(
-                    "OK",
-                    fontSize = 24.sp,
-                    color = NidoColors.SecondaryText
-                )
+                Text("OK")
             }
         },
         containerColor = Color.White.copy(alpha = 0.7f)
     )
 }
+
+
+
 
 // 🚀 Dummy implementations of Player for preview purposes.
 
@@ -92,29 +89,9 @@ private val dummyAIPlayer2 = AIPlayer(
 
 
 
-// 🚀 Preview for RoundOverDialog in landscape mode with three players.
-@Preview(
-    name = "RoundOverDialog Preview - Landscape",
-    showBackground = true,
-    widthDp = 800,  // 🚀 Landscape width
-    heightDp = 400  // 🚀 Landscape height
-)
-/*
-@Composable
-fun PreviewRoundOverDialog() {
-    // 🚀 Create a dummy RoundOver event with a sample playersHandScore list including three players.
-    val dummyEvent = AppEvent.GameEvent.RoundOver(
-        winner = dummyLocalPlayer,
-        playersHandScore = listOf(
-            dummyLocalPlayer to 80,  // 🚀 Alice (local)
-            dummyAIPlayer1 to 60,     // 🚀 Bob (AI)
-            dummyAIPlayer2 to 70      // 🚀 Carol (AI)
-        )
-    )
-    RoundOverDialog(event = dummyEvent)
-}
 
- */
+//
+@NidoPreview(name = "SetupScreen")
 @Composable
 fun PreviewRoundOverDialog() {
     val fakeGameManager = FakeGameManager()

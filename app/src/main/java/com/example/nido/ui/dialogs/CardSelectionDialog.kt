@@ -7,6 +7,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,10 +26,13 @@ fun CardSelectionDialog(event: AppEvent.GameEvent.CardSelection) { // 🚀 Extra
         onDismissRequest = { event.onCancel() },
         title = {
             Text(
-                "Select Card to Keep",
+                "Select Card to Keep..."
+                /*,
                 modifier = Modifier
                     .background(NidoColors.DialogTitleBackground.copy(alpha = 0.5f))
                     .padding(4.dp)
+
+                 */
             )
         },
         text = {
@@ -52,18 +56,15 @@ fun CardSelectionDialog(event: AppEvent.GameEvent.CardSelection) { // 🚀 Extra
             }
         },
         confirmButton = {
-            Button(
+            TextButton(
                 onClick = { event.onCancel() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Gray
-                ),
-                modifier = Modifier.padding(1.dp)
             ) {
-                Text("Cancel", fontSize = 12.sp)
+                Text("Cancel")
             }
         },
-        containerColor = Color.Transparent
+       // containerColor = Color.Transparent
+        containerColor = Color.White.copy(alpha = 0.5f)
+
     )
 }
 

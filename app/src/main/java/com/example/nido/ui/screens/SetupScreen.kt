@@ -86,18 +86,22 @@ fun EditablePlayerName(
             Icon(
                 Icons.Default.Edit,
                 contentDescription = "Edit",
-                modifier = Modifier.size(16.dp).padding(start = 6.dp)
+                modifier = Modifier
+                    .size(16.dp)
+                    .padding(start = 6.dp)
             )
         }
     }
 }
+
 @Composable
 fun SetupScreen(
     initialPlayers: List<Player>,
     initialPointLimit: Int,
     onGameStart: (List<Player>, Int) -> Unit,
-    onCancel : () -> Unit,
-    modifier: Modifier = Modifier) {
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val aiPlayers = listOf(
         "Thorstein" to "⚡",
         "Erik" to "🪓",
@@ -111,116 +115,133 @@ fun SetupScreen(
     var selectedPointLimit by rememberSaveable { mutableStateOf(initialPointLimit) }
 
     val stepSize = 5
-    val validSteps = (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
+    val validSteps =
+        (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
 
 
-    NidoScreenScaffold {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(4.dp)
+    NidoScreenScaffold(
+        cardInnerPaddingVertical = 8.dp,
+        maxContentWidth = 700.dp,   // For narrow dialogs
+        maxContentHeight = null     // Or set as needed
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp)
+
+        ) {
+
+            // Centered headline
+            Box(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Game Setup", style = MaterialTheme.typography.headlineSmall)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Players (${selectedPlayers.size}) :")
-                    // Editable name for the first (local) player
-                    EditablePlayerName(
-                        name = selectedPlayers[0].name,
-                        onNameChange = { newName ->
-                            selectedPlayers = selectedPlayers.toMutableList().also {
-                                it[0] = it[0].copy(name = newName)
-                            }
-                        }
-                    )
-                    // The AI players (show as static text)
-                    selectedPlayers.drop(1).forEach { player ->
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("${player.avatar} ${player.name}", fontSize = 18.sp)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Buttons (same width)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
-                                val nextAI = aiPlayers[selectedPlayers.size - 1]
-                                selectedPlayers = selectedPlayers + AIPlayer(
-                                    // id = (selectedPlayers.size).toString(),
-                                    id = UUID.randomUUID().toString(),
-                                    name = nextAI.first,
-                                    avatar = nextAI.second
-                                )
-                            }
-                        },
-                        enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS
-                    ) {
-                        Text("Add Player")
-                    }
-
-                    Button(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            if (selectedPlayers.size > 1) {
-                                selectedPlayers = selectedPlayers.dropLast(1)
-                            }
-                        },
-                        enabled = selectedPlayers.size > 1
-                    ) {
-                        Text("Remove Player")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text("Point Limit: $selectedPointLimit")
-                Slider(
-                    value = selectedPointLimit.toFloat(),
-                    onValueChange = { newValue ->
-                        selectedPointLimit =
-                            validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) }
-                                ?: Constants.GAME_DEFAULT_POINT_LIMIT
-                    },
-                    valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
-                    steps = (validSteps.size - 2)
+                Text(
+                    text = "Game Setup",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.align(Alignment.Center)
                 )
+            }
 
-                Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly // Distribute buttons evenly
-                ) {
-                    Button(
-                        onClick = onCancel,
-
-                    ) {
-                        Text("Cancel")
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Players (${selectedPlayers.size}) :")
+                // Editable name for the first (local) player
+                EditablePlayerName(
+                    name = selectedPlayers[0].name,
+                    onNameChange = { newName ->
+                        selectedPlayers = selectedPlayers.toMutableList().also {
+                            it[0] = it[0].copy(name = newName)
+                        }
                     }
-
-                    Button(
-                        onClick = { onGameStart(selectedPlayers, selectedPointLimit) },
-                        enabled = selectedPlayers.size >= 2
-                    ) {
-                        Text("Done")
-                    }
+                )
+                // The AI players (show as static text)
+                selectedPlayers.drop(1).forEach { player ->
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("${player.avatar} ${player.name}", fontSize = 18.sp)
                 }
             }
-            Row(modifier = Modifier.align(Alignment.BottomEnd)) {
-                Spacer(modifier = Modifier.weight(1f))
-                VersionLabel(modifier = Modifier.align(Alignment.CenterVertically))
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Buttons (same width)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
+                            val nextAI = aiPlayers[selectedPlayers.size - 1]
+                            selectedPlayers = selectedPlayers + AIPlayer(
+                                // id = (selectedPlayers.size).toString(),
+                                id = UUID.randomUUID().toString(),
+                                name = nextAI.first,
+                                avatar = nextAI.second
+                            )
+                        }
+                    },
+                    enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS
+                ) {
+                    Text("Add Player")
+                }
+
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        if (selectedPlayers.size > 1) {
+                            selectedPlayers = selectedPlayers.dropLast(1)
+                        }
+                    },
+                    enabled = selectedPlayers.size > 1
+                ) {
+                    Text("Remove Player")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Point Limit: $selectedPointLimit")
+            Slider(
+                value = selectedPointLimit.toFloat(),
+                onValueChange = { newValue ->
+                    selectedPointLimit =
+                        validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) }
+                            ?: Constants.GAME_DEFAULT_POINT_LIMIT
+                },
+                valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
+                steps = (validSteps.size - 2)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly // Distribute buttons evenly
+            ) {
+                Button(
+                    onClick = onCancel,
+
+                    ) {
+                    Text("Cancel")
+                }
+
+                Button(
+                    onClick = { onGameStart(selectedPlayers, selectedPointLimit) },
+                    enabled = selectedPlayers.size >= 2
+                ) {
+                    Text("Done")
+                }
             }
         }
+        Row(modifier = Modifier.align(Alignment.BottomEnd)) {
+            Spacer(modifier = Modifier.weight(1f))
+            VersionLabel(modifier = Modifier.align(Alignment.CenterVertically))
+
+        }
+    }
 }
 
 // @Preview(showBackground = true)

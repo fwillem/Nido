@@ -7,6 +7,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.example.nido.events.AppEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.preview.NidoPreview
 import com.example.nido.ui.screens.ScoreScreen
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
@@ -46,30 +48,17 @@ fun GameOverDialog(event: AppEvent.GameEvent.GameOver, onExit : () -> Unit) {
              */
         },
         confirmButton = {
-            Button(
-                onClick = { gameManager.clearDialogEvent(); onExit() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Gray
-                )
+            TextButton(
+                onClick = { gameManager.clearDialogEvent(); onExit() }
             ) {
-                Text(
-                    "OK",
-                    fontSize = 24.sp,
-                    color = NidoColors.SecondaryText
-                )
+                Text("OK")
             }
         },
         containerColor = Color.White.copy(alpha = 0.7f)
     )
 }
 
-@Preview(
-    name = "GameOverDialog Preview",
-    widthDp = 800, // Wider than it is tall
-    heightDp = 400, // Adjust as needed
-    showBackground = true
-)
+@NidoPreview(name = "GameOverDialog")
 @Composable
 fun PreviewGameOverDialog() {
     NidoTheme {

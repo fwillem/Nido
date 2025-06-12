@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.Dp   // The Dp type itself
 import androidx.compose.ui.unit.dp   // The .dp extension property for Int/Float
 
 
-
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ScoreScreen(
@@ -47,7 +46,13 @@ fun ScoreScreen(
     val rankings = gameManager.getPlayerRankings() // ✅ Now gets (Player, Rank) pairs
     val winners = gameManager.getGameWinners() // ✅ Overall winners
 
-    NidoScreenScaffold (cardInnerPaddingVertical = 8.dp,cardInnerPaddingHorizontal = 80.dp, outerPaddingHorizontal = 64.dp, outerPaddingVertical = 8.dp) {
+    //NidoScreenScaffold (cardInnerPaddingVertical = 8.dp,cardInnerPaddingHorizontal = 80.dp, outerPaddingHorizontal = 64.dp, outerPaddingVertical = 8.dp) {
+    NidoScreenScaffold(
+        cardInnerPaddingVertical = 8.dp,
+        cardInnerPaddingHorizontal = 80.dp,
+        maxContentWidth = 400.dp,   // For narrow dialogs
+        maxContentHeight = null     // Or set as needed
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
