@@ -52,12 +52,16 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
             AppScreen.Routes.SETUP -> SetupScreen(
                 initialPlayers = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) },
                 initialPointLimit = viewModel.savedPointLimit.value,
-                onGameStart = { selectedPlayers, selectedPointLimit ->
+                debug = viewModel.savedDebug.value,
+                onGameStart = { selectedPlayers, selectedPointLimit , debug ->
+
 
                     //  Save user preferences before starting the game
                     viewModel.savePlayers(selectedPlayers.map { SavedPlayer.fromPlayer(it) })
                     viewModel.savePointLimit(selectedPointLimit)
-                    TRACE(INFO) { "Saved SetupScreen preferences: players = $selectedPlayers, pointLimit = $selectedPointLimit" }
+                    viewModel.saveDebug(debug)
+
+                    TRACE(INFO) { "Saved to datastore SetupScreen preferences: players = $selectedPlayers, pointLimit = $selectedPointLimit, debug = $debug "}
 
                     currentRoute = AppScreen.Routes.LANDING // Navigate using constant
                 },
@@ -68,7 +72,8 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
                 onEndGame = { currentRoute = AppScreen.Routes.SCORE }, // Navigate using constant
                 onQuitGame = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
                 modifier = modifier.padding(innerPadding),
-                viewModel = viewModel
+                viewModel = viewModel,
+                debug = viewModel.savedDebug.value
             )
             AppScreen.Routes.SCORE -> ScoreScreen(
                 onContinue = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant

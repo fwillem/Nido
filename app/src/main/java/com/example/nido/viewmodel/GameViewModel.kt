@@ -13,6 +13,7 @@ import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import kotlinx.coroutines.launch
+import com.example.nido.utils.Debug
 
 class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPreview {
 
@@ -28,6 +29,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
     private val _gameState = mutableStateOf(GameState())
     override val gameState: State<GameState> = _gameState
 
+    private val _savedDebug = mutableStateOf(Debug())
+    override val savedDebug: State<Debug> = _savedDebug
 
 
     init {
@@ -67,6 +70,21 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
                 TRACE(VERBOSE) { "Current savedPointLimit state: ${_savedPointLimitState.value}" }
             }
         }
+
+        viewModelScope.launch {
+            NidoPreferences.debugFlow(context).collect { debugOrNull ->
+                if (debugOrNull == null) {
+                    TRACE(INFO) { "No debug found in DataStore. Using default debug = ${Debug()}." }
+                    _savedDebug.value = Debug()
+                } else {
+                    TRACE(DEBUG) { "Loaded pointLimit from DataStore: $debugOrNull" }
+                    _savedDebug.value = debugOrNull
+                }
+                TRACE(VERBOSE) { "Current savedDebug state: ${_savedDebug.value}" }
+            }
+        }
+
+
     }
 
 
@@ -85,6 +103,17 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
             TRACE(DEBUG) { "💾 Saved pointLimit: $limit" }
         }
     }
+
+    override fun saveDebug(debug: Debug) {
+        _savedDebug.value = debug
+
+        viewModelScope.launch {
+            NidoPreferences.setDebug(context, debug)
+            TRACE(DEBUG) { "💾 Saved Debug: $debug" }
+        }
+    }
+
+
 
     override fun updateGameState(newState: GameState) {
         val oldState = _gameState.value  // Get the previous state
@@ -123,9 +152,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
 
         // Print only changed values.
         if (changes.isNotEmpty()) {
-            TRACE(DEBUG) { "🔄 GameState changes:\n${changes.joinToString("\n")}" }
+            TRACE(VERBOSE) { "🔄 GameState changes:\n${changes.joinToString("\n")}" }
         } else {
-            TRACE(DEBUG) { "🔄 No changes in GameState." }
+            TRACE(VERBOSE) { "🔄 No changes in GameState." }
         }
 
         // Apply the new state.

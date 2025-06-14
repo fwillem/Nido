@@ -75,7 +75,7 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
     )
     // Deal cards to each player.
     newState = dealCards(newState)
-    TRACE(INFO) { "🆕 New round started: $newState" }
+    TRACE(VERBOSE) { "New round started: $newState" }
 
     return ReducerResult(newState = newState)
 }
@@ -243,11 +243,12 @@ private fun dealCards(gameState: GameState): GameState {
         player.copy(hand = updatedHand)
     }
 
+    /*
     // Trace each player's name and their hand
     mutablePlayers.forEach { player ->
-
-        TRACE(INFO) { "$player.name's hand:" + player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" } }
+        TRACE(VERBOSE) { "$player.name's hand:" + player.hand.cards.joinToString(", ") { card -> "${card.value} ${card.color}" } }
     }
+     */
 
     return gameState.copy(
         players = mutablePlayers,

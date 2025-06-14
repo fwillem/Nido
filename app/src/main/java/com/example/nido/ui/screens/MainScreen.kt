@@ -33,6 +33,7 @@ import com.example.nido.ui.views.PlayersRowView
 import com.example.nido.utils.Constants
 import com.example.nido.utils.Constants.AI_THINKING_DURATION_MS
 import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
+import com.example.nido.utils.Debug
 import com.example.nido.utils.SortMode
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
@@ -42,7 +43,8 @@ fun MainScreen(
     onEndGame: () -> Unit,
     onQuitGame: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: IGameViewModelPreview
+    viewModel: IGameViewModelPreview,
+    debug: Debug // This is a mandatory parameter
 ) {
     val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
     val gameState by viewModel.gameState
@@ -54,7 +56,17 @@ fun MainScreen(
             gameState.players[gameState.currentPlayerIndex]
         }
     }
+
+    // This current Hand of all players, even AI or remote players
     val currentHand by remember { derivedStateOf { currentPlayer.hand.cards } }
+
+    // This is the LocalPlayer view,
+    val localPlayerHand by remember {
+        derivedStateOf {
+            gameState.players.firstOrNull { it.playerType == PlayerType.LOCAL }?.hand?.cards.orEmpty()
+        }
+    }
+
     val playmatCards by remember {
         derivedStateOf {
             gameState.currentCombinationOnMat?.cards ?: emptyList()
@@ -98,7 +110,7 @@ fun MainScreen(
                     .background(Color.DarkGray),
                 contentAlignment = Alignment.Center
             ) {
-                CommentsView(actionButtonsMap)
+                CommentsView(actionButtonsMap,debug)
             }
 
             // 🔹 Player Information Row
@@ -131,7 +143,8 @@ fun MainScreen(
                 MatView(
                     playmat = playmatSnapshotList,
                     discardPile = discardPile,
-                    playerHandSize = gameManager.getCurrentPlayerHandSize(),
+                    debug = debug,
+                    currentPlayerHand = currentHand,
                     onPlayCombination = { playedCards, cardToKeep ->
                         if (gameManager.isValidMove(playedCards)) {
                             TRACE(
@@ -172,12 +185,11 @@ fun MainScreen(
                 contentAlignment = Alignment.Center
             ) {
                 HandView(
-                    hand = com.example.nido.data.model.Hand(
-                        mutableStateListOf<Card>().apply { addAll(currentHand) }
-                    ),
+                    hand = Hand(mutableStateListOf<Card>().apply { addAll(localPlayerHand) }),
                     cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
                     cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
                     sortMode = sortMode,
+                    debug = debug,
                     onDoubleClick = toggleSortMode,
                     onSortMode = toggleSortMode,
                     onSelectCard = { card ->
@@ -211,7 +223,7 @@ fun MainScreen(
 
     LaunchedEffect(gameState.turnId) {
         if (currentPlayer.playerType == PlayerType.AI) {
-            TRACE(INFO) { "AI will play in ${AI_THINKING_DURATION_MS / 1000} seconds..." }
+            TRACE(VERBOSE) { "AI will play in ${AI_THINKING_DURATION_MS / 1000} seconds..." }
             kotlinx.coroutines.delay(AI_THINKING_DURATION_MS)
             gameManager.processAIMove()
         }
@@ -228,7 +240,8 @@ class FakeGameViewModelForPreview(
             PlayerType.LOCAL
         )
     ),
-    initialPointLimit: Int = 100
+    initialPointLimit: Int = 100,
+    initialDebug: Debug = Debug()
 ) : IGameViewModelPreview {
     private val _gameState = mutableStateOf(initialGameState)
     override val gameState: State<GameState> = _gameState
@@ -238,6 +251,9 @@ class FakeGameViewModelForPreview(
 
     private val _savedPointLimit = mutableStateOf(initialPointLimit)
     override val savedPointLimit: State<Int> = _savedPointLimit
+
+    private val _savedDebug = mutableStateOf(initialDebug)
+    override val savedDebug: State<Debug> = _savedDebug
 
     override fun updateGameState(newState: GameState) {
         _gameState.value = newState
@@ -253,6 +269,10 @@ class FakeGameViewModelForPreview(
 
     override fun savePointLimit(limit: Int) {
         _savedPointLimit.value = limit
+    }
+
+    override fun saveDebug(debug: Debug) {
+        _savedDebug.value = debug
     }
 }
 
@@ -352,7 +372,8 @@ fun PreviewMainScreen() {
             MainScreen(
                 onEndGame = {},
                 onQuitGame = {},
-                viewModel = fakeViewModel // Pass the fake ViewModel!
+                viewModel = fakeViewModel, // Pass the fake ViewModel!,
+                debug = Debug(true,true)
             )
         }
     }

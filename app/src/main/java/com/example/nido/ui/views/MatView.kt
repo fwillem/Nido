@@ -1,13 +1,17 @@
 package com.example.nido.ui.views
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -53,61 +57,81 @@ import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.game.FakeGameManager
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.zIndex
 import com.example.nido.game.rules.calculateTurnInfo
-
+import com.example.nido.utils.Constants.SELECTED_CARD_OFFSET
+import com.example.nido.utils.Debug
+import com.example.nido.utils.sortedByMode
 
 @Composable
 fun MatView(
     playmat: SnapshotStateList<Card>?,
     discardPile: SnapshotStateList<Card>,
-    playerHandSize: Int,
-    onPlayCombination: (List<Card>, Card?) -> Unit,  // Callback for committing a move
-    onWithdrawCards: (List<Card>) -> Unit,             // Callback for withdrawing cards
-    onSkip: () -> Unit,                                // Callback for skipping a turn
+    debug: Debug,
+    currentPlayerHand: List<Card>,
+    onPlayCombination: (List<Card>, Card?) -> Unit,
+    onWithdrawCards: (List<Card>) -> Unit,
+    onSkip: () -> Unit,
     cardWidth: Dp,
     cardHeight: Dp,
 ) {
-    TRACE(DEBUG) {
-        "🟦 Recomposing MatView : \n" +
-                "Playmat : ${playmat?.joinToString { "${it.value} ${it.color}" } ?: "Empty"}\n" +
-                "DiscardPile : ${discardPile.joinToString { "${it.value} ${it.color}" }}\n"
-
-    }
-
-    val gameManager = LocalGameManager.current  // Retrieve injected GameManager
-
-    // Get the current GameState and TurnInfo
+    val gameManager = LocalGameManager.current
     val gameState = gameManager.gameState.value
     val turnInfo = calculateTurnInfo(gameState)
 
+    val cardWidthDebug = cardWidth
+    val cardHeightDebug = cardHeight
 
     Row(modifier = Modifier.fillMaxSize()) {
-        // Left section: Selected Cards
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .background(NidoColors.SelectedCardBackground)
-                .fillMaxSize()
-        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(NidoColors.SelectedCardBackground)
+                    .fillMaxSize()
+            ) {
+                if (debug.displayAIsHands) {
+                val sortedCards by remember(currentPlayerHand) {
+                    derivedStateOf { currentPlayerHand.sortedByMode(SortMode.COLOR) }
+                }
 
-            // emptied may be used later
-        }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center)
+                ) {
+                    sortedCards.forEachIndexed { index, card ->
+                        val overlapOffset = (cardWidthDebug / 2) * index
+                        Box(
+                            modifier = Modifier
+                                .offset(x = overlapOffset)
+                                .zIndex(index.toFloat())
+                        ) {
+                            CardView(
+                                card = card,
+                                modifier = Modifier.size(cardWidthDebug, cardHeightDebug)
+                            )
+                        }
+                    }
+                }
+                }
 
-        // Right section: Playmat and Button
+            }
+
         Box(
             modifier = Modifier
                 .weight(1f)
                 .background(NidoColors.PlaymatBackground)
                 .fillMaxSize()
         ) {
-            // Playmat Row
             Row(
                 modifier = Modifier.padding(8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 playmat?.let {
-                    val sortedCards by remember(playmat, VALUE) {
-                        derivedStateOf { playmat.sortedByMode(VALUE) }
+                    val sortedCards by remember(playmat) {
+                        derivedStateOf { playmat.sortedByMode(SortMode.VALUE) }
                     }
                     for (sortedCard in sortedCards) {
                         CardView(
@@ -126,10 +150,8 @@ fun MatView(
                 onPlayCombination = onPlayCombination,
                 onWithdrawCards = onWithdrawCards,
                 onSkip = onSkip,
-                modifier = Modifier.align(Alignment.CenterEnd) // <-- THIS IS THE KEY PART
-
+                modifier = Modifier.align(Alignment.CenterEnd)
             )
-
         }
     }
 }
@@ -151,6 +173,11 @@ fun PreviewMatViewScenario1() {
                 Card(3, "GREEN")
             )}
 
+            val currentPLayerHand = remember { mutableStateListOf(
+                Card(9, "ORANGE"),
+                Card(7, "PINK")
+            )}
+
             val selectedCards = remember { mutableStateListOf(
                 Card(4, "BLUE"),
                 Card(5, "MOCHA"),
@@ -166,12 +193,13 @@ fun PreviewMatViewScenario1() {
             MatView(
                 playmat = playmatCards,
                 discardPile = discardPile,
-                playerHandSize = FakeGameManager().getCurrentPlayerHandSize(),
+                currentPlayerHand = currentPLayerHand,
+                debug = Debug(true,false),
                 onPlayCombination = onPlayCombination,
                 onWithdrawCards = onWithdrawCards,
                 onSkip = onSkip,
                 cardWidth = 80.dp,
-                cardHeight = 120.dp
+                cardHeight = 120.dp,
             )
         }
     }

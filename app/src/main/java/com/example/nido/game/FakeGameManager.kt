@@ -8,6 +8,7 @@ import com.example.nido.data.model.*
 import com.example.nido.game.rules.GameRules
 import com.example.nido.events.AppEvent
 import com.example.nido.game.ai.AIPlayer
+import com.example.nido.utils.Debug
 
 /**
  * A fake implementation of IGameManager for UI previews and automated tests.
