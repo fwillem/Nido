@@ -1,5 +1,6 @@
 package com.example.nido.ui.views
 
+import android.graphics.Color.RED
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -27,7 +28,12 @@ import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.views.CardView
 import com.example.nido.utils.TestData.generateTestHand1
 import com.example.nido.ui.components.VersionOptions.*
+import com.example.nido.utils.Constants
+import com.example.nido.utils.Constants.CARD_ON_HAND_HEIGHT
+import com.example.nido.utils.Constants.CARD_ON_HAND_WIDTH
 import com.example.nido.utils.Constants.SELECTED_CARD_OFFSET
+import com.example.nido.utils.Debug
+
 
 @Composable
 fun HandView(
@@ -35,11 +41,12 @@ fun HandView(
     cardWidth: Dp,
     cardHeight: Dp,
     sortMode: SortMode,
+    debug: Debug,
     onDoubleClick: () -> Unit,
     onSortMode: () -> Unit,
     onSelectCard: (Card) -> Unit
 ) {
-    TRACE(VERBOSE) { "Recomposing HandView: ${hand.cards}" }
+    // TRACE(VERBOSE) { "Recomposing HandView: ${hand.cards}" }
 
     Box(
         modifier = Modifier
@@ -77,6 +84,8 @@ fun HandView(
                     CardView(
                         card = card,
                         modifier = Modifier.size(cardWidth, cardHeight)
+
+//                                modifier = Modifier.size(cardWidth, cardHeight)
                     )
                 }
             }
@@ -98,12 +107,13 @@ fun HandViewPreview() {
     NidoTheme {
         HandView(
             hand = generateTestHand1(),
-            cardWidth = 50.dp,
-            cardHeight = 70.dp,
+            cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
+            cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
             sortMode = SortMode.COLOR,
             onDoubleClick = {},
             onSortMode = {},
-            onSelectCard = {}
+            onSelectCard = {},
+            debug = Debug()
         )
     }
 }

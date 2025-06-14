@@ -8,6 +8,7 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.Player
 import com.example.nido.events.AppEvent
 import com.example.nido.data.model.Hand
+import com.example.nido.utils.Debug
 
 val LocalGameManager = staticCompositionLocalOf<IGameManager> {
     object : IGameManager {

@@ -34,6 +34,7 @@ import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_AVATAR
 import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_NAME
 import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
 import java.util.UUID
+import com.example.nido.utils.Debug
 
 
 @Composable
@@ -98,7 +99,8 @@ fun EditablePlayerName(
 fun SetupScreen(
     initialPlayers: List<Player>,
     initialPointLimit: Int,
-    onGameStart: (List<Player>, Int) -> Unit,
+    debug: Debug,
+    onGameStart: (List<Player>, Int, Debug) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -113,6 +115,9 @@ fun SetupScreen(
 
     var selectedPlayers by rememberSaveable { mutableStateOf(initialPlayers) }
     var selectedPointLimit by rememberSaveable { mutableStateOf(initialPointLimit) }
+    var displayAIsHands by rememberSaveable { mutableStateOf(debug.displayAIsHands) }
+    var aiDontAutoPlay by rememberSaveable { mutableStateOf(debug.doNotAutoPlayerAI) }
+
 
     val stepSize = 5
     val validSteps =
@@ -215,7 +220,24 @@ fun SetupScreen(
                 steps = (validSteps.size - 2)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Text("Debug Options", style = MaterialTheme.typography.titleMedium)
+
+            Row {
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = displayAIsHands, onCheckedChange = { displayAIsHands = it })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Display AI hands")
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = aiDontAutoPlay, onCheckedChange = { aiDontAutoPlay = it })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Disable AI autoplay")
+                }
+
+            }
+
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -229,7 +251,17 @@ fun SetupScreen(
                 }
 
                 Button(
-                    onClick = { onGameStart(selectedPlayers, selectedPointLimit) },
+                    onClick = {
+
+                        onGameStart(
+                            selectedPlayers,
+                            selectedPointLimit,
+                            Debug(
+                                displayAIsHands = displayAIsHands,
+                                doNotAutoPlayerAI = aiDontAutoPlay
+                            )
+                        )
+                  },
                     enabled = selectedPlayers.size >= 2
                 ) {
                     Text("Done")
@@ -257,7 +289,12 @@ fun SetupScreenPreview() {
                 AIPlayer(id = "3", name = "Bjorn", avatar = "🐻"),
             ),
             initialPointLimit = GAME_DEFAULT_POINT_LIMIT,
-            onGameStart = { _, _ -> },
-            onCancel = {})
+            debug = Debug(
+                displayAIsHands = true,
+                doNotAutoPlayerAI = false
+            ),
+            onGameStart = { _, _, _ -> },
+            onCancel = {}
+        )
     }
 }

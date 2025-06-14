@@ -7,9 +7,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nido.utils.Debug
 
 @Composable
-fun CommentsView(actions: Map<String, () -> Unit>) {
+fun CommentsView(actions: Map<String, () -> Unit>, debug : Debug) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

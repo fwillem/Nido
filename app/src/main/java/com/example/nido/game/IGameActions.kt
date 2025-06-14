@@ -3,10 +3,10 @@ package com.example.nido.game
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Player
 import com.example.nido.events.AppEvent
+import com.example.nido.utils.Debug
 
 
-
-    interface IGameActions {
+interface IGameActions {
         fun initialize(viewModel: GameViewModel)
         fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int)
         fun startNewRound()

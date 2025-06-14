@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.nido.data.model.PlayerType
 import com.example.nido.data.SavedPlayer
 import com.example.nido.utils.Constants.DATASTORE_NAME
+import com.example.nido.utils.Debug
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ val Context.dataStore by preferencesDataStore(name = DATASTORE_NAME)
 object NidoPreferences {
     private val PLAYERS_KEY = stringPreferencesKey("players_json")
     private val POINT_LIMIT_KEY = intPreferencesKey("point_limit")
+    private val DEBUG_KEY = stringPreferencesKey("debug")
 
     // ----- Flow for Saved Players (nullable!) -----
     fun playersFlow(context: Context): Flow<List<SavedPlayer>?> =
@@ -69,5 +71,35 @@ object NidoPreferences {
             prefs[POINT_LIMIT_KEY] = limit
         }
         TRACE(DEBUG) { "Saved point limit to DataStore: $limit" }
+    }
+
+    // ----- Flow Debug (nullable!) -----
+    fun debugFlow(context: Context): Flow<Debug?> =
+        context.dataStore.data.map { prefs ->
+            val json = prefs[DEBUG_KEY]
+            (if (json == null) {
+                TRACE(INFO) { "No debug found in DataStore (key missing or blank)" }
+                null
+            } else {
+                try {
+                    val debug = Json.decodeFromString<Debug>(json)
+                    TRACE(DEBUG) { "Decoded debug from DataStore: $debug" }
+                    debug
+                } catch (e: Exception) {
+                    TRACE(ERROR) { "Failed to decode debug from DataStore: $e" }
+                    null
+                }
+            }) as Debug?
+        }
+
+
+
+    // ----- Save Debug -----
+    suspend fun setDebug(context: Context, debug: Debug) {
+        val json = Json.encodeToString(debug)
+        context.dataStore.edit { prefs ->
+            prefs[DEBUG_KEY] = json
+        }
+        TRACE(DEBUG) { "Saved debug to DataStore: $debug" }
     }
 }
