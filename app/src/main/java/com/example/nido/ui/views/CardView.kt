@@ -36,8 +36,8 @@ fun CardView(
                 shadowElevation = 16.dp.toPx() // Increased elevation
                 this.shape = shape
                 clip = true
-                ambientShadowColor = Color.Black.copy(alpha = 0.3f) // Stronger shadow
-                spotShadowColor = Color.Black.copy(alpha = 0.3f)
+                ambientShadowColor = Color.Black.copy(alpha = 0.8f) // Stronger shadow
+                spotShadowColor = Color.Black.copy(alpha = 0.8f)
             }
             .background(Color.White, shape) // ✅ Solid base to prevent background bleed
             .border(width = 2.dp, color = borderColor, shape = shape)
