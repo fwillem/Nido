@@ -26,21 +26,25 @@ fun CardView(
         .width(140.dp)
         .height(280.dp)
 ) {
-    val shape = RoundedCornerShape(18.dp)
-    val ivoryOverlay = Color(0xFFFFF8E1).copy(alpha = 0.2f)
-    val borderColor = Color.White
+  //  val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(12.dp)
+    val ivoryOverlay = Color(0xFFFFF8E1).copy(alpha = 0.15f)
+    val outerBorder = Color.White
+    val innerBorder = Color(0xFFFAFAD2) // léger effet doré/pâle
 
     Box(
         modifier = modifier
             .graphicsLayer {
-                shadowElevation = 16.dp.toPx() // Increased elevation
+                shadowElevation = 8.dp.toPx() // plus sombre et plus serré
                 this.shape = shape
                 clip = true
-                ambientShadowColor = Color.Black.copy(alpha = 0.8f) // Stronger shadow
-                spotShadowColor = Color.Black.copy(alpha = 0.8f)
+                ambientShadowColor = Color.Black.copy(alpha = 0.85f)
+                spotShadowColor = Color.Black.copy(alpha = 0.85f)
             }
-            .background(Color.White, shape) // ✅ Solid base to prevent background bleed
-            .border(width = 2.dp, color = borderColor, shape = shape)
+            .background(Color.White, shape)
+          //  .border(1.dp, outerBorder, shape) // bord blanc
+          //  .padding(1.dp) // petite séparation
+          //  .border(1.dp, innerBorder, shape) // brillance douce
             .drawWithContent {
                 drawContent()
                 drawRect(ivoryOverlay)
@@ -58,8 +62,9 @@ fun CardView(
 @NidoPreview(name = "CardView")
 @Composable
 fun PreviewCardView() {
+    val backColor = Color(0xFF0B6623) // tapis de jeu vert foncé
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.White),
+        modifier = Modifier.fillMaxSize().background(backColor),
         contentAlignment = Alignment.Center
     ) {
         CardView(card = Card(1, "RED"))
