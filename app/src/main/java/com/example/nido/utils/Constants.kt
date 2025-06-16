@@ -28,7 +28,7 @@ object Constants {
     const val CARD_ON_HAND_HEIGHT = 160
     const val CARD_ON_HAND_WIDTH = (CARD_ON_HAND_HEIGHT/2)// 80
 
-    const val CARD_ON_MAT_HEIGHT = 140
+    const val CARD_ON_MAT_HEIGHT = 120
     const val CARD_ON_MAT_WIDTH = (CARD_ON_MAT_HEIGHT/2)
 
     const val PLAYERS_ROW_HEIGHT = 50

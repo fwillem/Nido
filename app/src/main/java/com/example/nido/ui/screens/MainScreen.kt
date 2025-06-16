@@ -132,7 +132,7 @@ fun MainScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1.1f)
+                    .weight(0.7f)
                     .background(NidoColors.MatViewBackground),
                 contentAlignment = Alignment.Center
             ) {
