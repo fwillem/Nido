@@ -33,6 +33,7 @@ import com.example.nido.utils.Constants
 import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_AVATAR
 import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_NAME
 import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
+import com.example.nido.utils.Constants.GAME_MIN_PLAYERS
 import java.util.UUID
 import com.example.nido.utils.Debug
 
@@ -200,7 +201,7 @@ fun SetupScreen(
                             selectedPlayers = selectedPlayers.dropLast(1)
                         }
                     },
-                    enabled = selectedPlayers.size > 1
+                    enabled = selectedPlayers.size > (GAME_MIN_PLAYERS-1)
                 ) {
                     Text("Remove Player")
                 }
