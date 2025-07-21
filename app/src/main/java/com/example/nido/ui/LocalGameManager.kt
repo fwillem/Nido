@@ -16,8 +16,8 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
             getGameManagerInstance().initialize(viewModel)
         }
         override val gameState get() = getGameManagerInstance().gameState
-        override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) =
-            getGameManagerInstance().startNewGame(selectedPlayers, selectedPointLimit)
+        override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean) =
+            getGameManagerInstance().startNewGame(selectedPlayers, selectedPointLimit, doNotAutoPlayAI)
         override fun startNewRound() = getGameManagerInstance().startNewRound()
         override fun skipTurn() = getGameManagerInstance().skipTurn()
         override fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) =

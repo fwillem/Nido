@@ -11,6 +11,8 @@ import com.example.nido.events.AppEvent
 data class GameState(
     val playerId: String = "",
     val turnInfo: TurnInfo = TurnInfo(),
+    val turnPhase: TurnPhase = TurnPhase.Idle,
+    val doNotAutoPlayAI: Boolean = false,
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     val players: List<Player> = emptyList(),
     val startingPlayerIndex: Int = 0,
@@ -29,6 +31,8 @@ data class GameState(
             🔍 GameState Debug Info:
             💠 Player ID: $playerId
             💠 Turn Info: $turnInfo
+            💠 Turn Phase: $turnPhase
+            💠 Do Not Auto Play AI: $doNotAutoPlayAI
             💠 Point Limit: $pointLimit
             💠 Nb of players: ${players.size}
             💠 Starting Player Index: $startingPlayerIndex
@@ -49,6 +53,8 @@ data class GameState(
 
             playerId = this.playerId,
             turnInfo = this.turnInfo.copy(),
+            turnPhase = this.turnPhase,
+            doNotAutoPlayAI = this.doNotAutoPlayAI,
             pointLimit = this.pointLimit,
             players = this.players.map { it.copy() }, // Deep copy players
             startingPlayerIndex = this.startingPlayerIndex,

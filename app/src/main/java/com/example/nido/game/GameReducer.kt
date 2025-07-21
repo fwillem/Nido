@@ -14,6 +14,7 @@ import com.example.nido.data.model.Hand
 import com.example.nido.data.repository.DeckRepository
 import com.example.nido.events.AppEvent
 import com.example.nido.game.rules.GameRules
+import com.example.nido.data.model.PlayerType
 
 
 
@@ -256,18 +257,29 @@ private fun dealCards(gameState: GameState): GameState {
     )
 }
 
-private fun handleNextTurn(gameState: GameState ) : ReducerResult
-{
+private fun handleNextTurn(gameState: GameState): ReducerResult {
     val nextIndex = (gameState.currentPlayerIndex + 1) % gameState.players.size
 
+    // Compute new player and phase
     val newState = gameState.copy(
         currentPlayerIndex = nextIndex,
         turnId = gameState.turnId + 1
     )
 
     val nextPlayer = newState.players[nextIndex]
-    TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
 
-    return ReducerResult(newState)
+    // 🟢 Set the correct TurnPhase based on player type and doNotAutoPlayAI
+    val newTurnPhase = when (nextPlayer.playerType) {
+        PlayerType.LOCAL -> TurnPhase.WaitingForLocal(nextPlayer.name)
+        PlayerType.AI -> TurnPhase.WaitingForAI(
+            name = nextPlayer.name,
+            isAutomatic = !gameState.doNotAutoPlayAI // read flag from GameState!
+        )
+        PlayerType.REMOTE -> TurnPhase.WaitingForRemote(nextPlayer.name)
+    }
+
+    TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex), turnPhase set to $newTurnPhase" }
+
+    // 🟢 Copy turnPhase into the new state
+    return ReducerResult(newState.copy(turnPhase = newTurnPhase))
 }
-

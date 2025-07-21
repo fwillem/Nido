@@ -44,7 +44,8 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
                     // Use latest saved preferences
                     val players = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) }
                     val pointLimit = viewModel.savedPointLimit.value
-                    gameManager.startNewGame(players, pointLimit)
+                    val doNotAutoPlayAI = viewModel.savedDebug.value.doNotAutoPlayerAI
+                    gameManager.startNewGame(players, pointLimit, doNotAutoPlayAI)
                     currentRoute = AppScreen.Routes.GAME
                          }, // Navigate using constant
                 modifier = modifier.padding(innerPadding)

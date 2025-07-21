@@ -71,6 +71,15 @@ android {
     buildFeatures {
         compose = true
     }
+
+    // ADD THIS sourceSets BLOCK
+    sourceSets {
+        getByName("main") {
+            java.srcDirs("src/main/java")
+            res.srcDirs("src/main/res")
+            assets.srcDirs("src/main/assets") // Add if you have assets
+        }
+    }
 }
 
 dependencies {
