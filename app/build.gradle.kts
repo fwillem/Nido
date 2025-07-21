@@ -75,9 +75,10 @@ android {
     // ADD THIS sourceSets BLOCK
     sourceSets {
         getByName("main") {
-            java.srcDirs("src/main/java")
+            // Change 'java.srcDirs' to 'kotlin.srcDirs'
+            kotlin.srcDirs("src/main/kotlin")
             res.srcDirs("src/main/res")
-            assets.srcDirs("src/main/assets") // Add if you have assets
+            assets.srcDirs("src/main/assets")
         }
     }
 }
