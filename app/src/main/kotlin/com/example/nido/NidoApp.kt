@@ -62,7 +62,7 @@ fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
                     viewModel.savePointLimit(selectedPointLimit)
                     viewModel.saveDebug(debug)
 
-                    TRACE(INFO) { "Saved to datastore SetupScreen preferences: players = $selectedPlayers, pointLimit = $selectedPointLimit, debug = $debug "}
+                    TRACE(INFO) { "Saved to datastore the SetupScreen preferences: players = $selectedPlayers, pointLimit = $selectedPointLimit, debug = $debug "}
 
                     currentRoute = AppScreen.Routes.LANDING // Navigate using constant
                 },
