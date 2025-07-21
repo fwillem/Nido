@@ -80,7 +80,7 @@ class FakeGameManager : IGameManager {
         // No-op: Fake implementation doesn't need a ViewModel.
     }
 
-    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
+    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean) {
         // Simulate starting a new game by resetting _gameState
     }
 

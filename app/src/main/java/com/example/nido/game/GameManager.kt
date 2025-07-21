@@ -46,7 +46,7 @@ private object GameManager : IGameManager {
      * This function now only sets up the base state (players, point limit, deck, startingIndex) without dealing cards.
      * Then it calls startNewRound() to handle round-specific initialization.
      */
-    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int) {
+    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean) {
         TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit" }
 
 
@@ -63,7 +63,7 @@ private object GameManager : IGameManager {
         val initialState = GameState(
 
             players = initializedPlayers,
-
+            doNotAutoPlayAI = doNotAutoPlayAI,
             pointLimit = selectedPointLimit,
             startingPlayerIndex = startingPlayerIndex,
             currentPlayerIndex = startingPlayerIndex,

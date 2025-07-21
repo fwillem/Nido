@@ -15,5 +15,6 @@ sealed class GameEvent() {
     object NextTurn : GameEvent()
     object RoundOver : GameEvent()
     object GameOver : GameEvent()
+
     // Add additional events as needed.
 }

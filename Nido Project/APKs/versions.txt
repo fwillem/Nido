@@ -6,3 +6,8 @@ v1.22 - 27/05/2025
 * Possibilité de changer le nom du joueur humain
 * Harmonisation de l'UI, correction de bugs graphiques
 
+v1.29 - 21/07/2025
+* Nouvelle UI ou les cartes sont soulevées et non plus placées sur le MAT lorsqu'elles sont sélectionnées par l'utilisateur
+* Bots un peu plus intelligents
+* Le jeu des BOTs est désormais caché en mode normal, un mode debug permet de les dévoiler
+
