@@ -14,7 +14,7 @@ import com.example.nido.ui.screens.SetupScreen
 
 @Composable
 fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) { // Receive viewModel
-    // Test ChatGPT 18h34 1/08/2025
+    // Test ChatGPT 18h36 1/08/2025
 
     val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
 
