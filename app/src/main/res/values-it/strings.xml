@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Nido</string>
+    <string name="daring_to_challenge_the_gods">Pronti a sfidare Odino ?</string>
+    <string name="play">Gioca</string>
+    <string name="setup">Configurazione</string>
+    <string name="select_card_to_keep">Seleziona la carta da tenere…</string>
+    <string name="cancel">Annulla</string>
+    <string name="player_left">Giocatore uscito</string>
+    <string name="has_left_the_game">%1$s ha lasciato la partita.</string>
+    <string name="ok">OK</string>
+    <string name="quit_game">Vuoi uscire dalla partita ?</string>
+    <string name="do_you_really_want_to_quit">Vuoi davvero uscire ?</string>
+    <string name="yes">SÌ</string>
+    <string name="won_this_round">%1$s ha vinto questo turno !</string>
+    <string name="skip">Salta</string>
+    <string name="remove">Rimuovi</string>
+    <string name="done">Fatto</string>
+    <string name="winner">🏆  Vincitore%1$s: %2$s</string>
+    <string name="your_name">Il tuo nome</string>
+    <string name="edit">Modifica</string>
+    <string name="game_setup">Configurazione gioco</string>
+    <string name="players">Giocatori (%1$d) :</string>
+    <string name="add_player">Aggiungi giocatore</string>
+    <string name="remove_player">Rimuovi giocatore</string>
+    <string name="debug_options">Opzioni debug</string>
+    <string name="disable_ai_autoplay">Disabilita autoplay IA</string>
+    <string name="display_ai_hands">Mostra mani IA</string>
+    <string name="point_limit">Limite punti: %1$d</string>
+    <string name="tap_to_start">Tocca per iniziare…</string>
+    <string name="sort_mode">Modalità di ordinamento: %1$s</string>
+    <string name="quit">Esci</string>
+</resources>

@@ -8,12 +8,18 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nido.R
 import com.example.nido.events.AppEvent
+import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.preview.NidoPreview
+import com.example.nido.ui.theme.NidoTheme
 
 
 @Composable
@@ -22,8 +28,8 @@ fun PlayerLeftDialog(event: AppEvent.PlayerEvent.PlayerLeft) { // 🚀 Extracted
 
     AlertDialog(
         onDismissRequest = { gameManager.clearDialogEvent() },
-        title = { Text("Player Left") },
-        text = { Text("${event.player.name} has left the game.") },
+        title = { Text(stringResource(R.string.player_left)) },
+        text = { Text(stringResource(R.string.has_left_the_game, event.player.name)) },
         confirmButton = {
             Button(
                 onClick = { gameManager.clearDialogEvent() },
@@ -32,7 +38,7 @@ fun PlayerLeftDialog(event: AppEvent.PlayerEvent.PlayerLeft) { // 🚀 Extracted
                     contentColor = Color.Gray
                 )
             ) {
-                Text("OK")
+                Text(stringResource(R.string.ok))
             }
         },
         containerColor = Color.White.copy(alpha = 0.7f)
@@ -60,4 +66,22 @@ fun ChatMessageDialog(event: AppEvent.PlayerEvent.ChatMessage) { // 🚀 Extract
         },
         containerColor = Color.White.copy(alpha = 0.7f)
     )
+}
+
+
+@NidoPreview(name = "GameOverDialog")
+@Composable
+fun PreviewGameEventDialog() {
+    NidoTheme {
+        val fakeGameManager = FakeGameManager()
+
+        CompositionLocalProvider(LocalGameManager provides fakeGameManager) {
+            // Example usage of PlayerLeftDialog, assuming a player has left
+            // You might need to adjust the event creation based on your FakeGameManager setup
+            val playerWhoLeft = fakeGameManager.gameState.value.players.firstOrNull() ?: return@CompositionLocalProvider // Ensure player exists
+            PlayerLeftDialog(
+                event = AppEvent.PlayerEvent.PlayerLeft(playerWhoLeft)
+            )
+        }
+    }
 }

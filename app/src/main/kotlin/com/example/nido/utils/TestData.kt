@@ -108,9 +108,9 @@ object TestData {
     fun generateDummyCombination(): Combination {
         return Combination(
             mutableListOf(
-                Card(cardImageId = 1, color = CardColor.RED, value = 5),
-                Card(cardImageId = 2, color = CardColor.BLUE, value = 7),
-                Card(cardImageId = 3, color = CardColor.GREEN, value = 9)
+                Card(value = 5, color = "RED"),
+                Card(value = 7, color = "BLUE"),
+                Card(value = 9, color = "GREEN"),
             )
         )
     }

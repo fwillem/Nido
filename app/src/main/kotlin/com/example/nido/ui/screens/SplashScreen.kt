@@ -61,7 +61,7 @@ fun SplashScreen(onExit: () -> Unit, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.Bottom
         ) {
             Text(
-                text = "Tap to start...",
+                text = stringResource(R.string.tap_to_start),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )

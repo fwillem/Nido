@@ -1,3 +1,32 @@
 <resources>
-    <string name="app_name">Nido</string>
+    <string name="app_name" translatable="false">Nido</string>
+    <string name="daring_to_challenge_the_gods">Daring to challenge Odin ?</string>
+    <string name="play">Play</string>
+    <string name="setup">Setup</string>
+    <string name="select_card_to_keep">Select Card to Keep…</string>
+    <string name="cancel">Cancel</string>
+    <string name="player_left">Player Left</string>
+    <string name="has_left_the_game">%1$s has left the game.</string>
+    <string name="ok">OK</string>
+    <string name="quit_game">Quit game?</string>
+    <string name="do_you_really_want_to_quit">Do you really want to quit ?</string>
+    <string name="yes">YES</string>
+    <string name="won_this_round">%1$s won this round !</string>
+    <string name="skip">Skip</string>
+    <string name="remove">Remove</string>
+    <string name="done">Done</string>
+    <string name="winner">🏆  Winner%1$s: %2$s</string>
+    <string name="your_name">Your Name</string>
+    <string name="edit">Edit</string>
+    <string name="game_setup">Game Setup</string>
+    <string name="players">Players (%1$d) :</string>
+    <string name="add_player">Add Player</string>
+    <string name="remove_player">Remove Player</string>
+    <string name="debug_options">Debug Options</string>
+    <string name="disable_ai_autoplay">Disable AI autoplay</string>
+    <string name="display_ai_hands">Display AI hands</string>
+    <string name="point_limit">Point Limit: %1$d</string>
+    <string name="tap_to_start">Tap to start...</string>
+    <string name="sort_mode">Sort Mode: %1$s</string>
+    <string name="quit">Quit</string>
 </resources>

@@ -230,7 +230,7 @@ private fun dealCards(gameState: GameState): GameState {
     val mutableDeck = gameState.deck.toMutableList()
     val mutablePlayers = gameState.players.map { player ->
         val updatedHand = player.hand.copy()
-        var copyCount = 0;
+        var copyCount = 0
         repeat(Constants.HAND_SIZE) {
             if (mutableDeck.isNotEmpty()) {
                 val card = mutableDeck.removeAt(0)

@@ -5,6 +5,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.example.nido.R
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.ui.LocalGameManager
@@ -26,14 +28,14 @@ fun QuitGameDialog(
             gameManager.clearDialogEvent()
             onCancel()
         },
-        title = { Text("Quit game?") },
-        text = { Text("Do you really want to quit ?") },
+        title = { Text(stringResource(R.string.quit_game)) },
+        text = { Text(stringResource(R.string.do_you_really_want_to_quit)) },
         confirmButton = {
             TextButton(onClick = {
                 gameManager.clearDialogEvent()
                 onConfirm()
             }) {
-                Text("YES")
+                Text(stringResource(R.string.yes))
             }
         },
         dismissButton = {
@@ -41,7 +43,7 @@ fun QuitGameDialog(
                 gameManager.clearDialogEvent()
                 onCancel()
             }) {
-                Text("CANCEL")
+                Text(stringResource(R.string.cancel))
             }
         }
     )
