@@ -23,6 +23,8 @@ import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.res.stringResource
+import com.example.nido.R
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.views.HandView
@@ -62,7 +64,10 @@ fun ScoreScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "🏆  Winner${if (winners.size > 1) "s" else ""}: ${winners.joinToString(", ") { it.name }}",
+                stringResource(
+                    com.example.nido.R.string.winner,
+                    if (winners.size > 1) "s" else "",
+                    winners.joinToString(", ") { it.name }),
                 fontSize = 28.sp,
                 color = NidoColors.ScoreScreenWinner
             )
@@ -78,7 +83,7 @@ fun ScoreScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(onClick = onEndGame) {
-                Text("🏁  OK  \uD83C\uDFC1")
+                Text("🏁  ${stringResource(R.string.ok)}  \uD83C\uDFC1")
             }
 
         }

@@ -17,10 +17,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nido.R
 import com.example.nido.data.model.Player
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
@@ -53,14 +55,14 @@ fun EditablePlayerName(
             onValueChange = { internalName = it.copy(text = it.text.take(16)) },
             singleLine = true,
             modifier = modifier,
-            label = { Text("Your Name") },
+            label = { Text(stringResource(R.string.your_name)) },
             trailingIcon = {
                 IconButton(onClick = {
                     val trimmed = internalName.text.trim().ifBlank { "Jil" }
                     onNameChange(trimmed)
                     editing = false
                 }) {
-                    Icon(Icons.Default.Check, contentDescription = "Done")
+                    Icon(Icons.Default.Check, contentDescription = stringResource(R.string.done))
                 }
             },
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
@@ -87,7 +89,7 @@ fun EditablePlayerName(
             Text(name, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
             Icon(
                 Icons.Default.Edit,
-                contentDescription = "Edit",
+                contentDescription = stringResource(R.string.edit),
                 modifier = Modifier
                     .size(16.dp)
                     .padding(start = 6.dp)
@@ -142,7 +144,7 @@ fun SetupScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Game Setup",
+                    text = stringResource(R.string.game_setup),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -151,7 +153,7 @@ fun SetupScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Players (${selectedPlayers.size}) :")
+                Text(stringResource(R.string.players, selectedPlayers.size))
                 // Editable name for the first (local) player
                 EditablePlayerName(
                     name = selectedPlayers[0].name,
@@ -191,7 +193,7 @@ fun SetupScreen(
                     },
                     enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS
                 ) {
-                    Text("Add Player")
+                    Text(stringResource(R.string.add_player))
                 }
 
                 Button(
@@ -203,13 +205,13 @@ fun SetupScreen(
                     },
                     enabled = selectedPlayers.size > (GAME_MIN_PLAYERS-1)
                 ) {
-                    Text("Remove Player")
+                    Text(stringResource(R.string.remove_player))
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Point Limit: $selectedPointLimit")
+            Text(stringResource(R.string.point_limit, selectedPointLimit))
             Slider(
                 value = selectedPointLimit.toFloat(),
                 onValueChange = { newValue ->
@@ -221,20 +223,20 @@ fun SetupScreen(
                 steps = (validSteps.size - 2)
             )
 
-            Text("Debug Options", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.debug_options), style = MaterialTheme.typography.titleMedium)
 
             Row {
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = displayAIsHands, onCheckedChange = { displayAIsHands = it })
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Display AI hands")
+                    Text(stringResource(R.string.display_ai_hands))
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = aiDontAutoPlay, onCheckedChange = { aiDontAutoPlay = it })
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Disable AI autoplay")
+                    Text(stringResource(R.string.disable_ai_autoplay))
                 }
 
             }
@@ -248,7 +250,7 @@ fun SetupScreen(
                     onClick = onCancel,
 
                     ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
 
                 Button(
@@ -265,7 +267,7 @@ fun SetupScreen(
                   },
                     enabled = selectedPlayers.size >= 2
                 ) {
-                    Text("Done")
+                    Text(stringResource(R.string.done))
                 }
             }
         }

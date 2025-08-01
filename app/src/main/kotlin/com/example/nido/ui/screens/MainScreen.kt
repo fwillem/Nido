@@ -7,8 +7,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.nido.R
 import com.example.nido.data.SavedPlayer
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
@@ -18,11 +20,9 @@ import com.example.nido.events.AppEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.game.GameState
 import com.example.nido.game.LocalPlayer
-import com.example.nido.game.TurnInfo
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.IGameViewModelPreview
 import com.example.nido.ui.LocalGameManager
-import com.example.nido.ui.components.NidoScreenScaffold
 import com.example.nido.ui.dialogs.*
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
@@ -67,11 +67,6 @@ fun MainScreen(
         }
     }
 
-    val playmatCards by remember {
-        derivedStateOf {
-            gameState.currentCombinationOnMat?.cards ?: emptyList()
-        }
-    }
     val discardPile by remember { derivedStateOf { gameState.discardPile } }
     val players by remember { derivedStateOf { gameState.players } }
     val currentTurnIndex by remember { derivedStateOf { gameState.currentPlayerIndex } }
@@ -90,8 +85,8 @@ fun MainScreen(
 
     val actionButtonsMap: Map<String, () -> Unit> =
         mapOf(
-            "Sort Mode: ${sortMode.name}" to { toggleSortMode() },
-            "Quit" to {
+            stringResource(R.string.sort_mode, sortMode.name) to { toggleSortMode() },
+            stringResource(R.string.quit) to {
                 gameManager.setDialogEvent(AppEvent.GameEvent.QuitGame)
             },
         )
@@ -136,9 +131,18 @@ fun MainScreen(
                     .background(NidoColors.MatViewBackground),
                 contentAlignment = Alignment.Center
             ) {
-                val playmatSnapshotList = playmat?.cards?.let { cardList ->
-                    mutableStateListOf<Card>().apply { addAll(cardList) }
-                } ?: mutableStateListOf()
+
+                // FIX: Wrap mutableStateListOf() creation with remember
+                val playmatSnapshotList = remember {
+                    playmat?.cards?.let { cardList ->
+                        mutableStateListOf<Card>().apply { addAll(cardList) }
+                    } ?: mutableStateListOf()
+                }
+
+
+
+
+
 
                 MatView(
                     playmat = playmatSnapshotList,
@@ -185,7 +189,7 @@ fun MainScreen(
                 contentAlignment = Alignment.Center
             ) {
                 HandView(
-                    hand = Hand(mutableStateListOf<Card>().apply { addAll(localPlayerHand) }),
+                    hand = Hand(remember { mutableStateListOf<Card>().apply { addAll(localPlayerHand) } }),
                     cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
                     cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
                     sortMode = sortMode,
@@ -291,11 +295,11 @@ fun PreviewMainScreen() {
             name = "Alice",
             avatar = "",
             hand = Hand(
-                mutableStateListOf(
+                remember { mutableStateListOf(
                     Card(2, "RED"), Card(3, "RED"), Card(4, "GREEN"),
                     Card(3, "MOCHA"), Card(3, "PINK"), Card(3, "GREEN"),
                     Card(2, "BLUE"), Card(5, "ORANGE"), Card(4, "RED")
-                )
+                ) }
             )
         ),
         AIPlayer(
@@ -304,10 +308,10 @@ fun PreviewMainScreen() {
             avatar = "",
             score = 0,
             hand = Hand(
-                mutableStateListOf(
+                remember { mutableStateListOf(
                     Card(2, "BLUE"),
                     Card(5, "MOCHA")
-                )
+                ) }
             )
         ),
         AIPlayer(
@@ -315,33 +319,36 @@ fun PreviewMainScreen() {
             name = "Carol",
             avatar = "",
             hand = Hand(
-                mutableStateListOf(
+                remember { mutableStateListOf(
                     Card(2, "PINK"),
                     Card(3, "MOCHA"),
                     Card(4, "GREEN")
-                )
+                ) }
             )
         )
     )
 
     val dummyPlaymat = Combination(
-        mutableStateListOf(
+        remember { mutableStateListOf(
             Card(3, "RED"),
             Card(3, "MOCHA")
-        )
+        ) }
     )
 
-    val dummySelectedCards = mutableStateListOf<Card>().apply {
+    // FIX: Wrap mutableStateListOf() creation with remember
+    val dummySelectedCards = remember { mutableStateListOf<Card>().apply {
         addAll(listOf(Card(4, "GREEN"), Card(5, "PINK")))
-    }
+    }}
 
-    val dummyDiscardPile = mutableStateListOf<Card>().apply {
+    // FIX: Wrap mutableStateListOf() creation with remember
+    val dummyDiscardPile = remember { mutableStateListOf<Card>().apply {
         addAll(listOf(Card(2, "BLUE"), Card(3, "ORANGE")))
-    }
+    }}
 
-    val dummyDeck = mutableStateListOf<Card>().apply {
+    // FIX: Wrap mutableStateListOf() creation with remember
+    val dummyDeck = remember { mutableStateListOf<Card>().apply {
         addAll(listOf(Card(2, "RED"), Card(3, "RED"), Card(4, "RED")))
-    }
+    }}
 
     val dummyGameState = GameState(
         playerId = dummyPlayers[0].id,

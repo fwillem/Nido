@@ -11,9 +11,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview // 🚀 Import Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nido.R
 import com.example.nido.events.AppEvent
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.CardColor
@@ -26,7 +28,7 @@ fun CardSelectionDialog(event: AppEvent.GameEvent.CardSelection) { // 🚀 Extra
         onDismissRequest = { event.onCancel() },
         title = {
             Text(
-                "Select Card to Keep..."
+                stringResource(R.string.select_card_to_keep)
                 /*,
                 modifier = Modifier
                     .background(NidoColors.DialogTitleBackground.copy(alpha = 0.5f))
@@ -59,7 +61,7 @@ fun CardSelectionDialog(event: AppEvent.GameEvent.CardSelection) { // 🚀 Extra
             TextButton(
                 onClick = { event.onCancel() },
             ) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         },
        // containerColor = Color.Transparent

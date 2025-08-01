@@ -1,0 +1,25 @@
+In order to access the files of the Nido project in GitHub, use the following rule to construct raw file URLs:
+
+Base URL structure:
+https://raw.githubusercontent.com/fwillem/Nido/refs/heads/active_version/app/src/path?t=refresh
+
+Where:
+- "active_version" is the current Git branch or tag being used (e.g., v1.31)
+- "path" is the full relative path to the file, as described in project_tree.txt
+- "?t=refresh" is a cache-busting query parameter to force GitHub to serve the most up-to-date version of the file (avoid CDN cache)
+
+Example:
+To access `GameReducer.kt` in version `v1.31`, use:
+https://raw.githubusercontent.com/fwillem/Nido/refs/heads/v1.31/app/src/main/kotlin/com/example/nido/game/GameReducer.kt?t=refresh
+
+When starting a new session, I will indicate the active version with:
+    active_version = vx.yy
+So that the correct path is constructed accordingly.
+
+---
+
+To keep the file tree up to date, regenerate project_tree.txt after each file addition or removal using:
+
+    tree /F /A > project_tree.txt
+
+This command should be executed from the root directory of your project.

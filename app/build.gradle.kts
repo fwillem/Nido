@@ -81,7 +81,48 @@ android {
             assets.srcDirs("src/main/assets")
         }
     }
+
+
+    // Combine and move the lint block to the end of the android block (as you originally intended)
+    lint {
+        // Fail the build if errors are found
+        abortOnError = true
+
+        // Treat all warnings as errors
+        warningsAsErrors = true
+
+        // Optional: Enable checking for all issues, including those disabled by default
+        checkAllWarnings = true
+
+        // Optional: Don't ignore test sources. Setting this to 'false' means lint WILL check test sources.
+        // If you truly want to ignore test sources, set it to 'true'. Given your goal, you likely want to check them.
+        checkTestSources = false
+
+        // Optional: Include dependencies
+        // 'checkDependencies = true' is usually the default and recommended to catch issues in libraries.
+        // Setting it to 'false' might hide issues in transitive dependencies.
+        checkDependencies = true // Changed to true, as it's generally a good idea.
+
+        // To output HTML report automatically (often done by default with 'lint' task):
+        htmlReport = true
+        xmlReport = false // If you only want HTML
+
+        // To specify a baseline file to ignore existing issues (as suggested by lint output):
+        // baseline file("lint-baseline.xml")
+
+        // Crucial for your use case: Explicitly enable the HardcodedText check.
+        // This issue primarily targets UI elements (XML, Compose Text).
+        // For general hardcoded strings in Kotlin logic, Lint's default checks might not cover everything.
+        // You might need a custom Lint check or another static analysis tool for that.
+        enable.add("HardcodedText") // This is the correct way to enable a specific check
+    }
+
 }
+
+tasks.named("check") {
+    dependsOn("lintDebug")
+}
+
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -105,4 +146,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+  //  lintChecks("androidx.compose.ui:ui-tooling:1.6.0") {
+  //      exclude(group = "org.jetbrains.skiko", module = "skiko")
+  //  }
 }

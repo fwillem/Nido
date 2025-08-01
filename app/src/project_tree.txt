@@ -1,0 +1,275 @@
+Structure du dossier pour le volume OneDrive
+Le numéro de série du volume est D4DF-CD93
+D:.
+|   project_tree.txt
+|   
++---androidTest
+|   \---java
+|       \---com
+|           \---example
+|               \---nido
+|                       ExampleInstrumentedTest.kt
+|                       
++---main
+|   |   AndroidManifest.xml
+|   |   ic_launcher-playstore.png
+|   |   
+|   +---assets
+|   |       version.txt
+|   |       
+|   +---kotlin
+|   |   \---com
+|   |       \---example
+|   |           \---nido
+|   |               |   MainActivity.kt
+|   |               |   NidoApp.kt
+|   |               |   Spare
+|   |               |   
+|   |               +---data
+|   |               |   |   NidoPreferences.kt
+|   |               |   |   SavedPlayer.kt
+|   |               |   |   
+|   |               |   +---model
+|   |               |   |       Card.kt
+|   |               |   |       CardColor.kt
+|   |               |   |       CardResources.kt
+|   |               |   |       Combination.kt
+|   |               |   |       Hand.kt
+|   |               |   |       Player.kt
+|   |               |   |       PlayerType.kt
+|   |               |   |       
+|   |               |   \---repository
+|   |               |           CardRepository.kt
+|   |               |           DeckRepository.kt
+|   |               |           
+|   |               +---events
+|   |               |       AppEvent.kt
+|   |               |       
+|   |               +---game
+|   |               |   |   FakeGameManager.kt
+|   |               |   |   GameEvents.kt
+|   |               |   |   GameManager.kt
+|   |               |   |   GameReducer.kt
+|   |               |   |   GameState.kt
+|   |               |   |   IGameActions.kt
+|   |               |   |   IGameManager.kt
+|   |               |   |   IGameStateProvider.kt
+|   |               |   |   LocalPlayer.kt
+|   |               |   |   TurnInfo.kt
+|   |               |   |   TurnPhase.kt
+|   |               |   |   
+|   |               |   +---ai
+|   |               |   |       AIPlayer.kt
+|   |               |   |       Heuristics.kt
+|   |               |   |       
+|   |               |   +---multiplayer
+|   |               |   |       NetworkManager.kt
+|   |               |   |       RemotePlayer.kt
+|   |               |   |       
+|   |               |   \---rules
+|   |               |           GameRules.kt
+|   |               |           ScoringSystem.kt
+|   |               |           
+|   |               +---ui
+|   |               |   |   LocalGameManager.kt
+|   |               |   |   Screen.kt
+|   |               |   |   
+|   |               |   +---components
+|   |               |   |       NidoScreenScaffold.kt
+|   |               |   |       VersionLabel.kt
+|   |               |   |       
+|   |               |   +---dialogs
+|   |               |   |       CardSelectionDialog.kt
+|   |               |   |       GameEventDialogs.kt
+|   |               |   |       GameOverDialog.kt
+|   |               |   |       QuitGameDialog.kt
+|   |               |   |       RoundOverDialog.kt
+|   |               |   |       
+|   |               |   +---preview
+|   |               |   |       NidoPreview.kt
+|   |               |   |       
+|   |               |   +---screens
+|   |               |   |       LandingScreen.kt
+|   |               |   |       MainScreen.kt
+|   |               |   |       ScoreScreen.kt
+|   |               |   |       SetupScreen.kt
+|   |               |   |       SplashScreen.kt
+|   |               |   |       
+|   |               |   +---theme
+|   |               |   |       Color.kt
+|   |               |   |       Theme.kt
+|   |               |   |       Type.kt
+|   |               |   |       
+|   |               |   \---views
+|   |               |           ActionButtonsView.kt
+|   |               |           CardDeckView.kt
+|   |               |           CardView.kt
+|   |               |           CombinationsView.kt
+|   |               |           CommentsView.kt
+|   |               |           DiscardPileView.kt
+|   |               |           HandView.kt
+|   |               |           HandViewDebugView.kt
+|   |               |           MatView.kt
+|   |               |           PlayerScoreView.kt
+|   |               |           PlayersRowView.kt
+|   |               |           TurnActionButtonView.kt
+|   |               |           
+|   |               +---utils
+|   |               |       Constants.kt
+|   |               |       Debug.kt
+|   |               |       SortingUtils.kt
+|   |               |       TestData.kt
+|   |               |       TestIDE.kt
+|   |               |       Trace.kt
+|   |               |       
+|   |               \---viewmodel
+|   |                       FakeGameViewModelForPreview.kt
+|   |                       GameViewModel.kt
+|   |                       IGameViewModelPreview.kt
+|   |                       
+|   \---res
+|       +---drawable
+|       |       ic_launcher_background.xml
+|       |       ic_launcher_foreground.xml
+|       |       nido_logo.webp
+|       |       
+|       +---drawable-hdpi
+|       |       splash.png
+|       |       
+|       +---drawable-mdpi
+|       |       splash.png
+|       |       
+|       +---drawable-nodpi
+|       |       back_cover.png
+|       |       nido_card_b_1.png
+|       |       nido_card_b_2.png
+|       |       nido_card_b_3.png
+|       |       nido_card_b_4.png
+|       |       nido_card_b_5.png
+|       |       nido_card_b_6.png
+|       |       nido_card_b_7.png
+|       |       nido_card_b_8.png
+|       |       nido_card_b_9.png
+|       |       nido_card_g_1.png
+|       |       nido_card_g_2.png
+|       |       nido_card_g_3.png
+|       |       nido_card_g_4.png
+|       |       nido_card_g_5.png
+|       |       nido_card_g_6.png
+|       |       nido_card_g_7.png
+|       |       nido_card_g_8.png
+|       |       nido_card_g_9.png
+|       |       nido_card_m_1.png
+|       |       nido_card_m_2.png
+|       |       nido_card_m_3.png
+|       |       nido_card_m_4.png
+|       |       nido_card_m_5.png
+|       |       nido_card_m_6.png
+|       |       nido_card_m_7.png
+|       |       nido_card_m_8.png
+|       |       nido_card_m_9.png
+|       |       nido_card_o_1.png
+|       |       nido_card_o_2.png
+|       |       nido_card_o_3.png
+|       |       nido_card_o_4.png
+|       |       nido_card_o_5.png
+|       |       nido_card_o_6.png
+|       |       nido_card_o_7.png
+|       |       nido_card_o_8.png
+|       |       nido_card_o_9.png
+|       |       nido_card_p_1.png
+|       |       nido_card_p_2.png
+|       |       nido_card_p_3.png
+|       |       nido_card_p_4.png
+|       |       nido_card_p_5.png
+|       |       nido_card_p_6.png
+|       |       nido_card_p_7.png
+|       |       nido_card_p_8.png
+|       |       nido_card_p_9.png
+|       |       nido_card_r_1.png
+|       |       nido_card_r_2.png
+|       |       nido_card_r_3.png
+|       |       nido_card_r_4.png
+|       |       nido_card_r_5.png
+|       |       nido_card_r_6.png
+|       |       nido_card_r_7.png
+|       |       nido_card_r_8.png
+|       |       nido_card_r_9.png
+|       |       
+|       +---drawable-xhdpi
+|       |       splash.png
+|       |       
+|       +---drawable-xxhdpi
+|       |       splash.png
+|       |       
+|       +---drawable-xxxhdpi
+|       |       splash.png
+|       |       
+|       +---mipmap-anydpi-v26
+|       |       ic_launcher.xml
+|       |       ic_launcher_round.xml
+|       |       
+|       +---mipmap-hdpi
+|       |       ic_launcher.webp
+|       |       ic_launcher_background.webp
+|       |       ic_launcher_foreground.webp
+|       |       ic_launcher_round.webp
+|       |       splash.png
+|       |       
+|       +---mipmap-mdpi
+|       |       ic_launcher.webp
+|       |       ic_launcher_background.webp
+|       |       ic_launcher_foreground.webp
+|       |       ic_launcher_round.webp
+|       |       splash.png
+|       |       
+|       +---mipmap-xhdpi
+|       |       ic_launcher.webp
+|       |       ic_launcher_background.webp
+|       |       ic_launcher_foreground.webp
+|       |       ic_launcher_round.webp
+|       |       splash.png
+|       |       
+|       +---mipmap-xxhdpi
+|       |       ic_launcher.webp
+|       |       ic_launcher_background.webp
+|       |       ic_launcher_foreground.webp
+|       |       ic_launcher_round.webp
+|       |       splash.png
+|       |       
+|       +---mipmap-xxxhdpi
+|       |       ic_launcher.webp
+|       |       ic_launcher_background.webp
+|       |       ic_launcher_foreground.webp
+|       |       ic_launcher_round.webp
+|       |       splash.png
+|       |       
+|       +---values
+|       |       colors.xml
+|       |       strings.xml
+|       |       themes.xml
+|       |       
+|       +---values-de
+|       |       strings.xml
+|       |       
+|       +---values-de-rDE
+|       +---values-es
+|       |       strings.xml
+|       |       
+|       +---values-fr
+|       |       strings.xml
+|       |       
+|       +---values-it
+|       |       strings.xml
+|       |       
+|       \---xml
+|               backup_rules.xml
+|               data_extraction_rules.xml
+|               
+\---test
+    \---java
+        \---com
+            \---example
+                \---nido
+                        ExampleUnitTest.kt
+                        

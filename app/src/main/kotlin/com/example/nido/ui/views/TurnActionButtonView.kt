@@ -22,6 +22,8 @@ import com.example.nido.utils.TraceLogLevel.DEBUG
 import com.example.nido.utils.TraceLogLevel.INFO
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.res.stringResource
+import com.example.nido.R
 
 @Composable
 fun TurnActionButtons(
@@ -75,7 +77,7 @@ private fun SkipButton(onSkip: () -> Unit) {
         ),
         modifier = Modifier.padding(start = 8.dp)
     ) {
-        Text("Skip", fontSize = 16.sp)
+        Text(stringResource(R.string.skip), fontSize = 16.sp)
     }
 }
 
@@ -97,7 +99,7 @@ private fun SkipButtonWithTimer(onSkip: () -> Unit) {
         ),
         modifier = Modifier.padding(start = 8.dp)
     ) {
-        Text("Skip ($skipTimerCount)", fontSize = 16.sp)
+        Text("${stringResource(R.string.skip)} ($skipTimerCount)", fontSize = 16.sp)
     }
 }
 
@@ -158,7 +160,7 @@ private fun PlayButton(
         ),
         modifier = Modifier.padding(start = 8.dp)
     ) {
-        Text("Play", fontSize = 16.sp)
+        Text(stringResource(R.string.play), fontSize = 16.sp)
     }
 }
 
@@ -178,6 +180,6 @@ private fun RemoveButton(
         ),
         modifier = Modifier.padding(start = 8.dp)
     ) {
-        Text("Remove", fontSize = 16.sp)
+        Text(stringResource(R.string.remove), fontSize = 16.sp)
     }
 }

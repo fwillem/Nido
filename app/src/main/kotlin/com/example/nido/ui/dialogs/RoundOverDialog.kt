@@ -1,6 +1,5 @@
 package com.example.nido.ui.dialogs
 
-import android.R
 import androidx.compose.foundation.background
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -22,6 +21,8 @@ import com.example.nido.data.model.PlayerActionType
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
+import com.example.nido.R
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
@@ -36,7 +37,7 @@ fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver, onExit: () -> Unit) { /
     AlertDialog(
         onDismissRequest = { gameManager.clearDialogEvent() ; onExit()},
         title = {
-            Text("${event.winner.name} won this round !")
+            Text(stringResource(R.string.won_this_round, event.winner.name))
         },
         text = {
             Column {
@@ -51,7 +52,7 @@ fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver, onExit: () -> Unit) { /
             TextButton(
                 onClick = { gameManager.clearDialogEvent() ; onExit()}
             ) {
-                Text("OK")
+                Text(stringResource(R.string.ok))
             }
         },
         containerColor = Color.White.copy(alpha = 0.7f)
