@@ -3,82 +3,87 @@ package com.example.nido.ui.screens
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.example.nido.data.SavedPlayer
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.analytics
 import java.util.UUID
 
-
 @Composable
-fun NidoApp(viewModel: GameViewModel, modifier: Modifier = Modifier) {
+fun NidoApp(
+    viewModel: GameViewModel,
+    modifier: Modifier = Modifier,
+    initialRoute: String = AppScreen.Routes.SPLASH // Ajout du paramètre
+) {
     val gameManager = LocalGameManager.current
 
-    // Store the String route, use the constant for the initial value
-    var currentRoute by rememberSaveable { mutableStateOf(AppScreen.Routes.SPLASH) }
+    // Utilise initialRoute comme route de départ
+    var currentRoute by rememberSaveable { mutableStateOf(initialRoute) }
+    val context = LocalContext.current
+    val activity = context as? android.app.Activity
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        // Navigate based on the route string constant
         when (currentRoute) {
             AppScreen.Routes.SPLASH -> SplashScreen(
-                onExit = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
+                onExit = { currentRoute = AppScreen.Routes.LANDING },
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.LANDING -> LandingScreen(
-                onSetup = {
-                    Firebase.analytics.logEvent("setup_button_clicked", null)
-
-                    currentRoute = AppScreen.Routes.SETUP
-                          }, // Navigate using constant
+                onSetup = { currentRoute = AppScreen.Routes.SETUP },
                 onGame = {
-                    // Use latest saved preferences
                     val players = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) }
                     val pointLimit = viewModel.savedPointLimit.value
                     val doNotAutoPlayAI = viewModel.savedDebug.value.doNotAutoPlayerAI
                     gameManager.startNewGame(players, pointLimit, doNotAutoPlayAI)
                     currentRoute = AppScreen.Routes.GAME
-                         }, // Navigate using constant
+                },
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.SETUP -> SetupScreen(
                 initialPlayers = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) },
                 initialPointLimit = viewModel.savedPointLimit.value,
                 debug = viewModel.savedDebug.value,
-                onGameStart = { selectedPlayers, selectedPointLimit , debug ->
+                onDone = { selectedPlayers, selectedPointLimit, debug ->
+                    // Language change management
+                    val previousLang = viewModel.savedDebug.value.language
+                    val newLang = debug.language
 
-
-                    //  Save user preferences before starting the game
+                    // Settings are saved in the ViewModel
                     viewModel.savePlayers(selectedPlayers.map { SavedPlayer.fromPlayer(it) })
                     viewModel.savePointLimit(selectedPointLimit)
                     viewModel.saveDebug(debug)
 
-                    TRACE(INFO) { "Saved to datastore the SetupScreen preferences: players = $selectedPlayers, pointLimit = $selectedPointLimit, debug = $debug "}
 
-                    currentRoute = AppScreen.Routes.LANDING // Navigate using constant
+
+                    // If the language has changed, save it and restart the app (note the language is saved both in DataStore and SharedPreferences)
+                    if (newLang != previousLang && activity != null) {
+                        com.example.nido.utils.LocaleUtils.saveLanguage(activity, newLang)
+                        com.example.nido.utils.LocaleUtils.setAppLocaleAndRestart(activity, newLang)
+                        // Le restart remonte la pile, donc on ne change PAS la route ici
+                    } else {
+                        currentRoute = AppScreen.Routes.LANDING
+                    }
                 },
-                onCancel = { currentRoute = AppScreen.Routes.LANDING }, // No action needed
+
+                onCancel = { currentRoute = AppScreen.Routes.LANDING },
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.GAME -> MainScreen(
-                onEndGame = { currentRoute = AppScreen.Routes.SCORE }, // Navigate using constant
-                onQuitGame = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
+                onEndGame = { currentRoute = AppScreen.Routes.SCORE },
+                onQuitGame = { currentRoute = AppScreen.Routes.LANDING },
                 modifier = modifier.padding(innerPadding),
                 viewModel = viewModel,
                 debug = viewModel.savedDebug.value
             )
             AppScreen.Routes.SCORE -> ScoreScreen(
-                onContinue = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
-                onEndGame = { currentRoute = AppScreen.Routes.LANDING }, // Navigate using constant
+                onContinue = { currentRoute = AppScreen.Routes.LANDING },
+                onEndGame = { currentRoute = AppScreen.Routes.LANDING },
                 modifier = modifier.padding(innerPadding)
             )
         }

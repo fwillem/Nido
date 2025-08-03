@@ -30,4 +30,5 @@
     <string name="tap_to_start">Toca para empezar…</string>
     <string name="sort_mode">Modo de ordenación: %1$s</string>
     <string name="quit">Salir</string>
+    <string name="locale_marker">toto</string>
 </resources>
