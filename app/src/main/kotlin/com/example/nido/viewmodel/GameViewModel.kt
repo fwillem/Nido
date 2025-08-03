@@ -14,23 +14,25 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import kotlinx.coroutines.launch
 import com.example.nido.utils.Debug
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPreview {
 
     // Persistent State via DataStore
     private val context = app.applicationContext
 
-    private val _savedPlayersState = mutableStateOf<List<SavedPlayer>>(emptyList())
-    override val savedPlayers: State<List<SavedPlayer>> = _savedPlayersState
+    private val _savedPlayers = MutableStateFlow<List<SavedPlayer>>(emptyList())
+    override val savedPlayers: StateFlow<List<SavedPlayer>> = _savedPlayers
 
-    private val _savedPointLimitState = mutableStateOf(Constants.GAME_MAX_POINT_LIMIT)
-    override val savedPointLimit: State<Int> = _savedPointLimitState
+    private val _savedPointLimit = MutableStateFlow(Constants.GAME_MAX_POINT_LIMIT)
+    override val savedPointLimit: StateFlow<Int> = _savedPointLimit
 
-    private val _gameState = mutableStateOf(GameState())
-    override val gameState: State<GameState> = _gameState
+    private val _savedDebug = MutableStateFlow(Debug())
+    override val savedDebug: StateFlow<Debug> = _savedDebug
 
-    private val _savedDebug = mutableStateOf(Debug())
-    override val savedDebug: State<Debug> = _savedDebug
+    // Désormais, le ViewModel expose simplement l'état du GameManager
+    override val gameState = GameManager.gameState
 
 
     init {
@@ -39,7 +41,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
             NidoPreferences.playersFlow(context).collect { playersOrNull ->
                 if (playersOrNull == null) {
                     TRACE(INFO) { "No players found in DataStore. Using default players." }
-                    _savedPlayersState.value = listOf(
+                    _savedPlayers.value = listOf(
                         SavedPlayer(
                             Constants.DEFAULT_LOCAL_PLAYER_NAME,
                             Constants.DEFAULT_LOCAL_PLAYER_AVATAR, PlayerType.LOCAL
@@ -51,10 +53,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
                         )
                     )
                 } else {
-                    TRACE(DEBUG) { "Loaded players from DataStore: $playersOrNull" }
-                    _savedPlayersState.value = playersOrNull
+                    _savedPlayers.value = playersOrNull
                 }
-                TRACE(VERBOSE) { "Current savedPlayers state: ${_savedPlayersState.value}" }
             }
         }
 
@@ -62,12 +62,12 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
             NidoPreferences.pointLimitFlow(context).collect { limitOrNull ->
                 if (limitOrNull == null) {
                     TRACE(INFO) { "No point limit found in DataStore. Using default pointLimit = ${Constants.GAME_DEFAULT_POINT_LIMIT}." }
-                    _savedPointLimitState.value = Constants.GAME_DEFAULT_POINT_LIMIT
+                    _savedPointLimit.value = Constants.GAME_DEFAULT_POINT_LIMIT
                 } else {
                     TRACE(DEBUG) { "Loaded pointLimit from DataStore: $limitOrNull" }
-                    _savedPointLimitState.value = limitOrNull
+                    _savedPointLimit.value = limitOrNull
                 }
-                TRACE(VERBOSE) { "Current savedPointLimit state: ${_savedPointLimitState.value}" }
+                TRACE(VERBOSE) { "Current savedPointLimit state: ${_savedPointLimit.value}" }
             }
         }
 
@@ -89,7 +89,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
 
 
     override fun savePlayers(players: List<SavedPlayer>) {
-        _savedPlayersState.value = players
+        _savedPlayers.value = players
         viewModelScope.launch {
             NidoPreferences.setPlayers(context, players)
             TRACE(DEBUG) { "💾 Saved players: $players" }
@@ -97,7 +97,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
     }
 
     override fun savePointLimit(limit: Int) {
-        _savedPointLimitState.value = limit
+        _savedPointLimit.value = limit
         viewModelScope.launch {
             NidoPreferences.setPointLimit(context, limit)
             TRACE(DEBUG) { "💾 Saved pointLimit: $limit" }
@@ -116,7 +116,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
 
 
     override fun updateGameState(newState: GameState) {
-        val oldState = _gameState.value  // Get the previous state
+        val oldState = gameState.value  // Get the previous state
 
         // Log the full new state.
         TRACE(VERBOSE) { "🔄 Updating GameState: $newState" }
@@ -158,9 +158,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         }
 
         // Apply the new state.
-        _gameState.value = _gameState.value.copy(
-            players = if (newState.players.isNotEmpty()) newState.players else _gameState.value.players,
-            deck = if (newState.deck.isNotEmpty()) newState.deck else _gameState.value.deck,
+        GameManager.updateGameState(
+            players = if (newState.players.isNotEmpty()) newState.players else oldState.players,
+            deck = if (newState.deck.isNotEmpty()) newState.deck else oldState.deck,
             discardPile = newState.discardPile,
             startingPlayerIndex = newState.startingPlayerIndex,
             currentPlayerIndex = newState.currentPlayerIndex,
@@ -176,11 +176,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
     }
 
     override fun updatePlayerHand(playerIndex: Int, newHand: Hand) {
-        _gameState.value = _gameState.value.copy(
-            players = _gameState.value.players.mapIndexed { index, player ->
-                if (index == playerIndex) player.copy(hand = newHand) else player
-            }
-        )
+        GameManager.updatePlayerHand(playerIndex, newHand)
         TRACE(DEBUG) { "🔃 Updated Player($playerIndex) hand: ${newHand.cards}" }
     }
 }

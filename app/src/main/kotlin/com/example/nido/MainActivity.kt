@@ -58,10 +58,20 @@ class MainActivity : ComponentActivity() {
                 val gameManager: IGameManager = getGameManagerInstance()
                 gameManager.initialize(viewModel)
 
+                TRACE(VERBOSE) {"HUGEBUG ORIGIN ViewModel Number of Players ${viewModel.gameState.value.players.size}"}
+                TRACE(VERBOSE) {"HUGEBUG ORIGIN gameManager Number of Players ${gameManager.gameState.value.players.size}"}
+                TRACE(VERBOSE) { "HUGEBUG ORIGIN ViewModel gameState ref: ${System.identityHashCode(viewModel.gameState.value)}" }
+                TRACE(VERBOSE) { "HUGEBUG ORIGIN GameManager gameState ref: ${System.identityHashCode(gameManager.gameState.value)}" }
+
                 CompositionLocalProvider(LocalGameManager provides gameManager) {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         var initialRoute = AppScreen.Routes.SPLASH
-                        if (forceLanding) initialRoute = AppScreen.Routes.LANDING
+                       // if (forceLanding) initialRoute = AppScreen.Routes.LANDING
+
+
+                        TRACE(VERBOSE) { "HUGEBUG ViewModel gameState ref: ${System.identityHashCode(viewModel.gameState.value)}, ${viewModel.gameState.value.players.size}" }
+                        TRACE(VERBOSE) { "HUGEBUG GameManager gameState ref: ${System.identityHashCode(gameManager.gameState.value)}, ${gameManager.gameState.value.players.size}" }
+
 
                         NidoApp(
                             viewModel = viewModel,

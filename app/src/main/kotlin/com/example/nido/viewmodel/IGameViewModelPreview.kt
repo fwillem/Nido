@@ -5,12 +5,13 @@ import com.example.nido.data.SavedPlayer
 import com.example.nido.data.model.Hand
 import com.example.nido.game.GameState
 import com.example.nido.utils.Debug
+import kotlinx.coroutines.flow.StateFlow
 
 interface IGameViewModelPreview {
-    val gameState: State<GameState>
-    val savedPlayers: State<List<SavedPlayer>>
-    val savedPointLimit: State<Int>
-    val savedDebug : State<Debug>
+    val gameState: StateFlow<GameState>
+    val savedPlayers: StateFlow<List<SavedPlayer>>
+    val savedPointLimit: StateFlow<Int>
+    val savedDebug : StateFlow<Debug>
 
     // Methods that MainScreen needs to call
     fun updateGameState(newState: GameState)

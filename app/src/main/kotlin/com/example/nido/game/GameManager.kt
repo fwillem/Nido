@@ -18,27 +18,15 @@ import com.example.nido.events.AppEvent
 import kotlin.Int
 import com.example.nido.game.events.GameEvent
 import com.example.nido.utils.Debug
+import kotlinx.coroutines.flow.*
 
 
-private object GameManager : IGameManager {
-    private var gameViewModel: GameViewModel? = null
-    override val gameState: State<GameState>
-        get() = getViewModel().gameState
+object GameManager : IGameManager {
+    private val _gameState = MutableStateFlow(GameState())
+    override val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
-
-    override fun initialize(viewModel: GameViewModel) {
-        if (gameViewModel != null) {
-            // Already initialized; the user may have changed the orientation of the phone or moved the app in background
-            TRACE(DEBUG) { "GameManager already initialized; reattaching." }
-            return
-        }
-        gameViewModel = viewModel
-    }
-
-    private fun getViewModel(): GameViewModel {
-        return gameViewModel
-            ?: throw IllegalStateException("GameManager has not been initialized!") // 🚨 Prevent usage before initialization
-    }
+    // Correction de la signature de l'interface
+    override fun initialize(viewModel: GameViewModel) { }
 
 
     /**
@@ -61,18 +49,14 @@ private object GameManager : IGameManager {
 
         // Set up initial state
         val initialState = GameState(
-
             players = initializedPlayers,
             doNotAutoPlayAI = doNotAutoPlayAI,
             pointLimit = selectedPointLimit,
             startingPlayerIndex = startingPlayerIndex,
             currentPlayerIndex = startingPlayerIndex,
         )
-
-
-        // Update the state without dealing.
-        getViewModel().updateGameState(initialState)
-        TRACE(INFO) { "Initial gameState set: ${getViewModel().gameState}" }
+        _gameState.value = initialState
+        TRACE(INFO) { "Initial gameState set: ${gameState.value}" }
 
         // Start the first round (this will shuffle the deck and deal cards).
         startNewRound()
@@ -129,16 +113,11 @@ private object GameManager : IGameManager {
     private fun nextTurn() {
         val currentGameState = gameState.value
         val nextIndex = (currentGameState.currentPlayerIndex + 1) % currentGameState.players.size
-
-        val updatedState = currentGameState.copy(
+        updateGameState(
             currentPlayerIndex = nextIndex,
             turnId = currentGameState.turnId + 1
         )
-
-
-        getViewModel().updateGameState(updatedState) // ✅ Safe access to ViewModel
-
-        val nextPlayer = updatedState.players[nextIndex]
+        val nextPlayer = gameState.value.players[nextIndex]
         TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
 
     }
@@ -272,28 +251,19 @@ private object GameManager : IGameManager {
  */
 
     override fun setDialogEvent(event: AppEvent) {
-        val currentState = gameState.value
-        getViewModel().updateGameState(currentState.copy(gameEvent = event))
+        updateGameState(gameEvent = event)
     }
-
     override fun clearDialogEvent() {
-        val currentState = gameState.value
-        getViewModel().updateGameState(currentState.copy(gameEvent = null))
+        updateGameState(gameEvent = null)
     }
 
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
         val currentGameState = gameState.value
-
-        // Ensure the playerIndex is valid
         if (playerIndex in currentGameState.players.indices) {
-            // Update the player's hand
             val updatedPlayers = currentGameState.players.mapIndexed { index, player ->
                 if (index == playerIndex) player.copy(hand = hand) else player
             }
-
-            // Apply the new state
-            getViewModel().updateGameState(currentGameState.copy(players = updatedPlayers))
-
+            updateGameState(players = updatedPlayers)
             TRACE(DEBUG) { "✅ Updated Player($playerIndex) hand: ${hand.cards}" }
         } else {
             TRACE(ERROR) { "⚠️ Invalid playerIndex: $playerIndex" }
@@ -305,16 +275,63 @@ private object GameManager : IGameManager {
         return currentPlayer.hand.cards.all { it.isSelected }
     }
 
+    // Permet de mettre à jour l'état du jeu depuis le ViewModel ou d'autres parties de l'app
+    fun updateGameState(
+        players: List<Player> = gameState.value.players,
+        deck: androidx.compose.runtime.snapshots.SnapshotStateList<Card> = gameState.value.deck,
+        discardPile: androidx.compose.runtime.snapshots.SnapshotStateList<Card> = gameState.value.discardPile,
+        startingPlayerIndex: Int = gameState.value.startingPlayerIndex,
+        currentPlayerIndex: Int = gameState.value.currentPlayerIndex,
+        currentCombinationOnMat: Combination = gameState.value.currentCombinationOnMat,
+        skipCount: Int = gameState.value.skipCount,
+        turnInfo: TurnInfo = gameState.value.turnInfo,
+        playerId: String = gameState.value.playerId,
+        pointLimit: Int = gameState.value.pointLimit,
+        soundOn: Boolean = gameState.value.soundOn,
+        gameEvent: AppEvent? = gameState.value.gameEvent,
+        turnId: Int = gameState.value.turnId,
+        doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI
+    ) {
+        _gameState.value = gameState.value.copy(
+            players = players,
+            deck = deck,
+            discardPile = discardPile,
+            startingPlayerIndex = startingPlayerIndex,
+            currentPlayerIndex = currentPlayerIndex,
+            currentCombinationOnMat = currentCombinationOnMat,
+            skipCount = skipCount,
+            turnInfo = turnInfo,
+            playerId = playerId,
+            pointLimit = pointLimit,
+            soundOn = soundOn,
+            gameEvent = gameEvent,
+            turnId = turnId,
+            doNotAutoPlayAI = doNotAutoPlayAI
+        )
+    }
+
     private fun dispatchEvent(event: GameEvent) {
         val currentState = gameState.value
         val result = gameReducer(currentState, event)
-
-        getViewModel().updateGameState(result.newState)
-
+        updateGameState(
+            players = result.newState.players,
+            deck = result.newState.deck,
+            discardPile = result.newState.discardPile,
+            startingPlayerIndex = result.newState.startingPlayerIndex,
+            currentPlayerIndex = result.newState.currentPlayerIndex,
+            currentCombinationOnMat = result.newState.currentCombinationOnMat,
+            skipCount = result.newState.skipCount,
+            turnInfo = result.newState.turnInfo,
+            playerId = result.newState.playerId,
+            pointLimit = result.newState.pointLimit,
+            soundOn = result.newState.soundOn,
+            gameEvent = result.newState.gameEvent,
+            turnId = result.newState.turnId,
+            doNotAutoPlayAI = result.newState.doNotAutoPlayAI
+        )
         result.followUpEvents.forEach { followUp ->
             when (followUp) {
                 is GameEvent.ShowDialog -> {
-                    // Use the dialogEvent directly!
                     setDialogEvent(followUp.dialogEvent)
                 }
                 else -> dispatchEvent(followUp)
@@ -325,6 +342,3 @@ private object GameManager : IGameManager {
 
 // Internal helper function to expose GameManager as IGameManager within the module.
 internal fun getGameManagerInstance(): IGameManager = GameManager
-
-
-

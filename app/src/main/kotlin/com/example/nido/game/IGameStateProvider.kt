@@ -4,9 +4,10 @@ import androidx.compose.runtime.State
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
+import kotlinx.coroutines.flow.StateFlow
 
 interface IGameStateProvider {
-    val gameState: State<GameState>
+    val gameState: StateFlow<GameState>
     fun isGameOver(): Boolean
     fun getGameWinners(): List<Player>
     fun getPlayerRankings(): List<Pair<Player, Int>>
