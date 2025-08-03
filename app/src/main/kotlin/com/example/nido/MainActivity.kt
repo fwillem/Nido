@@ -1,7 +1,7 @@
 package com.example.nido
 
+import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.screens.NidoApp
@@ -21,57 +20,53 @@ import com.example.nido.ui.LocalGameManager
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.example.nido.ui.AppScreen
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
-
 class MainActivity : ComponentActivity() {
+
+    // ATTENTION : ne rien lire/écrire dans DataStore ici pour la langue !
+    override fun attachBaseContext(newBase: Context) {
+        val lang = com.example.nido.utils.LocaleUtils.getSavedLanguage(newBase) ?: com.example.nido.utils.AppLanguage.ENGLISH.code
+        TRACE(VERBOSE) { "BOOOO LocaleDebug attachBaseContext read lang=$lang" }
+
+        android.util.Log.d("BOOOO LocaleDebug", "attachBaseContext read lang=$lang")
+        val context = com.example.nido.utils.LocaleUtils.setLocale(newBase, lang)
+        super.attachBaseContext(context)
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // NE PAS faire de setLocale ici : déjà fait via attachBaseContext !
         super.onCreate(savedInstanceState)
 
-        /*
-        val branch = getString(R.string.branch_name)
-        val buildTime = getString(R.string.build_time)
-
-        val bundle = Bundle().apply {
-
-            /// putString("NIDO ${version}", "xxx")
-            putString("Main_Activity", "xxx")
-        }
-
-
-         */
-        Firebase.analytics.logEvent("nido_test", null)
-
-
-
-
+        // Setup système d'affichage et de navigation
         enableEdgeToEdge()
-
-        // Enable immersive mode
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-        windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        windowInsetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
 
+        // Récupère si besoin le paramètre pour forcer la LandingScreen
+        val forceLanding = intent.getBooleanExtra("force_landing", false)
 
         setContent {
             NidoTheme {
                 val viewModel: GameViewModel = viewModel()
-
-                // Obtain the GameManager instance using our internal helper.
                 val gameManager: IGameManager = getGameManagerInstance()
                 gameManager.initialize(viewModel)
 
-                // Provide the GameManager only via LocalGameManager.
                 CompositionLocalProvider(LocalGameManager provides gameManager) {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        var initialRoute = AppScreen.Routes.SPLASH
+                        if (forceLanding) initialRoute = AppScreen.Routes.LANDING
+
                         NidoApp(
                             viewModel = viewModel,
-                            modifier = Modifier.padding(innerPadding)
+                            modifier = Modifier.padding(innerPadding),
+                            initialRoute = initialRoute
                         )
                     }
                 }

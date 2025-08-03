@@ -4,7 +4,6 @@ package com.example.nido.ui.screens
 //import androidx.compose.ui.text.input.KeyboardActions
 //import androidx.compose.ui.text.input.KeyboardOptions
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -29,15 +28,15 @@ import com.example.nido.game.ai.AIPlayer
 import com.example.nido.ui.components.NidoScreenScaffold
 import com.example.nido.ui.components.VersionLabel
 import com.example.nido.ui.preview.NidoPreview
-import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.utils.Constants
-import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_AVATAR
-import com.example.nido.utils.Constants.DEFAULT_LOCAL_PLAYER_NAME
 import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
 import com.example.nido.utils.Constants.GAME_MIN_PLAYERS
+import com.example.nido.utils.AppLanguage
 import java.util.UUID
+import com.example.nido.utils.LocaleUtils
 import com.example.nido.utils.Debug
+import androidx.compose.ui.platform.LocalContext
 
 
 @Composable
@@ -103,7 +102,7 @@ fun SetupScreen(
     initialPlayers: List<Player>,
     initialPointLimit: Int,
     debug: Debug,
-    onGameStart: (List<Player>, Int, Debug) -> Unit,
+    onDone: (List<Player>, Int, Debug) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -120,25 +119,25 @@ fun SetupScreen(
     var selectedPointLimit by rememberSaveable { mutableStateOf(initialPointLimit) }
     var displayAIsHands by rememberSaveable { mutableStateOf(debug.displayAIsHands) }
     var aiDontAutoPlay by rememberSaveable { mutableStateOf(debug.doNotAutoPlayerAI) }
+    var selectedLanguage by rememberSaveable { mutableStateOf(debug.language) }
 
+    val context = LocalContext.current
+    // 👇 Dynamically fetch only available languages
+    val languages = remember { LocaleUtils.getSupportedLanguages(context) }
 
     val stepSize = 5
-    val validSteps =
-        (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
-
+    val validSteps = (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
 
     NidoScreenScaffold(
         cardInnerPaddingVertical = 8.dp,
-        maxContentWidth = 700.dp,   // For narrow dialogs
-        maxContentHeight = null     // Or set as needed
+        maxContentWidth = 700.dp,
+        maxContentHeight = null
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(4.dp)
-
         ) {
-
             // Centered headline
             Box(
                 modifier = Modifier.fillMaxWidth()
@@ -152,9 +151,11 @@ fun SetupScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Sélecteur de langue
+            var expanded by remember { mutableStateOf(false) }
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.players, selectedPlayers.size))
-                // Editable name for the first (local) player
                 EditablePlayerName(
                     name = selectedPlayers[0].name,
                     onNameChange = { newName ->
@@ -163,7 +164,6 @@ fun SetupScreen(
                         }
                     }
                 )
-                // The AI players (show as static text)
                 selectedPlayers.drop(1).forEach { player ->
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("${player.avatar} ${player.name}", fontSize = 18.sp)
@@ -184,7 +184,6 @@ fun SetupScreen(
                         if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
                             val nextAI = aiPlayers[selectedPlayers.size - 1]
                             selectedPlayers = selectedPlayers + AIPlayer(
-                                // id = (selectedPlayers.size).toString(),
                                 id = UUID.randomUUID().toString(),
                                 name = nextAI.first,
                                 avatar = nextAI.second
@@ -203,7 +202,7 @@ fun SetupScreen(
                             selectedPlayers = selectedPlayers.dropLast(1)
                         }
                     },
-                    enabled = selectedPlayers.size > (GAME_MIN_PLAYERS-1)
+                    enabled = selectedPlayers.size > (GAME_MIN_PLAYERS - 1)
                 ) {
                     Text(stringResource(R.string.remove_player))
                 }
@@ -226,7 +225,6 @@ fun SetupScreen(
             Text(stringResource(R.string.debug_options), style = MaterialTheme.typography.titleMedium)
 
             Row {
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = displayAIsHands, onCheckedChange = { displayAIsHands = it })
                     Spacer(modifier = Modifier.width(8.dp))
@@ -239,32 +237,51 @@ fun SetupScreen(
                     Text(stringResource(R.string.disable_ai_autoplay))
                 }
 
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    OutlinedButton(onClick = { expanded = true }) {
+                        val current = languages.find { it.code == selectedLanguage }
+                            ?: languages.firstOrNull() ?: AppLanguage.ENGLISH
+                        Text(current.label)
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        languages.forEach { lang ->
+                            DropdownMenuItem(
+                                text = { Text(lang.label) },
+                                onClick = {
+                                    selectedLanguage = lang.code
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
-
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly // Distribute buttons evenly
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
                     onClick = onCancel,
-
-                    ) {
+                ) {
                     Text(stringResource(R.string.cancel))
                 }
 
+                val activity = context as? android.app.Activity
                 Button(
                     onClick = {
-
-                        onGameStart(
-                            selectedPlayers,
-                            selectedPointLimit,
-                            Debug(
-                                displayAIsHands = displayAIsHands,
-                                doNotAutoPlayerAI = aiDontAutoPlay
-                            )
+                        val newDebug = debug.copy(
+                            displayAIsHands = displayAIsHands,
+                            doNotAutoPlayerAI = aiDontAutoPlay,
+                            language = selectedLanguage
                         )
-                  },
+                        onDone(selectedPlayers, selectedPointLimit, newDebug)
+                    },
                     enabled = selectedPlayers.size >= 2
                 ) {
                     Text(stringResource(R.string.done))
@@ -274,7 +291,6 @@ fun SetupScreen(
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
             Spacer(modifier = Modifier.weight(1f))
             VersionLabel(modifier = Modifier.align(Alignment.CenterVertically))
-
         }
     }
 }
@@ -296,7 +312,7 @@ fun SetupScreenPreview() {
                 displayAIsHands = true,
                 doNotAutoPlayerAI = false
             ),
-            onGameStart = { _, _, _ -> },
+            onDone = { _, _, _ -> },
             onCancel = {}
         )
     }
