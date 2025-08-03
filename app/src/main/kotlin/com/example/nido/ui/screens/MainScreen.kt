@@ -47,8 +47,9 @@ fun MainScreen(
     debug: Debug // This is a mandatory parameter
 ) {
     val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
-    val gameState by viewModel.gameState
+    val gameState by viewModel.gameState.collectAsState()
 
+    println("MainScreen: gameState IN = $gameState.players")
     // Use derivedStateOf for values that depend on gameState
     val currentPlayer by remember {
         derivedStateOf {
@@ -56,6 +57,7 @@ fun MainScreen(
             gameState.players[gameState.currentPlayerIndex]
         }
     }
+    println("MainScreen: gameState OUT = $gameState.players")
 
     // This current Hand of all players, even AI or remote players
     val currentHand by remember { derivedStateOf { currentPlayer.hand.cards } }
@@ -247,17 +249,17 @@ class FakeGameViewModelForPreview(
     initialPointLimit: Int = 100,
     initialDebug: Debug = Debug()
 ) : IGameViewModelPreview {
-    private val _gameState = mutableStateOf(initialGameState)
-    override val gameState: State<GameState> = _gameState
+    private val _gameState = kotlinx.coroutines.flow.MutableStateFlow(initialGameState)
+    override val gameState: kotlinx.coroutines.flow.StateFlow<GameState> = _gameState
 
-    private val _savedPlayers = mutableStateOf(initialSavedPlayers)
-    override val savedPlayers: State<List<SavedPlayer>> = _savedPlayers
+    private val _savedPlayers = kotlinx.coroutines.flow.MutableStateFlow(initialSavedPlayers)
+    override val savedPlayers: kotlinx.coroutines.flow.StateFlow<List<SavedPlayer>> = _savedPlayers
 
-    private val _savedPointLimit = mutableStateOf(initialPointLimit)
-    override val savedPointLimit: State<Int> = _savedPointLimit
+    private val _savedPointLimit = kotlinx.coroutines.flow.MutableStateFlow(initialPointLimit)
+    override val savedPointLimit: kotlinx.coroutines.flow.StateFlow<Int> = _savedPointLimit
 
-    private val _savedDebug = mutableStateOf(initialDebug)
-    override val savedDebug: State<Debug> = _savedDebug
+    private val _savedDebug = kotlinx.coroutines.flow.MutableStateFlow(initialDebug)
+    override val savedDebug: kotlinx.coroutines.flow.StateFlow<Debug> = _savedDebug
 
     override fun updateGameState(newState: GameState) {
         _gameState.value = newState

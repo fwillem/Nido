@@ -1,7 +1,5 @@
 package com.example.nido.game
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.State
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.mutableStateListOf
 import com.example.nido.data.model.*
@@ -9,6 +7,8 @@ import com.example.nido.game.rules.GameRules
 import com.example.nido.events.AppEvent
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.utils.Debug
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * A fake implementation of IGameManager for UI previews and automated tests.
@@ -56,7 +56,7 @@ class FakeGameManager : IGameManager {
     val turnInfo = TurnInfo()
 
     // ✅ Create a fake game state for previews/tests
-    private val _gameState = mutableStateOf(
+    private val _gameState = MutableStateFlow(
         GameState(
             playerId = currentPlayerId,
             turnInfo = turnInfo,
@@ -73,7 +73,7 @@ class FakeGameManager : IGameManager {
         )
     )
 
-    override val gameState: State<GameState>
+    override val gameState: StateFlow<GameState>
         get() = _gameState
 
     override fun initialize(viewModel: GameViewModel) {
