@@ -144,10 +144,10 @@ override fun isGameOver(): Boolean = false
 
     override fun currentPlayerHasValidCombination(): Boolean = true
 
-    override fun updatePlayerHand(playerIndex: Int, newHand: Hand) {
+    override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
         _gameState.value = _gameState.value.copy(
             players = _gameState.value.players.mapIndexed { index, player ->
-                if (index == playerIndex) player.copy(hand = newHand) else player
+                if (index == playerIndex) player.copy(hand = hand) else player
             }
         )
 
