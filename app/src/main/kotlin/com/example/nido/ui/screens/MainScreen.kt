@@ -190,7 +190,7 @@ fun MainScreen(
                 HandView(
                     hand = Hand(mutableStateListOf<Card>().apply { addAll(localPlayerHand) }),
                     cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
-                    cardHeight = Constants.CARD_ON_HAND_HEIGHT.dFlop,
+                    cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
                     sortMode = sortMode,
                     debug = debug,
                     onDoubleClick = toggleSortMode,
