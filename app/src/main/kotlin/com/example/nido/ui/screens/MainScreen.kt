@@ -134,12 +134,9 @@ fun MainScreen(
                 contentAlignment = Alignment.Center
             ) {
 
-                // FIX: Wrap mutableStateListOf() creation with remember
-                val playmatSnapshotList = remember {
-                    playmat?.cards?.let { cardList ->
-                        mutableStateListOf<Card>().apply { addAll(cardList) }
-                    } ?: mutableStateListOf()
-                }
+                val playmatSnapshotList = playmat?.cards?.let { cardList ->
+                    mutableStateListOf<Card>().apply { addAll(cardList) }
+                } ?: mutableStateListOf()
 
 
 
@@ -191,9 +188,9 @@ fun MainScreen(
                 contentAlignment = Alignment.Center
             ) {
                 HandView(
-                    hand = Hand(remember { mutableStateListOf<Card>().apply { addAll(localPlayerHand) } }),
+                    hand = Hand(mutableStateListOf<Card>().apply { addAll(localPlayerHand) }),
                     cardWidth = Constants.CARD_ON_HAND_WIDTH.dp,
-                    cardHeight = Constants.CARD_ON_HAND_HEIGHT.dp,
+                    cardHeight = Constants.CARD_ON_HAND_HEIGHT.dFlop,
                     sortMode = sortMode,
                     debug = debug,
                     onDoubleClick = toggleSortMode,
