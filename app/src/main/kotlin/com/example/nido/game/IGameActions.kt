@@ -12,7 +12,7 @@ interface IGameActions {
         fun startNewRound()
         fun playCombination(selectedCards: List<Card>, cardToKeep: Card?)
         fun skipTurn()
-        fun processAIMove()
+        fun getAIMove()
         fun processSkip()
        // fun withdrawCardsFromMat(cardsToWithdraw: List<Card>)
         fun setDialogEvent(event: AppEvent)

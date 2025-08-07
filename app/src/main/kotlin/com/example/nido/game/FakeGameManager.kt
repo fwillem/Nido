@@ -96,7 +96,7 @@ class FakeGameManager : IGameManager {
         // Simulate playing a combination
     }
 
-    override fun processAIMove() {
+    override fun getAIMove() {
         // Simulate AI making a move
     }
 
