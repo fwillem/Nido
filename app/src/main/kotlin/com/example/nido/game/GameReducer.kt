@@ -15,7 +15,7 @@ import com.example.nido.data.repository.DeckRepository
 import com.example.nido.events.AppEvent
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.PlayerType
-
+import com.example.nido.utils.TraceLogLevel
 
 
 data class ReducerResult(
@@ -39,11 +39,6 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
             ReducerResult(state)
         }
         is GameEvent.AITimerExpired -> handleAITimerExpired(state, event.turnId)
-        is GameEvent.PlayAIMove -> {
-            // This event is handled by the AI logic, not here.
-            // It will be triggered by the AITimerExpired event.
-            ReducerResult(state)
-        }
         else -> {
             TRACE(FATAL) { "Unhandled event: $event" }
             ReducerResult(state) // Return the current state if no valid event is matched.
@@ -142,21 +137,16 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                 if (gameOver) {
 
                     TRACE(INFO) { "Game is over! 🍾" }
-                    TRACE(INFO) { "SetDialogEvent GameOver" }
+                    TRACE(INFO) { "Side effect Show Dialog and Game Event GameOver" }
 
-                    // Add a ShowDialog follow-up event for game over
-                    followUpEvents += GameEvent.ShowDialog(
-                        AppEvent.GameEvent.GameOver(
-                            playerRankings = GameRules.getPlayerRankings(updatedPlayers)
-                        )
-                    )
+                    // Add a ShowDialog side effect for game over
                     sideEffects += GameSideEffect.ShowDialog(
                         AppEvent.GameEvent.GameOver(
                             playerRankings = GameRules.getPlayerRankings(updatedPlayers)
                         )
                     )
 
-
+                    // Add a GameEvent for game over
                     followUpEvents += GameEvent.GameOver
 
                 } else {
@@ -275,6 +265,8 @@ private fun dealCards(gameState: GameState): GameState {
 }
 
 private fun handleNextTurn(gameState: GameState): ReducerResult {
+    val sideEffects = mutableListOf<GameSideEffect>()
+
     val nextIndex = (gameState.currentPlayerIndex + 1) % gameState.players.size
 
     // Compute new player and phase
@@ -288,34 +280,48 @@ private fun handleNextTurn(gameState: GameState): ReducerResult {
     // 🟢 Set the correct TurnPhase based on player type and doNotAutoPlayAI
     val newTurnPhase = when (nextPlayer.playerType) {
         PlayerType.LOCAL -> TurnPhase.WaitingForLocal(nextPlayer.name)
-        PlayerType.AI -> TurnPhase.WaitingForAI(
-            name = nextPlayer.name,
-            isAutomatic = !gameState.doNotAutoPlayAI // read flag from GameState!
-        )
+        PlayerType.AI ->
+        {
+
+
+            if (gameState.doNotAutoPlayAI) {
+                // TODO Here we need to set TurnInfo do display the PlayAI button
+
+            } else {
+                // If AI is not set to auto-play, start the AI timer
+                sideEffects += GameSideEffect.StartAITimer(newState.turnId)
+            }
+
+            TurnPhase.WaitingForAI(
+                name = nextPlayer.name,
+                isAutomatic = !gameState.doNotAutoPlayAI // read flag from GameState!
+            )
+        }
         PlayerType.REMOTE -> TurnPhase.WaitingForRemote(nextPlayer.name)
     }
 
     TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex), turnPhase set to $newTurnPhase" }
 
     // 🟢 Copy turnPhase into the new state
-    return ReducerResult(newState.copy(turnPhase = newTurnPhase))
+    return ReducerResult(newState.copy(turnPhase = newTurnPhase), sideEffects = sideEffects    )
 }
 
 private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
-    // Check if the turnId matches the current
 
+    val sideEffects = mutableListOf<GameSideEffect>()
+
+    // Check if the turnId matches the current
     if (state.turnId == turnId &&
         state.turnPhase is TurnPhase.WaitingForAI &&
         (state.turnPhase as TurnPhase.WaitingForAI).isAutomatic) {
 
-        // 2. On génère l'action pour faire jouer l'IA (peut être un GameEvent, ou un effet, selon ta logique)
-        // Ex : on peut ajouter un GameEvent "PlayAIMove" dans followUpEvents
-        return ReducerResult(
-            newState = state,
-            followUpEvents = listOf(GameEvent.PlayAIMove) // ou ton event métier pour l'IA
-        )
+        // Need to get the AI move
+        sideEffects += GameSideEffect.GetAIMove
+    } else {
+        // If the turnId does not match, we ignore this event.
+        TRACE(TraceLogLevel.ERROR) { "AITimerExpired for wrong (not sure real error) turnId $turnId, current turnId is ${state.turnId}" }
     }
 
 
-    return ReducerResult(state)
+    return ReducerResult(state, sideEffects = sideEffects)
 }

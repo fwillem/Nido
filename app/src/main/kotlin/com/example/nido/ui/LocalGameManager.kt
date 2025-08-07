@@ -22,7 +22,7 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
         override fun skipTurn() = getGameManagerInstance().skipTurn()
         override fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) =
             getGameManagerInstance().playCombination(selectedCards, cardToKeep)
-        override fun processAIMove() = getGameManagerInstance().processAIMove()
+        override fun getAIMove() = getGameManagerInstance().getAIMove()
         override fun processSkip() = getGameManagerInstance().processSkip()
         override fun setDialogEvent(event: AppEvent) = getGameManagerInstance().setDialogEvent(event)
         override fun clearDialogEvent() = getGameManagerInstance().clearDialogEvent()

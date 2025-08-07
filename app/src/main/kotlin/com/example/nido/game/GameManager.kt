@@ -132,11 +132,26 @@ object GameManager : IGameManager {
 
     }
 
-    override fun processAIMove() {
-        val currentPlayer = getCurrentPlayer()
-        if (currentPlayer.playerType == PlayerType.AI) {
-            TRACE(DEBUG) { "AI is playing (${currentPlayer.name})" }
-            handleAIMove(currentPlayer)
+    override fun getAIMove() {
+        val aiPlayer = getCurrentPlayer()
+        if (aiPlayer.playerType == PlayerType.AI) {
+            TRACE(DEBUG) { "AI is playing (${aiPlayer.name})" }
+
+                val playerAction = aiPlayer.play(this)
+
+                if (playerAction.actionType == PlayerActionType.PLAY) {
+                    // Check if combination is null; if so, log a fatal error.
+                    if (playerAction.combination == null) {
+                        TRACE(FATAL) { "Combination cannot be null when actionType is PLAY for ${aiPlayer.name}" }
+                    } else {
+                        TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
+                        // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
+                        playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
+                    }
+                } else {
+                    TRACE(INFO) { "${aiPlayer.name} has no move !" }
+                    skipTurn()
+                }
         } else {
             TRACE(ERROR) { "Not AI's turn!" }
         }
@@ -152,25 +167,7 @@ object GameManager : IGameManager {
         }
     }
 
-    private fun handleAIMove(aiPlayer: Player) {
-        val playerAction = aiPlayer.play(this)
 
-        if (playerAction.actionType == PlayerActionType.PLAY) {
-            // Check if combination is null; if so, log a fatal error.
-            if (playerAction.combination == null) {
-                TRACE(FATAL) { "Combination cannot be null when actionType is PLAY for ${aiPlayer.name}" }
-            } else {
-                TRACE(DEBUG) { "${aiPlayer.name} is playing: ${playerAction.combination} and is keeping: ${playerAction.cardToKeep}" }
-                // The non-null assertion (!!) is now safe because TRACE(FATAL) will throw if combination is null.
-                playCombination(playerAction.combination!!.cards, playerAction.cardToKeep)
-
-            }
-
-        } else {
-            TRACE(INFO) { "${aiPlayer.name} has no move !" }
-            skipTurn()
-        }
-    }
 
     override fun isValidMove(selectedCards: List<Card>): Boolean {
         val currentCombination = gameState.value.currentCombinationOnMat
@@ -325,48 +322,52 @@ object GameManager : IGameManager {
         )
     }
 
-    private fun dispatchEvent(event: GameEvent) {
-        /*
-            We protect dispatchEvent against reeentrance, this will not make our application 100% save because UI components aren't all using dispatchevent
-            but at least external event (network, timer, other system stuff will
-         */
+    private fun dispatchEvent(initialEvent: GameEvent) {
+        val eventQueue = ArrayDeque<GameEvent>()
+        eventQueue.add(initialEvent)
+
+        // Guard against external concurrency
         if (!isDispatching.compareAndSet(false, true)) {
             TRACE(FATAL) { "RE-ENTRANCE detected in dispatchEvent!" }
         }
         try {
+            while (eventQueue.isNotEmpty()) {
+                val event = eventQueue.removeFirst()
+                val currentState = gameState.value
+                val result = gameReducer(currentState, event)
+                updateGameState(
+                    players = result.newState.players,
+                    deck = result.newState.deck,
+                    discardPile = result.newState.discardPile,
+                    startingPlayerIndex = result.newState.startingPlayerIndex,
+                    currentPlayerIndex = result.newState.currentPlayerIndex,
+                    currentCombinationOnMat = result.newState.currentCombinationOnMat,
+                    skipCount = result.newState.skipCount,
+                    turnInfo = result.newState.turnInfo,
+                    playerId = result.newState.playerId,
+                    pointLimit = result.newState.pointLimit,
+                    soundOn = result.newState.soundOn,
+                    gameEvent = result.newState.gameEvent,
+                    turnId = result.newState.turnId,
+                    doNotAutoPlayAI = result.newState.doNotAutoPlayAI
+                )
 
-            val currentState = gameState.value
-            val result = gameReducer(currentState, event)
-            updateGameState(
-                players = result.newState.players,
-                deck = result.newState.deck,
-                discardPile = result.newState.discardPile,
-                startingPlayerIndex = result.newState.startingPlayerIndex,
-                currentPlayerIndex = result.newState.currentPlayerIndex,
-                currentCombinationOnMat = result.newState.currentCombinationOnMat,
-                skipCount = result.newState.skipCount,
-                turnInfo = result.newState.turnInfo,
-                playerId = result.newState.playerId,
-                pointLimit = result.newState.pointLimit,
-                soundOn = result.newState.soundOn,
-                gameEvent = result.newState.gameEvent,
-                turnId = result.newState.turnId,
-                doNotAutoPlayAI = result.newState.doNotAutoPlayAI
-            )
-
-            result.sideEffects.forEach { effect ->
-                when (effect) {
-                    is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId)
-                    is GameSideEffect.ShowDialog -> setDialogEvent(effect.dialog)
+                result.sideEffects.forEach { effect ->
+                    when (effect) {
+                        is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId)
+                        is GameSideEffect.ShowDialog -> setDialogEvent(effect.dialog)
+                        is GameSideEffect.GetAIMove -> getAIMove()
+                    }
                 }
+
+                // for followUpEvents, add them to the queue
+                result.followUpEvents.forEach { followUp -> eventQueue.addLast(followUp) }
             }
-
-            result.followUpEvents.forEach { followUp -> dispatchEvent(followUp) }
-
-        }  finally {
+        } finally {
             isDispatching.set(false)
         }
     }
+
 }
 
 // Internal helper function to expose GameManager as IGameManager within the module.
