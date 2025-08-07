@@ -64,6 +64,7 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
     val currentPlayer = clearedPlayers[newStartingPlayerIndex]
 
     val turnInfo = TurnInfo()
+    val sideEffects = mutableListOf<GameSideEffect>()
 
     // Rebuild the state with updated values.
     var newState = state.copy(
@@ -82,7 +83,17 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
     newState = dealCards(newState)
     TRACE(VERBOSE) { "New round started: $newState" }
 
-    return ReducerResult(newState = newState)
+    // Is the current player an AI and autoPLauy is enabled we shall start the AI timer.
+
+    if (currentPlayer.playerType == PlayerType.AI && !newState.doNotAutoPlayAI) {
+        TRACE(DEBUG) { "New Round, first player is AI: ${currentPlayer.name}" }
+        sideEffects += GameSideEffect.StartAITimer(newState.turnId)
+    }
+    else {
+        TRACE(DEBUG) { "New Round, first  player is human: ${currentPlayer.name}" }
+    }
+
+    return ReducerResult(newState = newState,sideEffects = sideEffects)
 }
 
 private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardToKeep: Card?) : ReducerResult
