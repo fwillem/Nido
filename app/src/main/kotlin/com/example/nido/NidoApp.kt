@@ -19,7 +19,7 @@ import java.util.UUID
 fun NidoApp(
     viewModel: GameViewModel,
     modifier: Modifier = Modifier,
-    initialRoute: String = AppScreen.Routes.SPLASH // Ajout du paramètre
+    initialRoute: String = AppScreen.Routes.SPLASH // We may want to enter the app in a specific screen
 ) {
     val gameManager = LocalGameManager.current
 
@@ -65,7 +65,6 @@ fun NidoApp(
                     if (newLang != previousLang && activity != null) {
                         com.example.nido.utils.LocaleUtils.saveLanguage(activity, newLang)
                         com.example.nido.utils.LocaleUtils.setAppLocaleAndRestart(activity, newLang)
-                        // Le restart remonte la pile, donc on ne change PAS la route ici
                     } else {
                         currentRoute = AppScreen.Routes.LANDING
                     }

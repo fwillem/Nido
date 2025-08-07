@@ -18,7 +18,17 @@ import com.example.nido.events.AppEvent
 import kotlin.Int
 import com.example.nido.game.events.GameEvent
 import com.example.nido.utils.Debug
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.atomic.AtomicBoolean
+
+private val isDispatching = AtomicBoolean(false)
 
 
 object GameManager : IGameManager {
@@ -211,7 +221,12 @@ object GameManager : IGameManager {
         }
     }
 
-
+    private fun launchAITimer(turnId: Int) {
+        GlobalScope.launch {
+            delay(Constants.AI_THINKING_DURATION_MS)
+            dispatchEvent(GameEvent.AITimerExpired(turnId))
+        }
+    }
 /*
     override fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
         val currentGameState = gameState.value
@@ -311,31 +326,45 @@ object GameManager : IGameManager {
     }
 
     private fun dispatchEvent(event: GameEvent) {
-        val currentState = gameState.value
-        val result = gameReducer(currentState, event)
-        updateGameState(
-            players = result.newState.players,
-            deck = result.newState.deck,
-            discardPile = result.newState.discardPile,
-            startingPlayerIndex = result.newState.startingPlayerIndex,
-            currentPlayerIndex = result.newState.currentPlayerIndex,
-            currentCombinationOnMat = result.newState.currentCombinationOnMat,
-            skipCount = result.newState.skipCount,
-            turnInfo = result.newState.turnInfo,
-            playerId = result.newState.playerId,
-            pointLimit = result.newState.pointLimit,
-            soundOn = result.newState.soundOn,
-            gameEvent = result.newState.gameEvent,
-            turnId = result.newState.turnId,
-            doNotAutoPlayAI = result.newState.doNotAutoPlayAI
-        )
-        result.followUpEvents.forEach { followUp ->
-            when (followUp) {
-                is GameEvent.ShowDialog -> {
-                    setDialogEvent(followUp.dialogEvent)
+        /*
+            We protect dispatchEvent against reeentrance, this will not make our application 100% save because UI components aren't all using dispatchevent
+            but at least external event (network, timer, other system stuff will
+         */
+        if (!isDispatching.compareAndSet(false, true)) {
+            TRACE(FATAL) { "RE-ENTRANCE detected in dispatchEvent!" }
+        }
+        try {
+
+            val currentState = gameState.value
+            val result = gameReducer(currentState, event)
+            updateGameState(
+                players = result.newState.players,
+                deck = result.newState.deck,
+                discardPile = result.newState.discardPile,
+                startingPlayerIndex = result.newState.startingPlayerIndex,
+                currentPlayerIndex = result.newState.currentPlayerIndex,
+                currentCombinationOnMat = result.newState.currentCombinationOnMat,
+                skipCount = result.newState.skipCount,
+                turnInfo = result.newState.turnInfo,
+                playerId = result.newState.playerId,
+                pointLimit = result.newState.pointLimit,
+                soundOn = result.newState.soundOn,
+                gameEvent = result.newState.gameEvent,
+                turnId = result.newState.turnId,
+                doNotAutoPlayAI = result.newState.doNotAutoPlayAI
+            )
+
+            result.sideEffects.forEach { effect ->
+                when (effect) {
+                    is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId)
+                    is GameSideEffect.ShowDialog -> setDialogEvent(effect.dialog)
                 }
-                else -> dispatchEvent(followUp)
             }
+
+            result.followUpEvents.forEach { followUp -> dispatchEvent(followUp) }
+
+        }  finally {
+            isDispatching.set(false)
         }
     }
 }

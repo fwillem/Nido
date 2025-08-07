@@ -26,22 +26,20 @@ import com.example.nido.utils.TraceLogLevel.*
 
 class MainActivity : ComponentActivity() {
 
-    // ATTENTION : ne rien lire/écrire dans DataStore ici pour la langue !
+
     override fun attachBaseContext(newBase: Context) {
         val lang = com.example.nido.utils.LocaleUtils.getSavedLanguage(newBase) ?: com.example.nido.utils.AppLanguage.ENGLISH.code
-        TRACE(VERBOSE) { "BOOOO LocaleDebug attachBaseContext read lang=$lang" }
 
-        android.util.Log.d("BOOOO LocaleDebug", "attachBaseContext read lang=$lang")
         val context = com.example.nido.utils.LocaleUtils.setLocale(newBase, lang)
         super.attachBaseContext(context)
     }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // NE PAS faire de setLocale ici : déjà fait via attachBaseContext !
+        // We do not set the locale here, as it is already set in attachBaseContext
         super.onCreate(savedInstanceState)
 
-        // Setup système d'affichage et de navigation
+        // Setup Game Mode (i.e. full screen, no system bars)
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
@@ -49,7 +47,7 @@ class MainActivity : ComponentActivity() {
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
 
-        // Récupère si besoin le paramètre pour forcer la LandingScreen
+        // In case of restart, we may want to jump directly to the landing page
         val forceLanding = intent.getBooleanExtra("force_landing", false)
 
         setContent {
@@ -58,19 +56,10 @@ class MainActivity : ComponentActivity() {
                 val gameManager: IGameManager = getGameManagerInstance()
                 gameManager.initialize(viewModel)
 
-                TRACE(VERBOSE) {"HUGEBUG ORIGIN ViewModel Number of Players ${viewModel.gameState.value.players.size}"}
-                TRACE(VERBOSE) {"HUGEBUG ORIGIN gameManager Number of Players ${gameManager.gameState.value.players.size}"}
-                TRACE(VERBOSE) { "HUGEBUG ORIGIN ViewModel gameState ref: ${System.identityHashCode(viewModel.gameState.value)}" }
-                TRACE(VERBOSE) { "HUGEBUG ORIGIN GameManager gameState ref: ${System.identityHashCode(gameManager.gameState.value)}" }
-
                 CompositionLocalProvider(LocalGameManager provides gameManager) {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         var initialRoute = AppScreen.Routes.SPLASH
-                       // if (forceLanding) initialRoute = AppScreen.Routes.LANDING
-
-
-                        TRACE(VERBOSE) { "HUGEBUG ViewModel gameState ref: ${System.identityHashCode(viewModel.gameState.value)}, ${viewModel.gameState.value.players.size}" }
-                        TRACE(VERBOSE) { "HUGEBUG GameManager gameState ref: ${System.identityHashCode(gameManager.gameState.value)}, ${gameManager.gameState.value.players.size}" }
+                        if (forceLanding) initialRoute = AppScreen.Routes.LANDING
 
 
                         NidoApp(
