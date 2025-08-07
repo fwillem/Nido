@@ -196,9 +196,9 @@ fun <T> List<T>.combinations(k: Int): List<List<T>> {
 fun calculateTurnInfo(gameState: GameState): TurnInfo {
     val currentPlayer = gameState.players[gameState.currentPlayerIndex]
     val isLocal = currentPlayer.playerType == PlayerType.LOCAL
+    val isAI = currentPlayer.playerType == PlayerType.AI
+    val isRemote = currentPlayer.playerType == PlayerType.REMOTE
 
-    // 🔒 Remote/AI players never show buttons or actions
-    if (!isLocal) return TurnInfo() // All flags = false
 
     val handCards = currentPlayer.hand.cards
     val selectedCards = handCards.filter { it.isSelected }
@@ -275,14 +275,28 @@ fun calculateTurnInfo(gameState: GameState): TurnInfo {
         }
     }
 
+    // SHow Manual AI Play button if manual mode selected
+    val displayManualAIPlay = isAI && gameState.doNotAutoPlayAI
+
+    // Placeholder to remote player notification
+    val displayNotifyRemotePlayer = isRemote //
+
+    TRACE(VERBOSE) {
+        "!!!! displayManualAIPlay = $displayManualAIPlay,(currentPlayer.playerType = ${currentPlayer.playerType}), " +
+                "gameState.doNotAutoPlayAI = ${gameState.doNotAutoPlayAI}"
+    }
+
+
     // ✅ Return the final TurnInfo
     return TurnInfo(
         canSkip = canSkip,
         canGoAllIn = canGoAllIn,
-        displayPlay = displayPlay,
-        displaySkip = displaySkip,
-        displaySkipCounter = displaySkipCounter,
-        displayRemove = displayRemove
+        displayPlay = displayPlay && isLocal,
+        displaySkip = displaySkip && isLocal,
+        displaySkipCounter = displaySkipCounter && isLocal,
+        displayRemove = displayRemove && isLocal,
+        displayManualAIPlay = displayManualAIPlay,
+        displayNotifyRemotePlayer = displayNotifyRemotePlayer
     )
 }
 

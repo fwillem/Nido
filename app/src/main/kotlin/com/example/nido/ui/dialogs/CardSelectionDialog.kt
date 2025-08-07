@@ -16,14 +16,14 @@ import androidx.compose.ui.tooling.preview.Preview // 🚀 Import Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.R
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.CardColor
 import com.example.nido.ui.theme.NidoColors
 
 
 @Composable
-fun CardSelectionDialog(event: AppEvent.GameEvent.CardSelection) { // 🚀 Extracted CardSelection dialog
+fun CardSelectionDialog(event: DialogEvent.CardSelection) { // 🚀 Extracted CardSelection dialog
     AlertDialog(
         onDismissRequest = { event.onCancel() },
         title = {
@@ -71,7 +71,7 @@ fun CardSelectionDialog(event: AppEvent.GameEvent.CardSelection) { // 🚀 Extra
 }
 
 // 🚀 Helper function to create a sample CardSelection event with varying card setups.
-private fun sampleCardSelectionEvent(numCards: Int): AppEvent.GameEvent.CardSelection {
+private fun sampleCardSelectionEvent(numCards: Int): DialogEvent.CardSelection {
     val cards = when (numCards) {
         1 -> listOf(
             // 1 card: 1 red card with value 2
@@ -138,7 +138,7 @@ private fun sampleCardSelectionEvent(numCards: Int): AppEvent.GameEvent.CardSele
         )
         else -> emptyList()
     }
-    return AppEvent.GameEvent.CardSelection(
+    return DialogEvent.CardSelection(
         candidateCards = cards,
         selectedCards = emptyList(),
         onConfirm = {},

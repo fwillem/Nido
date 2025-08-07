@@ -6,12 +6,11 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.utils.Constants
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
 
 data class GameState(
     val playerId: String = "",
     val turnInfo: TurnInfo = TurnInfo(),
-    val turnPhase: TurnPhase = TurnPhase.Idle,
     val doNotAutoPlayAI: Boolean = false,
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     val players: List<Player> = emptyList(),
@@ -22,7 +21,7 @@ data class GameState(
     val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
     val skipCount: Int = 0, // New property to track consecutive skips.
     val soundOn: Boolean = true,
-    val gameEvent: AppEvent? = null,
+    val dialogEvent: DialogEvent? = null,
     val turnId: Int = 0 // increments on every turn/replay. Allow to trigger launcheffect for automatic AI playing
 
 ) {
@@ -31,7 +30,6 @@ data class GameState(
             🔍 GameState Debug Info:
             💠 Player ID: $playerId
             💠 Turn Info: $turnInfo
-            💠 Turn Phase: $turnPhase
             💠 Do Not Auto Play AI: $doNotAutoPlayAI
             💠 Point Limit: $pointLimit
             💠 Nb of players: ${players.size}
@@ -42,7 +40,7 @@ data class GameState(
             💠 Discard Pile: ${discardPile.joinToString(", ") { it.toString() }}
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
             💠 Sound On: $soundOn
-            💠 Game Event: $gameEvent
+            💠 Game Event: $dialogEvent
             💠 Turn ID : $turnId
 
         """.trimIndent()
@@ -53,7 +51,6 @@ data class GameState(
 
             playerId = this.playerId,
             turnInfo = this.turnInfo.copy(),
-            turnPhase = this.turnPhase,
             doNotAutoPlayAI = this.doNotAutoPlayAI,
             pointLimit = this.pointLimit,
             players = this.players.map { it.copy() }, // Deep copy players
@@ -64,7 +61,7 @@ data class GameState(
             deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
             skipCount = this.skipCount,
             soundOn = this.soundOn,
-            gameEvent = this.gameEvent,
+            dialogEvent = this.dialogEvent,
             turnId = this.turnId
         )
     }

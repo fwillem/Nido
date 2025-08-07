@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.preview.NidoPreview
@@ -24,7 +24,7 @@ import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 
 @Composable
-fun GameOverDialog(event: AppEvent.GameEvent.GameOver, onExit : () -> Unit) {
+fun GameOverDialog(event: DialogEvent.GameOver, onExit : () -> Unit) {
     val gameManager = LocalGameManager.current
 
     AlertDialog(
@@ -67,7 +67,7 @@ fun PreviewGameOverDialog() {
 
         CompositionLocalProvider(LocalGameManager provides fakeGameManager) {
             GameOverDialog(
-                event = AppEvent.GameEvent.GameOver(
+                event = DialogEvent.GameOver(
                     playerRankings = fakeGameManager.getPlayerRankings()
                 ),
                 onExit = {  }

@@ -8,8 +8,10 @@ data class TurnInfo(
     val displayPlay: Boolean = false,           // tells if play button should be displayed
     val displaySkipCounter: Boolean = false,    // tells if the skip button with counter should be displayed
     val displayRemove: Boolean = false,          // tells if the Remove button needs to be displayed
-    val debugDisplayAIsHands: Boolean = false,  // tells if the AI's hands should be displayed (debug mode value)
-    val debugAIDontAutoPlayer: Boolean = false,   // When set to true , AIs plays don't automatically (when timer expires),  a play button shall be displayed for the user to trigger AI play
+    val displayNotifyRemotePlayer: Boolean = false, // tells if the remote player button notifyRemotePlayer: Boolean = false,    // tells if the remote player button
 
+    // DEBUG ONLY
+    val debugDisplayAIsHands: Boolean = false,  // tells if the AI's hands should be displayed (debug mode value)
+    val displayManualAIPlay: Boolean = false, // Show "Play AI" button (manual mode)
 )
 

@@ -30,4 +30,6 @@
     <string name="sort_mode">Sort Mode: %1$s</string>
     <string name="quit">Quit</string>
     <string name="locale_marker">toto</string>
+    <string name="playai">PlayAI</string>
+    <string name="ping">Ping</string>
 </resources>

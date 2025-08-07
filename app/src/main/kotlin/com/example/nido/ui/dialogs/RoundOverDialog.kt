@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview // 🚀 Added Preview import
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
 import com.example.nido.data.model.Player
 import com.example.nido.data.model.Hand
 import com.example.nido.data.model.PlayerType
@@ -31,7 +31,7 @@ import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.preview.NidoPreview
 
 @Composable
-fun RoundOverDialog(event: AppEvent.GameEvent.RoundOver, onExit: () -> Unit) { // 🚀 Updated to use playersHandScore as List<Pair<Player, Int>>
+fun RoundOverDialog(event: DialogEvent.RoundOver, onExit: () -> Unit) { // 🚀 Updated to use playersHandScore as List<Pair<Player, Int>>
     val gameManager = LocalGameManager.current
 
     AlertDialog(
@@ -97,7 +97,7 @@ private val dummyAIPlayer2 = AIPlayer(
 fun PreviewRoundOverDialog() {
     val fakeGameManager = FakeGameManager()
 
-    val dummyEvent = AppEvent.GameEvent.RoundOver(
+    val dummyEvent = DialogEvent.RoundOver(
         winner = fakeGameManager.gameState.value.players.first(), // ✅ Use FakeGameManager player
         playersHandScore = fakeGameManager.getPlayerHandScores()  // ✅ Use FakeGameManager data
     )

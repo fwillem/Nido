@@ -16,7 +16,7 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Hand
 import com.example.nido.data.model.PlayerType
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.game.GameState
 import com.example.nido.game.LocalPlayer
@@ -89,7 +89,7 @@ fun MainScreen(
         mapOf(
             stringResource(R.string.sort_mode, sortMode.name) to { toggleSortMode() },
             stringResource(R.string.quit) to {
-                gameManager.setDialogEvent(AppEvent.GameEvent.QuitGame)
+                gameManager.setDialogEvent(DialogEvent.QuitGame)
             },
         )
 
@@ -209,18 +209,17 @@ fun MainScreen(
     }
 
     // ── Centralized Dialog Observer ──
-    if (gameState.gameEvent != null) {
-        when (val event = gameState.gameEvent) {
-            is AppEvent.GameEvent.CardSelection -> CardSelectionDialog(event = event)
-            is AppEvent.GameEvent.RoundOver -> RoundOverDialog(
+    if (gameState.dialogEvent != null) {
+        when (val event = gameState.dialogEvent) {
+            is DialogEvent.CardSelection -> CardSelectionDialog(event = event)
+            is DialogEvent.RoundOver -> RoundOverDialog(
                 event = event,
                 onExit = { gameManager.startNewRound() })
 
-            is AppEvent.GameEvent.GameOver -> GameOverDialog(event = event, onExit = onEndGame)
-            is AppEvent.PlayerEvent.PlayerLeft -> PlayerLeftDialog(event = event)
-            is AppEvent.PlayerEvent.ChatMessage -> ChatMessageDialog(event = event)
-            is AppEvent.GameEvent.QuitGame -> QuitGameDialog(onConfirm = onQuitGame, onCancel = {})
-            else -> TRACE(FATAL) { "Unknown event type: ${gameState.gameEvent}" }
+            is DialogEvent.GameOver -> GameOverDialog(event = event, onExit = onEndGame)
+
+            is DialogEvent.QuitGame -> QuitGameDialog(onConfirm = onQuitGame, onCancel = {})
+            else -> TRACE(FATAL) { "Unknown event type: ${gameState.dialogEvent}" }
         }
     }
 
@@ -363,7 +362,7 @@ fun PreviewMainScreen() {
         deck = dummyDeck,
         skipCount = 0,
         soundOn = true,
-        gameEvent = null,
+        dialogEvent = null,
         turnId = 1
     )
 
