@@ -10,11 +10,12 @@ sealed class GameEvent() {
         val cardKept: Card? = null
     ) : GameEvent()
     object PlayerSkipped : GameEvent()
-    data class ShowDialog(val dialogEvent: AppEvent.GameEvent) : GameEvent()
 
     object NextTurn : GameEvent()
     object RoundOver : GameEvent()
     object GameOver : GameEvent()
+    data class AITimerExpired(val turnId: Int) : GameEvent()
+    object PlayAIMove : GameEvent()
 
     // Add additional events as needed.
 }

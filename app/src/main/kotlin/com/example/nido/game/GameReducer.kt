@@ -20,7 +20,8 @@ import com.example.nido.data.model.PlayerType
 
 data class ReducerResult(
     val newState: GameState,
-    val followUpEvents: List<GameEvent> = emptyList()
+    val followUpEvents: List<GameEvent> = emptyList(),
+    val sideEffects: List<GameSideEffect> = emptyList()
 )
 
 fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
@@ -37,10 +38,18 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
             // No-op for now; reserved for future use.
             ReducerResult(state)
         }
-        is GameEvent.ShowDialog -> {
-            // No state change for UI events.
+        is GameEvent.AITimerExpired -> handleAITimerExpired(state, event.turnId)
+        is GameEvent.PlayAIMove -> {
+            // This event is handled by the AI logic, not here.
+            // It will be triggered by the AITimerExpired event.
             ReducerResult(state)
         }
+        else -> {
+            TRACE(FATAL) { "Unhandled event: $event" }
+            ReducerResult(state) // Return the current state if no valid event is matched.
+        }
+
+
     }
 }
 private fun handleNewRoundStarted(state: GameState) : ReducerResult {
@@ -113,6 +122,8 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
             }
 
             val followUpEvents = mutableListOf<GameEvent>()
+            val sideEffects = mutableListOf<GameSideEffect>()
+
             var newState = state
 
             // We need to figure out here if the player won
@@ -139,18 +150,24 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                             playerRankings = GameRules.getPlayerRankings(updatedPlayers)
                         )
                     )
+                    sideEffects += GameSideEffect.ShowDialog(
+                        AppEvent.GameEvent.GameOver(
+                            playerRankings = GameRules.getPlayerRankings(updatedPlayers)
+                        )
+                    )
+
+
                     followUpEvents += GameEvent.GameOver
 
                 } else {
                     TRACE(INFO) { "SetDialogEvent RoundOver" }
 
-                    followUpEvents += GameEvent.ShowDialog(
+                    sideEffects += GameSideEffect.ShowDialog(
                         AppEvent.GameEvent.RoundOver(
                             winner = player,
                             playersHandScore = GameRules.getPlayerHandScores(updatedPlayers)
                         )
                     )
-
                 }
                 // Update newState with updated players (and any round/game state if needed)
                 newState = state.copy(players = updatedPlayers)
@@ -186,7 +203,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
             }
 
     // 🟢 Return the resul. I cannot return updat with new state and follow-up events
-    return ReducerResult(newState, followUpEvents)
+    return ReducerResult(newState, followUpEvents, sideEffects)
 }
 
 
@@ -282,4 +299,23 @@ private fun handleNextTurn(gameState: GameState): ReducerResult {
 
     // 🟢 Copy turnPhase into the new state
     return ReducerResult(newState.copy(turnPhase = newTurnPhase))
+}
+
+private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
+    // Check if the turnId matches the current
+
+    if (state.turnId == turnId &&
+        state.turnPhase is TurnPhase.WaitingForAI &&
+        (state.turnPhase as TurnPhase.WaitingForAI).isAutomatic) {
+
+        // 2. On génère l'action pour faire jouer l'IA (peut être un GameEvent, ou un effet, selon ta logique)
+        // Ex : on peut ajouter un GameEvent "PlayAIMove" dans followUpEvents
+        return ReducerResult(
+            newState = state,
+            followUpEvents = listOf(GameEvent.PlayAIMove) // ou ton event métier pour l'IA
+        )
+    }
+
+
+    return ReducerResult(state)
 }

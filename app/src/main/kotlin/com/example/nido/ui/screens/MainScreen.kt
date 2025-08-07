@@ -224,6 +224,8 @@ fun MainScreen(
         }
     }
 
+    /***
+     * To Be REMOVED
     LaunchedEffect(gameState.turnId) {
         if (currentPlayer.playerType == PlayerType.AI) {
             TRACE(VERBOSE) { "AI will play in ${AI_THINKING_DURATION_MS / 1000} seconds..." }
@@ -231,6 +233,7 @@ fun MainScreen(
             gameManager.processAIMove()
         }
     }
+     */
 }
 
 // --- PREVIEW STUB VIEWMODEL ---
