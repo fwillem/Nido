@@ -4,7 +4,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.mutableStateListOf
 import com.example.nido.data.model.*
 import com.example.nido.game.rules.GameRules
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.utils.Debug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -105,7 +105,7 @@ class FakeGameManager : IGameManager {
     }
 
 
-    override fun setDialogEvent(event: AppEvent) {
+    override fun setDialogEvent(event: DialogEvent) {
         // Simulate setting an event
     }
 

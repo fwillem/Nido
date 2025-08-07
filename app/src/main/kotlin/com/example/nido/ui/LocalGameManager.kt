@@ -6,7 +6,7 @@ import com.example.nido.game.getGameManagerInstance
 import com.example.nido.game.GameViewModel
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Player
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
 import com.example.nido.data.model.Hand
 import com.example.nido.utils.Debug
 
@@ -24,7 +24,7 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
             getGameManagerInstance().playCombination(selectedCards, cardToKeep)
         override fun getAIMove() = getGameManagerInstance().getAIMove()
         override fun processSkip() = getGameManagerInstance().processSkip()
-        override fun setDialogEvent(event: AppEvent) = getGameManagerInstance().setDialogEvent(event)
+        override fun setDialogEvent(event: DialogEvent) = getGameManagerInstance().setDialogEvent(event)
         override fun clearDialogEvent() = getGameManagerInstance().clearDialogEvent()
         override fun isGameOver() = getGameManagerInstance().isGameOver()
         override fun getGameWinners() = getGameManagerInstance().getGameWinners()

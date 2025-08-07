@@ -1,7 +1,6 @@
-package com.example.nido.game.events
+package com.example.nido.game
 
 import com.example.nido.data.model.Card
-import com.example.nido.events.AppEvent
 sealed class GameEvent() {
     object NewRoundStarted : GameEvent()
     data class CardPlayed(

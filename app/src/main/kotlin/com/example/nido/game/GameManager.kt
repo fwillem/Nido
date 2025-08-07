@@ -1,31 +1,23 @@
 package com.example.nido.game
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.data.model.PlayerType
-import com.example.nido.data.repository.DeckRepository
 import com.example.nido.game.rules.GameRules
 import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.data.model.PlayerActionType
 import com.example.nido.data.model.Hand
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
+import com.example.nido.game.engine.GameEventDispatcher
 import kotlin.Int
-import com.example.nido.game.events.GameEvent
-import com.example.nido.utils.Debug
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicBoolean
 
 private val isDispatching = AtomicBoolean(false)
@@ -79,7 +71,7 @@ object GameManager : IGameManager {
      */
     override fun startNewRound() {
         TRACE(DEBUG) { "startNewRound()" }
-        dispatchEvent(GameEvent.NewRoundStarted)
+        dispatcher.enqueueEvent(GameEvent.NewRoundStarted)
     }
 
 
@@ -88,7 +80,7 @@ object GameManager : IGameManager {
 
     override fun skipTurn() {
         TRACE(DEBUG) { "skipTurn()" }
-        dispatchEvent(GameEvent.PlayerSkipped)
+        dispatcher.enqueueEvent(GameEvent.PlayerSkipped)
     }
 
     /**
@@ -116,7 +108,7 @@ object GameManager : IGameManager {
             cardKept = cardToKeep,
         )
 
-        dispatchEvent(event)
+        dispatcher.enqueueEvent(event)
     }
 
 
@@ -221,7 +213,7 @@ object GameManager : IGameManager {
     private fun launchAITimer(turnId: Int) {
         GlobalScope.launch {
             delay(Constants.AI_THINKING_DURATION_MS)
-            dispatchEvent(GameEvent.AITimerExpired(turnId))
+            dispatcher.enqueueEvent(GameEvent.AITimerExpired(turnId))
         }
     }
 /*
@@ -262,11 +254,11 @@ object GameManager : IGameManager {
 
  */
 
-    override fun setDialogEvent(event: AppEvent) {
-        updateGameState(gameEvent = event)
+    override fun setDialogEvent(event: DialogEvent) {
+        updateGameState(dialogEvent = event)
     }
     override fun clearDialogEvent() {
-        updateGameState(gameEvent = null)
+        updateGameState(dialogEvent = null)
     }
 
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
@@ -287,7 +279,25 @@ object GameManager : IGameManager {
         return currentPlayer.hand.cards.all { it.isSelected }
     }
 
-    // Permet de mettre à jour l'état du jeu depuis le ViewModel ou d'autres parties de l'app
+    /**
+     * Updates the entire game state with a new GameState object.
+     *
+     * ⚠️ This should be the ONLY method used by reducers and event-loop code.
+     * Use this for atomic, consistent updates after reducer/event logic.
+     */
+    fun updateGameState(newState: GameState) {
+        _gameState.value = newState
+    }
+
+    /**
+     * Updates the game state with individual properties (partial update).
+     *
+     * Intended for use by UI components, dialogs, or code that needs to modify only
+     * a specific part of the state (e.g. selected cards, dialog events).
+     *
+     * 🚫 Do NOT use this from reducer/event-loop logic, as it may cause bugs if
+     * fields are omitted.
+     */
     fun updateGameState(
         players: List<Player> = gameState.value.players,
         deck: androidx.compose.runtime.snapshots.SnapshotStateList<Card> = gameState.value.deck,
@@ -300,7 +310,7 @@ object GameManager : IGameManager {
         playerId: String = gameState.value.playerId,
         pointLimit: Int = gameState.value.pointLimit,
         soundOn: Boolean = gameState.value.soundOn,
-        gameEvent: AppEvent? = gameState.value.gameEvent,
+        dialogEvent: DialogEvent? = gameState.value.dialogEvent,
         turnId: Int = gameState.value.turnId,
         doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI
     ) {
@@ -316,12 +326,30 @@ object GameManager : IGameManager {
             playerId = playerId,
             pointLimit = pointLimit,
             soundOn = soundOn,
-            gameEvent = gameEvent,
+            dialogEvent = dialogEvent,
             turnId = turnId,
             doNotAutoPlayAI = doNotAutoPlayAI
         )
     }
 
+    private val dispatcher = GameEventDispatcher(
+        getState = { gameState.value },
+        updateState = { updateGameState(it) },
+        handleSideEffect = ::handleSideEffect,
+        reducer = ::gameReducer
+    )
+
+    private fun handleSideEffect(effect: GameSideEffect) {
+        when (effect) {
+            is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId)
+            is GameSideEffect.ShowDialog -> setDialogEvent(effect.dialog)
+            is GameSideEffect.GetAIMove -> getAIMove()
+        }
+    }
+    /*
+        TODO TO REMOVE
+     */
+    /*
     private fun dispatchEvent(initialEvent: GameEvent) {
         val eventQueue = ArrayDeque<GameEvent>()
         eventQueue.add(initialEvent)
@@ -335,22 +363,8 @@ object GameManager : IGameManager {
                 val event = eventQueue.removeFirst()
                 val currentState = gameState.value
                 val result = gameReducer(currentState, event)
-                updateGameState(
-                    players = result.newState.players,
-                    deck = result.newState.deck,
-                    discardPile = result.newState.discardPile,
-                    startingPlayerIndex = result.newState.startingPlayerIndex,
-                    currentPlayerIndex = result.newState.currentPlayerIndex,
-                    currentCombinationOnMat = result.newState.currentCombinationOnMat,
-                    skipCount = result.newState.skipCount,
-                    turnInfo = result.newState.turnInfo,
-                    playerId = result.newState.playerId,
-                    pointLimit = result.newState.pointLimit,
-                    soundOn = result.newState.soundOn,
-                    gameEvent = result.newState.gameEvent,
-                    turnId = result.newState.turnId,
-                    doNotAutoPlayAI = result.newState.doNotAutoPlayAI
-                )
+
+                updateGameState(result.newState)
 
                 result.sideEffects.forEach { effect ->
                     when (effect) {
@@ -367,6 +381,8 @@ object GameManager : IGameManager {
             isDispatching.set(false)
         }
     }
+
+     */
 
 }
 

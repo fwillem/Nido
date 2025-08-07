@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Card
-import com.example.nido.events.AppEvent
 import com.example.nido.game.TurnInfo
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.theme.NidoColors
@@ -24,6 +23,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
 import com.example.nido.R
+import com.example.nido.events.DialogEvent
 
 @Composable
 fun TurnActionButtons(
@@ -63,6 +63,16 @@ fun TurnActionButtons(
                 selectedCards = selectedCards,
                 onWithdrawCards = onWithdrawCards
             )
+        }
+
+       // AIPlayButton()
+        if (turnInfo.displayManualAIPlay) {
+            AIPlayButton()
+        }
+
+        // Remote Ping Button
+        if (turnInfo.displayNotifyRemotePlayer) {
+            NotifyRemotePlayerButton()
         }
     }
 }
@@ -137,7 +147,7 @@ private fun PlayButton(
                         selectedCards.forEach { it.isSelected = false }
                     } else {
                         gameManager.setDialogEvent(
-                            AppEvent.GameEvent.CardSelection(
+                            DialogEvent.CardSelection(
                                 candidateCards = candidateCards,
                                 selectedCards = selectedCards,
                                 onConfirm = { chosenCard ->
@@ -181,5 +191,40 @@ private fun RemoveButton(
         modifier = Modifier.padding(start = 8.dp)
     ) {
         Text(stringResource(R.string.remove), fontSize = 16.sp)
+    }
+}
+
+@Composable
+private fun AIPlayButton() {
+    val gameManager = LocalGameManager.current
+
+    Button(
+        onClick = {
+            gameManager.getAIMove()
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = NidoColors.PlayMatButtonBackground.copy(alpha = 0.8f),
+            contentColor = Color.White
+        ),
+        modifier = Modifier.padding(start = 8.dp)
+    ) {
+        Text(stringResource(R.string.playai), fontSize = 16.sp)
+    }
+}
+
+@Composable
+private fun NotifyRemotePlayerButton() {
+
+    Button(
+        onClick = {
+            // Do Some Network Stuff
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = NidoColors.PlayMatButtonBackground.copy(alpha = 0.8f),
+            contentColor = Color.White
+        ),
+        modifier = Modifier.padding(start = 8.dp)
+    ) {
+        Text(stringResource(R.string.ping), fontSize = 16.sp)
     }
 }

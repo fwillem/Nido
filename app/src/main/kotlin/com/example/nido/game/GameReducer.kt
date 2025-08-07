@@ -3,7 +3,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberUpdatedState
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
-import com.example.nido.game.events.GameEvent
+import com.example.nido.game.GameEvent
 import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.DEBUG
@@ -12,7 +12,7 @@ import com.example.nido.utils.TraceLogLevel.FATAL
 import com.example.nido.utils.TraceLogLevel.INFO
 import com.example.nido.data.model.Hand
 import com.example.nido.data.repository.DeckRepository
-import com.example.nido.events.AppEvent
+import com.example.nido.events.DialogEvent
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.PlayerType
 import com.example.nido.utils.TraceLogLevel
@@ -141,7 +141,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
 
                     // Add a ShowDialog side effect for game over
                     sideEffects += GameSideEffect.ShowDialog(
-                        AppEvent.GameEvent.GameOver(
+                        DialogEvent.GameOver(
                             playerRankings = GameRules.getPlayerRankings(updatedPlayers)
                         )
                     )
@@ -153,7 +153,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                     TRACE(INFO) { "SetDialogEvent RoundOver" }
 
                     sideEffects += GameSideEffect.ShowDialog(
-                        AppEvent.GameEvent.RoundOver(
+                        DialogEvent.RoundOver(
                             winner = player,
                             playersHandScore = GameRules.getPlayerHandScores(updatedPlayers)
                         )
@@ -277,33 +277,19 @@ private fun handleNextTurn(gameState: GameState): ReducerResult {
 
     val nextPlayer = newState.players[nextIndex]
 
-    // 🟢 Set the correct TurnPhase based on player type and doNotAutoPlayAI
-    val newTurnPhase = when (nextPlayer.playerType) {
-        PlayerType.LOCAL -> TurnPhase.WaitingForLocal(nextPlayer.name)
-        PlayerType.AI ->
-        {
-
-
-            if (gameState.doNotAutoPlayAI) {
-                // TODO Here we need to set TurnInfo do display the PlayAI button
-
-            } else {
-                // If AI is not set to auto-play, start the AI timer
-                sideEffects += GameSideEffect.StartAITimer(newState.turnId)
-            }
-
-            TurnPhase.WaitingForAI(
-                name = nextPlayer.name,
-                isAutomatic = !gameState.doNotAutoPlayAI // read flag from GameState!
-            )
+    // if the next player is the AI, we need to either launch a timer or display the Manual Play button
+    if (nextPlayer.playerType == PlayerType.AI) {
+        if (gameState.doNotAutoPlayAI) {
+            // Nothing to do
+        } else {
+            sideEffects += GameSideEffect.StartAITimer(newState.turnId)
         }
-        PlayerType.REMOTE -> TurnPhase.WaitingForRemote(nextPlayer.name)
     }
 
-    TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex), turnPhase set to $newTurnPhase" }
+    TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
 
     // 🟢 Copy turnPhase into the new state
-    return ReducerResult(newState.copy(turnPhase = newTurnPhase), sideEffects = sideEffects    )
+    return ReducerResult(newState, sideEffects = sideEffects    )
 }
 
 private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
@@ -311,15 +297,13 @@ private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
     val sideEffects = mutableListOf<GameSideEffect>()
 
     // Check if the turnId matches the current
-    if (state.turnId == turnId &&
-        state.turnPhase is TurnPhase.WaitingForAI &&
-        (state.turnPhase as TurnPhase.WaitingForAI).isAutomatic) {
+    if (state.turnId == turnId ) {
 
         // Need to get the AI move
         sideEffects += GameSideEffect.GetAIMove
     } else {
         // If the turnId does not match, we ignore this event.
-        TRACE(TraceLogLevel.ERROR) { "AITimerExpired for wrong (not sure real error) turnId $turnId, current turnId is ${state.turnId}" }
+        TRACE(TraceLogLevel.ERROR) { "AITimerExpired for wrong turnId (possible but not necessarily an error): event turnId=$turnId, current turnId=${state.turnId}" }
     }
 
 
