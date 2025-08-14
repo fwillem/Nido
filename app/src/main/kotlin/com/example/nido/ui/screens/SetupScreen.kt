@@ -32,11 +32,14 @@ import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.utils.Constants
 import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
 import com.example.nido.utils.Constants.GAME_MIN_PLAYERS
-import com.example.nido.utils.AppLanguage
 import java.util.UUID
 import com.example.nido.utils.LocaleUtils
 import com.example.nido.utils.Debug
 import androidx.compose.ui.platform.LocalContext
+import com.example.nido.data.model.PlayerType
+import com.example.nido.game.multiplayer.RemotePlayer
+import com.example.nido.utils.LanguagePicker
+import com.example.nido.utils.AppLanguage
 
 
 @Composable
@@ -151,6 +154,7 @@ fun SetupScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+
             // Sélecteur de langue
             var expanded by remember { mutableStateOf(false) }
 
@@ -192,7 +196,27 @@ fun SetupScreen(
                     },
                     enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS
                 ) {
-                    Text(stringResource(R.string.add_player))
+                    Text(stringResource(R.string.add_AI_player))
+                }
+
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
+                            // ID codé en dur pour le POC. Tu changeras ça quand tu feras du vrai réseau.
+                            val remoteId = "REMOTE1"
+                            val name = context.getString(R.string.remote_player)
+                            selectedPlayers = selectedPlayers + RemotePlayer(
+                                id = remoteId,
+                                name = name,
+                                avatar = "🌍"
+                            )
+                        }
+                    },
+                    enabled = selectedPlayers.none { it.playerType == PlayerType.REMOTE } &&
+                            selectedPlayers.size < Constants.GAME_MAX_PLAYERS
+                ) {
+                    Text(stringResource(R.string.add_remote_player))
                 }
 
                 Button(
@@ -210,57 +234,65 @@ fun SetupScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(stringResource(R.string.point_limit, selectedPointLimit))
-            Slider(
-                value = selectedPointLimit.toFloat(),
-                onValueChange = { newValue ->
-                    selectedPointLimit =
-                        validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) }
-                            ?: Constants.GAME_DEFAULT_POINT_LIMIT
-                },
-                valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
-                steps = (validSteps.size - 2)
-            )
+            // Point limit slider
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                    Text(stringResource(R.string.point_limit, selectedPointLimit))
+                    Slider(
+                        value = selectedPointLimit.toFloat(),
+                        onValueChange = { newValue ->
+                            selectedPointLimit =
+                                validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) }
+                                    ?: Constants.GAME_DEFAULT_POINT_LIMIT
+                        },
+                        valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
+                        steps = (validSteps.size - 2)
+                    )
+            }
 
+            // Debug options
             Text(stringResource(R.string.debug_options), style = MaterialTheme.typography.titleMedium)
 
-            Row {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            // Sélecteur de langue
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LanguagePicker(
+                    selectedLanguage = selectedLanguage,
+                    onSelected = { selectedLanguage = it },
+                    modifier = Modifier.weight(1f)
+                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     Checkbox(checked = displayAIsHands, onCheckedChange = { displayAIsHands = it })
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.display_ai_hands))
                 }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
                     Checkbox(checked = aiDontAutoPlay, onCheckedChange = { aiDontAutoPlay = it })
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.disable_ai_autoplay))
                 }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    OutlinedButton(onClick = { expanded = true }) {
-                        val current = languages.find { it.code == selectedLanguage }
-                            ?: languages.firstOrNull() ?: AppLanguage.ENGLISH
-                        Text(current.label)
-                    }
-                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                        languages.forEach { lang ->
-                            DropdownMenuItem(
-                                text = { Text(lang.label) },
-                                onClick = {
-                                    selectedLanguage = lang.code
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
