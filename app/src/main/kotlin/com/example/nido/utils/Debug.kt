@@ -2,20 +2,6 @@ package com.example.nido.utils
 
 import kotlinx.serialization.Serializable
 
-enum class AppLanguage(val code: String, val label: String) {
-    ENGLISH("en", "English"),
-    FRENCH("fr", "Français"),
-    ITALIAN("it", "Italiano"),
-    GERMAN("de", "Deutsch"),
-    PORTUGUESE("pt", "Português"),
-    SPANISH("es", "Español");
-
-    companion object {
-        fun fromCode(code: String): AppLanguage = values().find { it.code == code } ?: ENGLISH
-        fun codes() = values().map { it.code }
-        fun all() = values().toList()
-    }
-}
 
 @Serializable
 data class Debug (

@@ -1,5 +1,11 @@
 package com.example.nido.ui.views
 
+import android.graphics.Color.alpha
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -24,7 +30,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
 import com.example.nido.R
 import com.example.nido.events.DialogEvent
-
+import android.media.MediaPlayer
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.animation.core.*
 @Composable
 fun TurnActionButtons(
     turnInfo: TurnInfo,
@@ -212,11 +222,36 @@ private fun AIPlayButton() {
     }
 }
 
+
 @Composable
 private fun NotifyRemotePlayerButton() {
+    val context = LocalContext.current
+    val mediaPlayer = remember {
+        MediaPlayer.create(context, R.raw.siren).apply {
+            isLooping = true // la sirène tourne en boucle
+        }
+    }
+
+    // Lance la sirène dès que le composable apparaît
+    LaunchedEffect(Unit) {
+        mediaPlayer.start()
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pingBlink")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 500),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pingAlpha"
+    )
 
     Button(
         onClick = {
+            mediaPlayer.stop() // stoppe la sirène au clic
+            mediaPlayer.release() // libère les ressources
             // Do Some Network Stuff
         },
         colors = ButtonDefaults.buttonColors(
@@ -225,6 +260,10 @@ private fun NotifyRemotePlayerButton() {
         ),
         modifier = Modifier.padding(start = 8.dp)
     ) {
-        Text(stringResource(R.string.ping), fontSize = 16.sp)
+        Text(
+            text = stringResource(R.string.ping), // "Ping 🏓"
+            fontSize = 16.sp,
+            color = Color.Red.copy(alpha = alpha)
+        )
     }
 }

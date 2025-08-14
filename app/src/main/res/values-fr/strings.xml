@@ -22,6 +22,7 @@
     <string name="game_setup">Configuration du jeu</string>
     <string name="players">Joueurs (%1$d) :</string>
     <string name="add_player">Ajouter un joueur</string>
+    <string name="add_AI_player">Ajouter joueur Bot\t</string>
     <string name="remove_player">Supprimer un joueur</string>
     <string name="debug_options">Options de débogage</string>
     <string name="disable_ai_autoplay">Désactiver lecture automatique IA</string>
@@ -30,5 +31,9 @@
     <string name="tap_to_start">Appuyez pour commencer…</string>
     <string name="sort_mode">Mode de tri : %1$s</string>
     <string name="quit">Quitter</string>
-    <string name="locale_marker">toto</string>
+    <string name="locale_marker">Français</string>
+    <string name="playai">Jouer Bot</string>
+    <string name="ping">🏓 Ping! 🏓</string>
+    <string name="add_remote_player">Ajouter joueur distant</string>
+    <string name="remote_player">" Joueur distant"</string>
 </resources>
