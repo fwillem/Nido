@@ -23,18 +23,32 @@ import com.example.nido.ui.theme.NidoTheme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.nido.R
+import com.example.nido.events.DialogEvent
+import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.dialogs.CardSelectionDialog
+import com.example.nido.ui.dialogs.GameOverDialog
+import com.example.nido.ui.dialogs.QuitGameDialog
+import com.example.nido.ui.dialogs.RoundOverDialog
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel.FATAL
 
 @Composable
 fun LandingScreen(
     onSetup: () -> Unit,
     onGame: () -> Unit,
+    onQuit : () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val buttonBoxSize = 160.dp
+    val buttonBoxSize = 200.dp
     val imageSize = (buttonBoxSize.value * 2f).dp  // 2x bigger than the box
+
+    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+
 
     NidoScreenScaffold {
         Column(
@@ -93,11 +107,17 @@ fun LandingScreen(
                             onClick = onSetup,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text(text = stringResource(R.string.setup)) }
+                        Button(
+                            onClick = onQuit,
+
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text(text = stringResource(R.string.quit)) }
                     }
                 }
             }
         }
     }
+
 }
 
 // @Preview(showBackground = true)
@@ -108,6 +128,7 @@ fun LandingScreenPreview() {
         LandingScreen(
             onSetup = {},
             onGame = {},
+            onQuit = {},
         )
     }
 }
