@@ -10,6 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.data.model.Player
@@ -45,7 +46,7 @@ fun PlayerScoreView(player: Player, rank: Int) {
             val textColor = if (rank == 1) Color.DarkGray else Color.White
 
             Text(
-                text = "#$rank ${player.name} (${player.playerType.displayName})",
+                text = "#$rank ${player.name} (${stringResource(player.playerType.displayNameRes)})",
                 fontSize = fontSize,
                 lineHeight = lineHeight, // ✅ Adjusted line height
                 color = textColor

@@ -21,7 +21,6 @@
     <string name="edit">Editar</string>
     <string name="game_setup">Configuración del juego</string>
     <string name="players">Jugadores (%1$d):</string>
-    <string name="add_player">Agregar jugador</string>
     <string name="add_AI_player">"Añadir jugador Bot "</string>
     <string name="remove_player">Eliminar jugador</string>
     <string name="debug_options">Opciones de depuración</string>
@@ -36,4 +35,8 @@
     <string name="ping">🏓 Ping! 🏓</string>
     <string name="add_remote_player">"Añadir jugador remoto "</string>
     <string name="remote_player">Jugador remoto</string>
+    <string name="game_over_congrats">Game Over....\n\n ... ¡felicidades %1$s !!</string>
+    <string name="remote_human">Humano remoto</string>
+    <string name="human">Humano</string>
+    <string name="bot">Bot</string>
 </resources>
