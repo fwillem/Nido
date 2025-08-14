@@ -1,7 +1,10 @@
 package com.example.nido.data.model
 
-enum class PlayerType(val displayName: String) {
-    LOCAL("Human"),
-    AI("Bot"),
-    REMOTE("Remote human")
+import androidx.annotation.StringRes
+import com.example.nido.R
+
+enum class PlayerType(@StringRes val displayNameRes: Int) {
+    LOCAL(R.string.human),
+    AI(R.string.bot),
+    REMOTE(R.string.remote_human)
 }

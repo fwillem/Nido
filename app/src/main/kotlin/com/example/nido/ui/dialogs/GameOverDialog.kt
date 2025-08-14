@@ -12,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nido.R
 import com.example.nido.events.DialogEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
@@ -31,7 +33,11 @@ fun GameOverDialog(event: DialogEvent.GameOver, onExit : () -> Unit) {
         onDismissRequest = { gameManager.clearDialogEvent() ; onExit()},
         title = {
             // Display the name of the top-ranked player in the title.
-            Text("Game Over....\n\n ... congrats ${event.playerRankings.first().first.name} !!")
+            Text(
+                stringResource(
+                    R.string.game_over_congrats,
+                    event.playerRankings.first().first.name
+                ))
         },
         text = {
             /*
