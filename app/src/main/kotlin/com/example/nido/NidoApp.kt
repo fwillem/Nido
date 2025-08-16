@@ -103,7 +103,8 @@ fun NidoApp(
         when (val event = gameState.dialogEvent) {
             
             is DialogEvent.QuitGame -> QuitGameDialog(onConfirm = { activity?.finish()}, onCancel = {})
-            else -> TRACE(FATAL) { "Unknown or unexpected event : ${gameState.dialogEvent}" }
+            else -> TRACE(DEBUG) { "Unhandled dialog event: $event" }
+            //else -> TRACE(FATAL) { "Unknown or unexpected event : ${gameState.dialogEvent}" }
         }
     }
 }
