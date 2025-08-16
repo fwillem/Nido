@@ -137,9 +137,13 @@ private fun PlayButton(
         onClick = {
             val candidateCards = playmat?.toList() ?: emptyList()
 
+            // TODO TOREMOVE JUST FOR TESTING BSOD
+            /*
             TRACE (TraceLogLevel.FATAL) {
                 "PlayButton clicked with selectedCards: ${selectedCards.joinToString { "${it.value} ${it.color}" }}"
             }
+             */
+
             when {
                 candidateCards.isEmpty() -> {
                     onPlayCombination(selectedCards, null)
