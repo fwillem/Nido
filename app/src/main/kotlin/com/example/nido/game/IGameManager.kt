@@ -1,7 +1,16 @@
 package com.example.nido.game
 
 import com.example.nido.data.model.Hand
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.GameDialogEvent
 
 interface IGameManager : IGameStateProvider, IGameActions {
     fun updatePlayerHand(playerIndex: Int, hand: Hand)
+
+    // UI dialog pipes
+    fun setAppDialogEvent(event: AppDialogEvent)
+    fun clearAppDialogEvent()
+
+    fun setGameDialogEvent(event: GameDialogEvent)
+    fun clearGameDialogEvent()
 }

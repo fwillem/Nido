@@ -12,7 +12,7 @@ import com.example.nido.utils.TraceLogLevel.FATAL
 import com.example.nido.utils.TraceLogLevel.INFO
 import com.example.nido.data.model.Hand
 import com.example.nido.data.repository.DeckRepository
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.PlayerType
 import com.example.nido.game.GameManager.updateComment
@@ -150,25 +150,18 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                 val gameOver = GameRules.isGameOver(updatedPlayers, state.pointLimit)
 
                 if (gameOver) {
-
-                    TRACE(INFO) { "Game is over! 🍾" }
-                    TRACE(INFO) { "Side effect Show Dialog and Game Event GameOver" }
-
-                    // Add a ShowDialog side effect for game over
+                    // Game Over dialog via GAME pipe
                     sideEffects += GameSideEffect.ShowDialog(
-                        DialogEvent.GameOver(
+                        GameDialogEvent.GameOver(
                             playerRankings = GameRules.getPlayerRankings(updatedPlayers)
                         )
                     )
-
-                    // Add a GameEvent for game over
                     followUpEvents += GameEvent.GameOver
 
                 } else {
-                    TRACE(INFO) { "SetDialogEvent RoundOver" }
-
+                    // Round Over dialog via GAME pipe
                     sideEffects += GameSideEffect.ShowDialog(
-                        DialogEvent.RoundOver(
+                        GameDialogEvent.RoundOver(
                             winner = player,
                             playersHandScore = GameRules.getPlayerHandScores(updatedPlayers)
                         )

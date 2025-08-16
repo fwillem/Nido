@@ -3,10 +3,9 @@ package com.example.nido.game
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.mutableStateListOf
 import com.example.nido.data.model.*
-import com.example.nido.game.rules.GameRules
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.ai.AIPlayer
-import com.example.nido.utils.Debug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -108,12 +107,18 @@ class FakeGameManager : IGameManager {
         // Simulate updating the game comment
     }
 
-    override fun setDialogEvent(event: DialogEvent) {
-        // Simulate setting an event
+    // New UI pipes
+    override fun setAppDialogEvent(event: AppDialogEvent) {
+        _gameState.value = _gameState.value.copy(appDialogEvent = event)
     }
-
-    override fun clearDialogEvent() {
-        // Simulate clearing an event
+    override fun clearAppDialogEvent() {
+        _gameState.value = _gameState.value.copy(appDialogEvent = null)
+    }
+    override fun setGameDialogEvent(event: GameDialogEvent) {
+        _gameState.value = _gameState.value.copy(gameDialogEvent = event)
+    }
+    override fun clearGameDialogEvent() {
+        _gameState.value = _gameState.value.copy(gameDialogEvent = null)
     }
 
     override fun isValidMove(selectedCards: List<Card>): Boolean {

@@ -1,7 +1,8 @@
 package com.example.nido.utils
 
 import android.util.Log
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.UiEventBridge
 
 /**
  * A simple logging utility that provides custom trace functionality with emojis
@@ -98,17 +99,14 @@ inline fun TRACE(
         TraceLogLevel.FATAL    -> {
             Log.wtf(tag, decoratedMessage)
 
-            // Émet l’événement via le pont non-composable; la couche UI le consommera
-            TraceDialogBridge.emit(
-                DialogEvent.BlueScreenOfDeath(
+            // Emet un AppDialogEvent via UiEventBridge
+            UiEventBridge.emit(
+                AppDialogEvent.BlueScreenOfDeath(
                     level = TraceLogLevel.FATAL,
                     tag = tag,
                     message = { decoratedMessage }
                 )
             )
-
-            // Optionnel: laisser l’app vivre; sinon lever une exception ici
-            // throw RuntimeException(decoratedMessage)
         }
     }
 }

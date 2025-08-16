@@ -12,30 +12,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview // 🚀 Import Preview
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.R
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.data.model.Card
-import com.example.nido.data.model.CardColor
-import com.example.nido.ui.theme.NidoColors
-
 
 @Composable
-fun CardSelectionDialog(event: DialogEvent.CardSelection) { // 🚀 Extracted CardSelection dialog
+fun CardSelectionDialog(event: GameDialogEvent.CardSelection) {
     AlertDialog(
         onDismissRequest = { event.onCancel() },
         title = {
-            Text(
-                stringResource(R.string.select_card_to_keep)
-                /*,
-                modifier = Modifier
-                    .background(NidoColors.DialogTitleBackground.copy(alpha = 0.5f))
-                    .padding(4.dp)
-
-                 */
-            )
+            Text(stringResource(R.string.select_card_to_keep))
         },
         text = {
             Row {
@@ -46,10 +35,10 @@ fun CardSelectionDialog(event: DialogEvent.CardSelection) { // 🚀 Extracted Ca
                             containerColor = card.color.uiColor.copy(alpha = 0.85f),
                             contentColor = Color.White
                         ),
-                        modifier = Modifier.padding(1.dp), // external padding, adjust if needed
+                        modifier = Modifier.padding(1.dp),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                            horizontal = 4.dp, // 🚀 reduced horizontal padding
-                            vertical = 2.dp    // 🚀 reduced vertical padding
+                            horizontal = 4.dp,
+                            vertical = 2.dp
                         )
                     ) {
                         Text("${card.value}", fontSize = 20.sp)
@@ -64,14 +53,13 @@ fun CardSelectionDialog(event: DialogEvent.CardSelection) { // 🚀 Extracted Ca
                 Text(stringResource(R.string.cancel))
             }
         },
-       // containerColor = Color.Transparent
         containerColor = Color.White.copy(alpha = 0.5f)
 
     )
 }
 
-// 🚀 Helper function to create a sample CardSelection event with varying card setups.
-private fun sampleCardSelectionEvent(numCards: Int): DialogEvent.CardSelection {
+// Previews conservés (adaptés au nouveau type)
+private fun sampleCardSelectionEvent(numCards: Int): GameDialogEvent.CardSelection {
     val cards = when (numCards) {
         1 -> listOf(
             // 1 card: 1 red card with value 2
@@ -138,7 +126,7 @@ private fun sampleCardSelectionEvent(numCards: Int): DialogEvent.CardSelection {
         )
         else -> emptyList()
     }
-    return DialogEvent.CardSelection(
+    return GameDialogEvent.CardSelection(
         candidateCards = cards,
         selectedCards = emptyList(),
         onConfirm = {},

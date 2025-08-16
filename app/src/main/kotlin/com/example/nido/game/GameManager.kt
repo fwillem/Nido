@@ -10,7 +10,8 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.data.model.PlayerActionType
 import com.example.nido.data.model.Hand
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.engine.GameEventDispatcher
 import kotlin.Int
 import kotlinx.coroutines.delay
@@ -254,11 +255,20 @@ object GameManager : IGameManager {
 
  */
 
-    override fun setDialogEvent(event: DialogEvent) {
-        updateGameState(dialogEvent = event)
+    /*
+     * UI dialog pipes (new)
+     */
+    override fun setAppDialogEvent(event: AppDialogEvent) {
+        updateGameState(appDialogEvent = event)
     }
-    override fun clearDialogEvent() {
-        updateGameState(dialogEvent = null)
+    override fun clearAppDialogEvent() {
+        updateGameState(appDialogEvent = null)
+    }
+    override fun setGameDialogEvent(event: GameDialogEvent) {
+        updateGameState(gameDialogEvent = event)
+    }
+    override fun clearGameDialogEvent() {
+        updateGameState(gameDialogEvent = null)
     }
 
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
@@ -315,7 +325,8 @@ object GameManager : IGameManager {
         playerId: String = gameState.value.playerId,
         pointLimit: Int = gameState.value.pointLimit,
         soundOn: Boolean = gameState.value.soundOn,
-        dialogEvent: DialogEvent? = gameState.value.dialogEvent,
+        appDialogEvent: AppDialogEvent? = gameState.value.appDialogEvent,
+        gameDialogEvent: GameDialogEvent? = gameState.value.gameDialogEvent,
         turnId: Int = gameState.value.turnId,
         doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI,
         comment: String = gameState.value.comment,
@@ -333,7 +344,8 @@ object GameManager : IGameManager {
             playerId = playerId,
             pointLimit = pointLimit,
             soundOn = soundOn,
-            dialogEvent = dialogEvent,
+            appDialogEvent = appDialogEvent,
+            gameDialogEvent = gameDialogEvent,
             turnId = turnId,
             doNotAutoPlayAI = doNotAutoPlayAI,
             comment = comment
@@ -350,7 +362,7 @@ object GameManager : IGameManager {
     private fun handleSideEffect(effect: GameSideEffect) {
         when (effect) {
             is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId)
-            is GameSideEffect.ShowDialog -> setDialogEvent(effect.dialog)
+            is GameSideEffect.ShowDialog -> setGameDialogEvent(effect.dialog)
             is GameSideEffect.GetAIMove -> getAIMove()
         }
     }

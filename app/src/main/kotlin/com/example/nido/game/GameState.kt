@@ -6,7 +6,8 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.utils.Constants
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.GameDialogEvent
 
 data class GameState(
     val playerId: String = "",
@@ -22,7 +23,9 @@ data class GameState(
     val deck: SnapshotStateList<Card> = mutableStateListOf(), // Added deck
     val skipCount: Int = 0, // New property to track consecutive skips.
     val soundOn: Boolean = true,
-    val dialogEvent: DialogEvent? = null,
+    // New two-pipes
+    val appDialogEvent: AppDialogEvent? = null,   // handled by NidoApp
+    val gameDialogEvent: GameDialogEvent? = null, // handled by MainScreen
     val turnId: Int = 0 // increments on every turn/replay. Allow to trigger launcheffect for automatic AI playing
 
 ) {
@@ -41,8 +44,8 @@ data class GameState(
             💠 Current Combination on Mat: ${currentCombinationOnMat ?: "None"}
             💠 Discard Pile: ${discardPile.joinToString(", ") { it.toString() }}
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
-            💠 Sound On: $soundOn
-            💠 Game Event: $dialogEvent
+            💠 App Dialog: $appDialogEvent
+            💠 Game Dialog: $gameDialogEvent
             💠 Turn ID : $turnId
 
         """.trimIndent()
@@ -64,9 +67,9 @@ data class GameState(
             deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
             skipCount = this.skipCount,
             soundOn = this.soundOn,
-            dialogEvent = this.dialogEvent,
+            appDialogEvent = this.appDialogEvent,
+            gameDialogEvent = this.gameDialogEvent,
             turnId = this.turnId
         )
     }
 }
-

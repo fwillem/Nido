@@ -3,72 +3,48 @@ package com.example.nido.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nido.R
-import com.example.nido.data.SavedPlayer
 import com.example.nido.data.model.Card
-import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Hand
 import com.example.nido.data.model.PlayerType
-import com.example.nido.events.DialogEvent
-import com.example.nido.game.FakeGameManager
-import com.example.nido.game.GameState
-import com.example.nido.game.LocalPlayer
-import com.example.nido.game.ai.AIPlayer
-import com.example.nido.game.IGameViewModelPreview
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.dialogs.*
 import com.example.nido.ui.theme.NidoColors
-import com.example.nido.ui.theme.NidoTheme
 import com.example.nido.ui.views.CommentsView
 import com.example.nido.ui.views.HandView
 import com.example.nido.ui.views.MatView
 import com.example.nido.ui.views.PlayersRowView
 import com.example.nido.utils.Constants
-import com.example.nido.utils.Constants.AI_THINKING_DURATION_MS
-import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
-import com.example.nido.utils.Debug
 import com.example.nido.utils.SortMode
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.utils.Debug
 
 @Composable
 fun MainScreen(
     onEndGame: () -> Unit,
     onQuitGame: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: IGameViewModelPreview,
-    debug: Debug // This is a mandatory parameter
+    viewModel: com.example.nido.game.IGameViewModelPreview,
+    debug: Debug
 ) {
-    val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
+    val gameManager = LocalGameManager.current
     val gameState by viewModel.gameState.collectAsState()
 
-    println("MainScreen: gameState IN = $gameState.players")
-    // Use derivedStateOf for values that depend on gameState
     val currentPlayer by remember {
         derivedStateOf {
             require(gameState.players.isNotEmpty()) { "GameState.players is empty – this should not happen!" }
             gameState.players[gameState.currentPlayerIndex]
         }
     }
-    println("MainScreen: gameState OUT = $gameState.players")
 
-    // This current Hand of all players, even AI or remote players
     val currentHand by remember { derivedStateOf { currentPlayer.hand.cards } }
-
-    // This is the LocalPlayer view,
-    val localPlayerHand by remember {
-        derivedStateOf {
-            gameState.players.firstOrNull { it.playerType == PlayerType.LOCAL }?.hand?.cards.orEmpty()
-        }
-    }
-
     val discardPile by remember { derivedStateOf { gameState.discardPile } }
     val players by remember { derivedStateOf { gameState.players } }
     val currentTurnIndex by remember { derivedStateOf { gameState.currentPlayerIndex } }
@@ -89,7 +65,7 @@ fun MainScreen(
         mapOf(
             stringResource(R.string.sort_mode, sortMode.name) to { toggleSortMode() },
             stringResource(R.string.quit) to {
-                gameManager.setDialogEvent(DialogEvent.QuitGame)
+                gameManager.setGameDialogEvent(GameDialogEvent.QuitGame)
             },
         )
 
@@ -107,7 +83,7 @@ fun MainScreen(
                     .background(Color.DarkGray),
                 contentAlignment = Alignment.Center
             ) {
-                CommentsView(actionButtonsMap,debug)
+                CommentsView(actionButtonsMap, debug)
             }
 
             // 🔹 Player Information Row
@@ -138,11 +114,6 @@ fun MainScreen(
                     mutableStateListOf<Card>().apply { addAll(cardList) }
                 } ?: mutableStateListOf()
 
-
-
-
-
-
                 MatView(
                     playmat = playmatSnapshotList,
                     discardPile = discardPile,
@@ -155,13 +126,8 @@ fun MainScreen(
                                 tag = "MatView:onPlayCombination"
                             ) { " Move is valid! Playing: $playedCards" }
 
-
-                            val playMoveResult =
-                                gameManager.playCombination(playedCards, cardToKeep)
-
-                            //  Deselect played cards before they go to the mat
+                            gameManager.playCombination(playedCards, cardToKeep)
                             playedCards.forEach { it.isSelected = false }
-
                         } else {
                             TRACE(FATAL, tag = "MatView:onPlayCombination") { "❌ Invalid move!" }
                         }
@@ -171,7 +137,6 @@ fun MainScreen(
 
                         // Unselect the cards
                         cardsToWithdraw.forEach { it.isSelected = false }
-
                     },
                     onSkip = { gameManager.processSkip() },
                     cardWidth = Constants.CARD_ON_MAT_WIDTH.dp,
@@ -208,27 +173,36 @@ fun MainScreen(
         }
     }
 
-    // ── Centralized Dialog Observer ──
-    if (gameState.dialogEvent != null) {
-        when (val event = gameState.dialogEvent) {
-            is DialogEvent.CardSelection -> CardSelectionDialog(event = event)
-            is DialogEvent.RoundOver -> RoundOverDialog(
+    // ── In-Game Dialog Observer ──
+    val event = gameState.gameDialogEvent
+    if (event != null) {
+        when (event) {
+            is GameDialogEvent.CardSelection -> CardSelectionDialog(event = event)
+            is GameDialogEvent.RoundOver -> RoundOverDialog(
                 event = event,
-                onExit = { gameManager.startNewRound() })
+                onExit = {
+                    gameManager.clearGameDialogEvent()
+                    gameManager.startNewRound()
+                })
 
-            is DialogEvent.GameOver -> GameOverDialog(event = event, onExit = onEndGame)
+            is GameDialogEvent.GameOver -> GameOverDialog(
+                event = event,
+                onExit = {
+                    gameManager.clearGameDialogEvent()
+                    onEndGame()
+                }
+            )
 
-            is DialogEvent.QuitGame -> QuitGameDialog(onConfirm = onQuitGame, onCancel = {})
-            is DialogEvent.BlueScreenOfDeath -> BlueScreenOfDeathDialog(
-                level = event.level,
-                tag = event.tag,
-                message = event.message,
-                onExit = {  }
+            is GameDialogEvent.QuitGame -> QuitGameDialog(
+                onConfirm = {
+                    gameManager.clearGameDialogEvent()
+                    onQuitGame()
+                },
+                onCancel  = { gameManager.clearGameDialogEvent() }
             )
             else -> TRACE(FATAL) { "Unknown event type: ${gameState.dialogEvent}" }
         }
     }
-
 }
 
 // --- PREVIEW STUB VIEWMODEL ---

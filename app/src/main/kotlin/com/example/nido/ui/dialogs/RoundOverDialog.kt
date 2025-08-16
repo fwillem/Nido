@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview // 🚀 Added Preview import
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.data.model.Player
 import com.example.nido.data.model.Hand
 import com.example.nido.data.model.PlayerType
@@ -31,11 +31,11 @@ import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.preview.NidoPreview
 
 @Composable
-fun RoundOverDialog(event: DialogEvent.RoundOver, onExit: () -> Unit) { // 🚀 Updated to use playersHandScore as List<Pair<Player, Int>>
+fun RoundOverDialog(event: GameDialogEvent.RoundOver, onExit: () -> Unit) { // 🚀 Updated to use playersHandScore as List<Pair<Player, Int>>
     val gameManager = LocalGameManager.current
 
     AlertDialog(
-        onDismissRequest = { gameManager.clearDialogEvent() ; onExit()},
+        onDismissRequest = { onExit() },
         title = {
             Text(stringResource(R.string.won_this_round, event.winner.name))
         },
@@ -50,7 +50,7 @@ fun RoundOverDialog(event: DialogEvent.RoundOver, onExit: () -> Unit) { // 🚀 
         },
         confirmButton = {
             TextButton(
-                onClick = { gameManager.clearDialogEvent() ; onExit()}
+                onClick = { onExit() }
             ) {
                 Text(stringResource(R.string.ok))
             }

@@ -6,12 +6,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
-import com.example.nido.game.FakeGameManager
-import com.example.nido.ui.LocalGameManager
-import com.example.nido.ui.preview.NidoPreview
-import com.example.nido.ui.theme.NidoTheme
 
 @Composable
 fun BlueScreenOfDeathDialog(
@@ -20,10 +15,8 @@ fun BlueScreenOfDeathDialog(
     message: () -> String,
     onExit: () -> Unit
 ) {
-    val gameManager = LocalGameManager.current
-
     AlertDialog(
-        onDismissRequest = { gameManager.clearDialogEvent();  onExit() },
+        onDismissRequest = { onExit() },
         title = {
             Text(text = "${level.name}: $tag")
         },
@@ -31,16 +24,11 @@ fun BlueScreenOfDeathDialog(
             Text(text = message())
         },
         confirmButton = {
-            TextButton(onClick = { gameManager.clearDialogEvent();
-                onExit();
-                throw RuntimeException(message());
-            }) {
+            TextButton(onClick = { onExit() }) {
                 Text("OK")
             }
         },
-        // containerColor = Color.Red.copy(alpha = 0.7f)
         containerColor = Color.Red
-
     )
 }
 

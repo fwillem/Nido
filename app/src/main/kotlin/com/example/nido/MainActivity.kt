@@ -22,7 +22,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.nido.ui.AppScreen
-import com.example.nido.utils.TraceDialogBridge
+import com.example.nido.events.UiEventBridge
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.GameDialogEvent
 
 class MainActivity : ComponentActivity() {
 
@@ -57,13 +59,16 @@ class MainActivity : ComponentActivity() {
                 gameManager.initialize(viewModel)
 
                 CompositionLocalProvider(LocalGameManager provides gameManager) {
-                    // Branche le listener TRACE -> UI
+                    // Bridge: Non-Compose sources -> UI layer
                     DisposableEffect(Unit) {
-                        TraceDialogBridge.setListener { event ->
-                            gameManager.setDialogEvent(event)
+                        UiEventBridge.setListener { e ->
+                            when (e) {
+                                is AppDialogEvent  -> gameManager.setAppDialogEvent(e)
+                                is GameDialogEvent -> gameManager.setGameDialogEvent(e)
+                            }
                         }
                         onDispose {
-                            TraceDialogBridge.setListener(null)
+                            UiEventBridge.setListener(null)
                         }
                     }
 

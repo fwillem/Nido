@@ -8,17 +8,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.nido.data.SavedPlayer
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.AppDialogEvent
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.dialogs.BlueScreenOfDeathDialog
-import com.example.nido.ui.dialogs.CardSelectionDialog
-import com.example.nido.ui.dialogs.GameOverDialog
 import com.example.nido.ui.dialogs.QuitGameDialog
-import com.example.nido.ui.dialogs.RoundOverDialog
 import com.example.nido.utils.TRACE
-import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.utils.TraceLogLevel
 import java.util.UUID
 
 @Composable
@@ -30,6 +27,9 @@ fun NidoApp(
     val gameManager = LocalGameManager.current
 
     val gameState by viewModel.gameState.collectAsState()
+    val savedPlayers by viewModel.savedPlayers.collectAsState()
+    val savedPointLimit by viewModel.savedPointLimit.collectAsState()
+    val savedDebug by viewModel.savedDebug.collectAsState()
 
     // Utilise initialRoute comme route de départ
     var currentRoute by rememberSaveable { mutableStateOf(initialRoute) }
@@ -45,22 +45,19 @@ fun NidoApp(
             AppScreen.Routes.LANDING -> LandingScreen(
                 onSetup = { currentRoute = AppScreen.Routes.SETUP },
                 onGame = {
-                    val players = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) }
-                    val pointLimit = viewModel.savedPointLimit.value
-                    val doNotAutoPlayAI = viewModel.savedDebug.value.doNotAutoPlayerAI
-                    gameManager.startNewGame(players, pointLimit, doNotAutoPlayAI)
+                    val players = savedPlayers.map { it.toPlayer(UUID.randomUUID().toString()) }
+                    gameManager.startNewGame(players, savedPointLimit, savedDebug.doNotAutoPlayerAI)
                     currentRoute = AppScreen.Routes.GAME
                 },
                 onQuit = {
-                    gameManager.setDialogEvent(DialogEvent.QuitGame)
-
+                    gameManager.setAppDialogEvent(AppDialogEvent.QuitApp)
                 },
                 modifier = modifier.padding(innerPadding)
             )
             AppScreen.Routes.SETUP -> SetupScreen(
-                initialPlayers = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) },
-                initialPointLimit = viewModel.savedPointLimit.value,
-                debug = viewModel.savedDebug.value,
+                initialPlayers = savedPlayers.map { it.toPlayer(UUID.randomUUID().toString()) },
+                initialPointLimit = savedPointLimit,
+                debug = savedDebug,
                 onDone = { selectedPlayers, selectedPointLimit, debug ->
                     // Language change management
                     val previousLang = viewModel.savedDebug.value.language
@@ -99,21 +96,24 @@ fun NidoApp(
             )
         }
     }
-    // ── Centralized Dialog Observer ──
-
-    if (gameState.dialogEvent != null) {
-        when (val event = gameState.dialogEvent) {
-
-            is DialogEvent.QuitGame -> QuitGameDialog(onConfirm = { activity?.finish()}, onCancel = {})
-            is DialogEvent.BlueScreenOfDeath -> BlueScreenOfDeathDialog(
-                level = event.level,
-                tag = event.tag,
-                message = event.message,
-                onExit = {  }
+    // ── Global App Dialog Observer ──
+    val appEvent = gameState.appDialogEvent
+    if (appEvent != null) {
+        when (appEvent) {
+            is AppDialogEvent.QuitApp -> QuitGameDialog(
+                onConfirm = {
+                    gameManager.clearAppDialogEvent()
+                    activity?.finish()
+                },
+                onCancel = { gameManager.clearAppDialogEvent() }
             )
-            else -> TRACE(FATAL) { "Unknown or unexpected event : ${gameState.dialogEvent}" }
+            is AppDialogEvent.BlueScreenOfDeath -> BlueScreenOfDeathDialog(
+                level = appEvent.level,
+                tag = appEvent.tag,
+                message = appEvent.message,
+                onExit = { gameManager.clearAppDialogEvent() }
+            )
+            else -> TRACE(TraceLogLevel.FATAL) { "Unknown or unexpected event : ${gameState.appDialogEvent}" }
         }
     }
-
-
 }

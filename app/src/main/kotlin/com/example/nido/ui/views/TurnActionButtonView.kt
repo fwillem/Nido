@@ -1,6 +1,5 @@
 package com.example.nido.ui.views
 
-import android.graphics.Color.alpha
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -29,13 +28,12 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
 import com.example.nido.R
-import com.example.nido.events.DialogEvent
 import android.media.MediaPlayer
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.core.*
-import com.example.nido.utils.TraceLogLevel
+import com.example.nido.events.GameDialogEvent
 
 @Composable
 fun TurnActionButtons(
@@ -133,7 +131,6 @@ private fun PlayButton(
 ) {
     val gameManager = LocalGameManager.current
 
-
     Button(
         onClick = {
             val candidateCards = playmat?.toList() ?: emptyList()
@@ -153,24 +150,23 @@ private fun PlayButton(
                     TRACE(DEBUG) {
                         "Several candidates: ${candidateCards.joinToString { "${it.value} ${it.color}" }}"
                     }
-                    TRACE(INFO) { "setDialogEvent : CardSelection" }
+                    TRACE(INFO) { "setGameDialogEvent : CardSelection" }
 
                     if (gameManager.hasPlayedAllRemainingCards()) {
-                        // The player won
                         onPlayCombination(selectedCards, candidateCards.first())
                         selectedCards.forEach { it.isSelected = false }
                     } else {
-                        gameManager.setDialogEvent(
-                            DialogEvent.CardSelection(
+                        gameManager.setGameDialogEvent(
+                            GameDialogEvent.CardSelection(
                                 candidateCards = candidateCards,
                                 selectedCards = selectedCards,
                                 onConfirm = { chosenCard ->
                                     onPlayCombination(selectedCards, chosenCard)
                                     selectedCards.forEach { it.isSelected = false }
-                                    gameManager.clearDialogEvent()
+                                    gameManager.clearGameDialogEvent()
                                 },
                                 onCancel = {
-                                    gameManager.clearDialogEvent()
+                                    gameManager.clearGameDialogEvent()
                                 }
                             )
                         )
