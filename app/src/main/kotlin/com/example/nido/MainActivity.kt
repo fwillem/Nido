@@ -23,7 +23,6 @@ import com.example.nido.game.IGameManager
 import com.example.nido.game.getGameManagerInstance
 import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
-import com.example.nido.ui.screens.NidoApp
 import com.example.nido.ui.theme.NidoTheme
 
 class MainActivity : ComponentActivity() {

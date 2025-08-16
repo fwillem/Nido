@@ -24,7 +24,9 @@ data class GameState(
     val soundOn: Boolean = true,
     val appDialogEvent: AppDialogEvent? = null,
     val gameDialogEvent: GameDialogEvent? = null,
-    val turnId: Int = 0 // increments on every turn/replay. Allow to trigger launcheffect for automatic AI playing
+    val turnId: Int = 0, // increments on every turn/replay. Allow to trigger launcheffect for automatic AI playing
+    val comment1: String = "comment1",
+    val comment2: String = "comment2",
 
 ) {
     override fun toString(): String {
