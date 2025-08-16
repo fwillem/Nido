@@ -104,6 +104,9 @@ class FakeGameManager : IGameManager {
         // Simulate a skip action
     }
 
+    override fun updateComment(comment : String) {
+        // Simulate updating the game comment
+    }
 
     override fun setDialogEvent(event: DialogEvent) {
         // Simulate setting an event

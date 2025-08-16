@@ -15,6 +15,7 @@ import com.example.nido.data.repository.DeckRepository
 import com.example.nido.events.DialogEvent
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.PlayerType
+import com.example.nido.game.GameManager.updateComment
 import com.example.nido.utils.TraceLogLevel
 
 
@@ -126,6 +127,9 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
             val updatedPlayers = state.players.toMutableList().apply {
                 this[state.currentPlayerIndex] = player.copy(hand = updatedHand)
             }
+
+
+            updateComment("${player.name} played ${newCombination.cards.joinToString(", ") { "${it.value} ${it.color}" }}")
 
             val followUpEvents = mutableListOf<GameEvent>()
             val sideEffects = mutableListOf<GameSideEffect>()

@@ -2,6 +2,8 @@ package com.example.nido.events
 
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Player
+import com.example.nido.utils.TraceLogLevel
+import com.example.nido.utils.getTag
 
 sealed class DialogEvent {
     data class RoundOver(
@@ -21,6 +23,12 @@ sealed class DialogEvent {
     ) : DialogEvent()
 
     object QuitGame : DialogEvent()
+
+    data class BlueScreenOfDeath(
+        val level: TraceLogLevel,
+        val tag: String ,
+        val message: () -> String,
+    ) : DialogEvent()
 
 }
 

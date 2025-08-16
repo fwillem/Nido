@@ -275,7 +275,7 @@ fun calculateTurnInfo(gameState: GameState): TurnInfo {
         }
     }
 
-    // SHow Manual AI Play button if manual mode selected
+    // Show Manual AI Play button if manual mode selected
     val displayManualAIPlay = isAI && gameState.doNotAutoPlayAI
 
     // Placeholder to remote player notification

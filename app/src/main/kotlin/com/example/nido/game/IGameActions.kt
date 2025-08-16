@@ -17,5 +17,7 @@ interface IGameActions {
        // fun withdrawCardsFromMat(cardsToWithdraw: List<Card>)
         fun setDialogEvent(event: DialogEvent)
         fun clearDialogEvent()
+        fun updateComment(comment : String)
+
     }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.theme.NidoTheme
@@ -21,8 +22,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.nido.ui.AppScreen
-import com.example.nido.utils.TRACE
-import com.example.nido.utils.TraceLogLevel.*
+import com.example.nido.utils.TraceDialogBridge
 
 class MainActivity : ComponentActivity() {
 
@@ -57,6 +57,16 @@ class MainActivity : ComponentActivity() {
                 gameManager.initialize(viewModel)
 
                 CompositionLocalProvider(LocalGameManager provides gameManager) {
+                    // Branche le listener TRACE -> UI
+                    DisposableEffect(Unit) {
+                        TraceDialogBridge.setListener { event ->
+                            gameManager.setDialogEvent(event)
+                        }
+                        onDispose {
+                            TraceDialogBridge.setListener(null)
+                        }
+                    }
+
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         var initialRoute = AppScreen.Routes.SPLASH
                         if (forceLanding) initialRoute = AppScreen.Routes.LANDING

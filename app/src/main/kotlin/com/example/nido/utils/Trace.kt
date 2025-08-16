@@ -1,6 +1,7 @@
 package com.example.nido.utils
 
 import android.util.Log
+import com.example.nido.events.DialogEvent
 
 /**
  * A simple logging utility that provides custom trace functionality with emojis
@@ -83,6 +84,7 @@ inline fun TRACE(
     tag: String = getTag(),
     message: () -> String
 ) {
+
     isInsideTrace.set(true)  // Prevent duplicate printing via println()
     val decoratedMessage = "${emojiForLevel(level)} ${message()}"
     isInsideTrace.set(false) // Restore normal println() behavior
@@ -95,7 +97,18 @@ inline fun TRACE(
         TraceLogLevel.ERROR    -> Log.e(tag, decoratedMessage)
         TraceLogLevel.FATAL    -> {
             Log.wtf(tag, decoratedMessage)
-            throw RuntimeException(decoratedMessage)
+
+            // Émet l’événement via le pont non-composable; la couche UI le consommera
+            TraceDialogBridge.emit(
+                DialogEvent.BlueScreenOfDeath(
+                    level = TraceLogLevel.FATAL,
+                    tag = tag,
+                    message = { decoratedMessage }
+                )
+            )
+
+            // Optionnel: laisser l’app vivre; sinon lever une exception ici
+            // throw RuntimeException(decoratedMessage)
         }
     }
 }
@@ -119,5 +132,3 @@ fun println(message: String): String {
 object TraceEmojisBank {
     val emojis = arrayOf("😀", "😂", "😎", "😍", "🥳", "🟢", "🟡", "🟥", "🟦", "🟨", "🔹", "❌", "✅", "🔄","🍾","⭐","🔥","✨","🌟")
 }
-
-

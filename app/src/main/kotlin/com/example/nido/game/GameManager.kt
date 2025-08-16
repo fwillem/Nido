@@ -274,6 +274,11 @@ object GameManager : IGameManager {
         }
     }
 
+    override fun updateComment(comment : String) {
+        updateGameState(comment = comment)
+    }
+
+
     override fun hasPlayedAllRemainingCards(): Boolean {
         val currentPlayer = getCurrentPlayer()
         return currentPlayer.hand.cards.all { it.isSelected }
@@ -312,8 +317,10 @@ object GameManager : IGameManager {
         soundOn: Boolean = gameState.value.soundOn,
         dialogEvent: DialogEvent? = gameState.value.dialogEvent,
         turnId: Int = gameState.value.turnId,
-        doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI
-    ) {
+        doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI,
+        comment: String = gameState.value.comment,
+
+        ) {
         _gameState.value = gameState.value.copy(
             players = players,
             deck = deck,
@@ -328,7 +335,8 @@ object GameManager : IGameManager {
             soundOn = soundOn,
             dialogEvent = dialogEvent,
             turnId = turnId,
-            doNotAutoPlayAI = doNotAutoPlayAI
+            doNotAutoPlayAI = doNotAutoPlayAI,
+            comment = comment
         )
     }
 
@@ -346,43 +354,6 @@ object GameManager : IGameManager {
             is GameSideEffect.GetAIMove -> getAIMove()
         }
     }
-    /*
-        TODO TO REMOVE
-     */
-    /*
-    private fun dispatchEvent(initialEvent: GameEvent) {
-        val eventQueue = ArrayDeque<GameEvent>()
-        eventQueue.add(initialEvent)
-
-        // Guard against external concurrency
-        if (!isDispatching.compareAndSet(false, true)) {
-            TRACE(FATAL) { "RE-ENTRANCE detected in dispatchEvent!" }
-        }
-        try {
-            while (eventQueue.isNotEmpty()) {
-                val event = eventQueue.removeFirst()
-                val currentState = gameState.value
-                val result = gameReducer(currentState, event)
-
-                updateGameState(result.newState)
-
-                result.sideEffects.forEach { effect ->
-                    when (effect) {
-                        is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId)
-                        is GameSideEffect.ShowDialog -> setDialogEvent(effect.dialog)
-                        is GameSideEffect.GetAIMove -> getAIMove()
-                    }
-                }
-
-                // for followUpEvents, add them to the queue
-                result.followUpEvents.forEach { followUp -> eventQueue.addLast(followUp) }
-            }
-        } finally {
-            isDispatching.set(false)
-        }
-    }
-
-     */
 
 }
 

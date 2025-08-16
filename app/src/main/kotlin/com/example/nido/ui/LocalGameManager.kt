@@ -35,6 +35,7 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
         override fun currentPlayerHasValidCombination() = getGameManagerInstance().currentPlayerHasValidCombination()
         override fun isValidMove(selectedCards: List<Card>) = getGameManagerInstance().isValidMove(selectedCards)
         override fun hasPlayedAllRemainingCards() = getGameManagerInstance().hasPlayedAllRemainingCards()
+        override fun updateComment(comment: String) = getGameManagerInstance().updateComment(comment)
 
 
         override fun updatePlayerHand(playerIndex: Int, hand: Hand) = getGameManagerInstance().updatePlayerHand(playerIndex, hand)

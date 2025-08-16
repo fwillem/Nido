@@ -219,20 +219,16 @@ fun MainScreen(
             is DialogEvent.GameOver -> GameOverDialog(event = event, onExit = onEndGame)
 
             is DialogEvent.QuitGame -> QuitGameDialog(onConfirm = onQuitGame, onCancel = {})
+            is DialogEvent.BlueScreenOfDeath -> BlueScreenOfDeathDialog(
+                level = event.level,
+                tag = event.tag,
+                message = event.message,
+                onExit = {  }
+            )
             else -> TRACE(FATAL) { "Unknown event type: ${gameState.dialogEvent}" }
         }
     }
 
-    /***
-     * To Be REMOVED
-    LaunchedEffect(gameState.turnId) {
-        if (currentPlayer.playerType == PlayerType.AI) {
-            TRACE(VERBOSE) { "AI will play in ${AI_THINKING_DURATION_MS / 1000} seconds..." }
-            kotlinx.coroutines.delay(AI_THINKING_DURATION_MS)
-            gameManager.processAIMove()
-        }
-    }
-     */
 }
 
 // --- PREVIEW STUB VIEWMODEL ---

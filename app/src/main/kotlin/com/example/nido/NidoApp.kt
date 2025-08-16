@@ -12,6 +12,7 @@ import com.example.nido.events.DialogEvent
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.dialogs.BlueScreenOfDeathDialog
 import com.example.nido.ui.dialogs.CardSelectionDialog
 import com.example.nido.ui.dialogs.GameOverDialog
 import com.example.nido.ui.dialogs.QuitGameDialog
@@ -99,11 +100,20 @@ fun NidoApp(
         }
     }
     // ── Centralized Dialog Observer ──
+
     if (gameState.dialogEvent != null) {
         when (val event = gameState.dialogEvent) {
-            
+
             is DialogEvent.QuitGame -> QuitGameDialog(onConfirm = { activity?.finish()}, onCancel = {})
+            is DialogEvent.BlueScreenOfDeath -> BlueScreenOfDeathDialog(
+                level = event.level,
+                tag = event.tag,
+                message = event.message,
+                onExit = {  }
+            )
             else -> TRACE(FATAL) { "Unknown or unexpected event : ${gameState.dialogEvent}" }
         }
     }
+
+
 }

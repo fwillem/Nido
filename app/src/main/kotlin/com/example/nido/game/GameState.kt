@@ -12,6 +12,7 @@ data class GameState(
     val playerId: String = "",
     val turnInfo: TurnInfo = TurnInfo(),
     val doNotAutoPlayAI: Boolean = false,
+    val comment: String = "Nido",
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     val players: List<Player> = emptyList(),
     val startingPlayerIndex: Int = 0,
@@ -31,6 +32,7 @@ data class GameState(
             💠 Player ID: $playerId
             💠 Turn Info: $turnInfo
             💠 Do Not Auto Play AI: $doNotAutoPlayAI
+            💠 Comment: $comment
             💠 Point Limit: $pointLimit
             💠 Nb of players: ${players.size}
             💠 Starting Player Index: $startingPlayerIndex
@@ -52,6 +54,7 @@ data class GameState(
             playerId = this.playerId,
             turnInfo = this.turnInfo.copy(),
             doNotAutoPlayAI = this.doNotAutoPlayAI,
+            comment = this.comment,
             pointLimit = this.pointLimit,
             players = this.players.map { it.copy() }, // Deep copy players
             startingPlayerIndex = this.startingPlayerIndex,

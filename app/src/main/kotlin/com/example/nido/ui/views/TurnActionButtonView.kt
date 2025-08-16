@@ -35,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.core.*
+import com.example.nido.utils.TraceLogLevel
+
 @Composable
 fun TurnActionButtons(
     turnInfo: TurnInfo,
@@ -131,9 +133,11 @@ private fun PlayButton(
 ) {
     val gameManager = LocalGameManager.current
 
+
     Button(
         onClick = {
             val candidateCards = playmat?.toList() ?: emptyList()
+
             when {
                 candidateCards.isEmpty() -> {
                     onPlayCombination(selectedCards, null)
