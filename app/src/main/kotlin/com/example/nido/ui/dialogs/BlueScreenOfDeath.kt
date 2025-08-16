@@ -66,7 +66,7 @@ fun BlueScreenOfDeathDialog(
                     fontWeight = FontWeight.Bold,
                     fontStyle = FontStyle.Italic
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(48.dp))
                 Text(text = message(), color = textColor, fontSize = 24.sp)
             }
 
