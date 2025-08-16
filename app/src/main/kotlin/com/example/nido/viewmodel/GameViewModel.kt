@@ -143,7 +143,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         if (oldState.currentPlayerIndex != newState.currentPlayerIndex) changes.add("🎯 currentPlayerIndex: ${oldState.currentPlayerIndex} ➝ ${newState.currentPlayerIndex}")
         if (oldState.currentCombinationOnMat != newState.currentCombinationOnMat) changes.add("🟨 currentCombinationOnMat: ${oldState.currentCombinationOnMat} ➝ ${newState.currentCombinationOnMat}")
         if (oldState.soundOn != newState.soundOn) changes.add("🔊 soundOn: ${oldState.soundOn} ➝ ${newState.soundOn}")
-        if (oldState.dialogEvent != newState.dialogEvent) changes.add("🎲 dialogEvent: ${oldState.dialogEvent} ➝ ${newState.dialogEvent}")
+        if (oldState.gameDialogEvent != newState.gameDialogEvent) changes.add("🎲 gameDialogEvent: ${oldState.gameDialogEvent} ➝ ${newState.gameDialogEvent}")
+        if (oldState.appDialogEvent != newState.appDialogEvent) changes.add("🎲 appDialogEvent: ${oldState.appDialogEvent} ➝ ${newState.appDialogEvent}")
         if (oldState.skipCount != newState.skipCount) changes.add("⏭ skipCount: ${oldState.skipCount} ➝ ${newState.skipCount}")
         if (oldState.pointLimit != newState.pointLimit) changes.add("🎯 pointLimit: ${oldState.pointLimit} ➝ ${newState.pointLimit}")
         if (oldState.turnId != newState.turnId) changes.add("🔄 turnId: ${oldState.turnId} ➝ ${newState.turnId}")
@@ -170,7 +171,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
             playerId = newState.playerId,
             pointLimit = newState.pointLimit,
             soundOn = newState.soundOn,
-            dialogEvent = newState.dialogEvent,
+            appDialogEvent = newState.appDialogEvent,
+            gameDialogEvent = newState.gameDialogEvent,
             turnId = newState.turnId,
         )
     }

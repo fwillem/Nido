@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.R
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.preview.NidoPreview
@@ -26,11 +26,11 @@ import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.theme.NidoTheme
 
 @Composable
-fun GameOverDialog(event: DialogEvent.GameOver, onExit : () -> Unit) {
+fun GameOverDialog(event: GameDialogEvent.GameOver, onExit : () -> Unit) {
     val gameManager = LocalGameManager.current
 
     AlertDialog(
-        onDismissRequest = { gameManager.clearDialogEvent() ; onExit()},
+        onDismissRequest = { gameManager.clearGameDialogEvent() ; onExit()},
         title = {
             // Display the name of the top-ranked player in the title.
             Text(
@@ -55,7 +55,7 @@ fun GameOverDialog(event: DialogEvent.GameOver, onExit : () -> Unit) {
         },
         confirmButton = {
             TextButton(
-                onClick = { gameManager.clearDialogEvent(); onExit() }
+                onClick = { gameManager.clearGameDialogEvent(); onExit() }
             ) {
                 Text("OK")
             }
@@ -73,7 +73,7 @@ fun PreviewGameOverDialog() {
 
         CompositionLocalProvider(LocalGameManager provides fakeGameManager) {
             GameOverDialog(
-                event = DialogEvent.GameOver(
+                event = GameDialogEvent.GameOver(
                     playerRankings = fakeGameManager.getPlayerRankings()
                 ),
                 onExit = {  }

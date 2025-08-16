@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.nido.R
-import com.example.nido.events.DialogEvent
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.dialogs.CardSelectionDialog
 import com.example.nido.ui.dialogs.GameOverDialog

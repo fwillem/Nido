@@ -12,9 +12,9 @@ import com.example.nido.utils.TraceLogLevel.FATAL
 import com.example.nido.utils.TraceLogLevel.INFO
 import com.example.nido.data.model.Hand
 import com.example.nido.data.repository.DeckRepository
-import com.example.nido.events.DialogEvent
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.PlayerType
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.utils.TraceLogLevel
 
 
@@ -152,7 +152,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
 
                     // Add a ShowDialog side effect for game over
                     sideEffects += GameSideEffect.ShowDialog(
-                        DialogEvent.GameOver(
+                        GameDialogEvent.GameOver(
                             playerRankings = GameRules.getPlayerRankings(updatedPlayers)
                         )
                     )
@@ -164,7 +164,7 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                     TRACE(INFO) { "SetDialogEvent RoundOver" }
 
                     sideEffects += GameSideEffect.ShowDialog(
-                        DialogEvent.RoundOver(
+                        GameDialogEvent.RoundOver(
                             winner = player,
                             playersHandScore = GameRules.getPlayerHandScores(updatedPlayers)
                         )

@@ -3,8 +3,9 @@ package com.example.nido.game
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.mutableStateListOf
 import com.example.nido.data.model.*
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.rules.GameRules
-import com.example.nido.events.DialogEvent
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.utils.Debug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -105,13 +106,7 @@ class FakeGameManager : IGameManager {
     }
 
 
-    override fun setDialogEvent(event: DialogEvent) {
-        // Simulate setting an event
-    }
 
-    override fun clearDialogEvent() {
-        // Simulate clearing an event
-    }
 
     override fun isValidMove(selectedCards: List<Card>): Boolean {
         return true // Fake validation logic
@@ -122,7 +117,7 @@ class FakeGameManager : IGameManager {
     }
 
 
-override fun isGameOver(): Boolean = false
+    override fun isGameOver(): Boolean = false
 
     override fun getGameWinners(): List<Player> = listOf(dummyLocalPlayer)
 
@@ -151,6 +146,21 @@ override fun isGameOver(): Boolean = false
             }
         )
 
+    }
+
+    override fun setGameDialogEvent(event: GameDialogEvent) {
+        // No-op: Fake implementation doesn't handle dialogs.
+    }
+    override fun setAppDialogEvent(event: AppDialogEvent) {
+        // No-op: Fake implementation doesn't handle dialogs.
+    }
+
+    override fun clearAppDialogEvent() {
+        // No-op: Fake implementation doesn't handle dialogs.
+    }
+
+    override fun clearGameDialogEvent() {
+        // No-op: Fake implementation doesn't handle dialogs.
     }
 
 }

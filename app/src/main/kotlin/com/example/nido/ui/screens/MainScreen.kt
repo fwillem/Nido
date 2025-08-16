@@ -16,7 +16,7 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Hand
 import com.example.nido.data.model.PlayerType
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.game.GameState
 import com.example.nido.game.LocalPlayer
@@ -89,7 +89,7 @@ fun MainScreen(
         mapOf(
             stringResource(R.string.sort_mode, sortMode.name) to { toggleSortMode() },
             stringResource(R.string.quit) to {
-                gameManager.setDialogEvent(DialogEvent.QuitGame)
+                gameManager.setGameDialogEvent(GameDialogEvent.QuitGame)
             },
         )
 
@@ -209,17 +209,22 @@ fun MainScreen(
     }
 
     // ── Centralized Dialog Observer ──
-    if (gameState.dialogEvent != null) {
-        when (val event = gameState.dialogEvent) {
-            is DialogEvent.CardSelection -> CardSelectionDialog(event = event)
-            is DialogEvent.RoundOver -> RoundOverDialog(
-                event = event,
-                onExit = { gameManager.startNewRound() })
-
-            is DialogEvent.GameOver -> GameOverDialog(event = event, onExit = onEndGame)
-
-            is DialogEvent.QuitGame -> QuitGameDialog(onConfirm = onQuitGame, onCancel = {})
-            else -> TRACE(FATAL) { "Unknown event type: ${gameState.dialogEvent}" }
+    val event = gameState.gameDialogEvent
+    if (event != null) {
+        when (event) {
+            is GameDialogEvent.CardSelection -> CardSelectionDialog(event)
+            is GameDialogEvent.RoundOver     -> RoundOverDialog(event) {
+                gameManager.clearGameDialogEvent()
+                gameManager.startNewRound()
+            }
+            is GameDialogEvent.GameOver      -> GameOverDialog(event) {
+                gameManager.clearGameDialogEvent()
+                onEndGame()
+            }
+            is GameDialogEvent.QuitGame      -> QuitGameDialog(
+                onConfirm = { gameManager.clearGameDialogEvent(); onQuitGame() },
+                onCancel  = { gameManager.clearGameDialogEvent() }
+            )
         }
     }
 
@@ -362,7 +367,8 @@ fun PreviewMainScreen() {
         deck = dummyDeck,
         skipCount = 0,
         soundOn = true,
-        dialogEvent = null,
+        gameDialogEvent = null,
+        appDialogEvent = null,
         turnId = 1
     )
 

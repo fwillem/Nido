@@ -29,12 +29,14 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
 import com.example.nido.R
-import com.example.nido.events.DialogEvent
 import android.media.MediaPlayer
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.core.*
+import com.example.nido.events.GameDialogEvent
+import com.example.nido.utils.TraceLogLevel
+
 @Composable
 fun TurnActionButtons(
     turnInfo: TurnInfo,
@@ -134,6 +136,11 @@ private fun PlayButton(
     Button(
         onClick = {
             val candidateCards = playmat?.toList() ?: emptyList()
+
+            TRACE (TraceLogLevel.FATAL) {
+                "PlayButton clicked with selectedCards: ${selectedCards.joinToString { "${it.value} ${it.color}" }}"
+            }
+
             when {
                 candidateCards.isEmpty() -> {
                     onPlayCombination(selectedCards, null)
@@ -156,17 +163,17 @@ private fun PlayButton(
                         onPlayCombination(selectedCards, candidateCards.first())
                         selectedCards.forEach { it.isSelected = false }
                     } else {
-                        gameManager.setDialogEvent(
-                            DialogEvent.CardSelection(
+                        gameManager.setGameDialogEvent(
+                            GameDialogEvent.CardSelection(
                                 candidateCards = candidateCards,
                                 selectedCards = selectedCards,
                                 onConfirm = { chosenCard ->
                                     onPlayCombination(selectedCards, chosenCard)
                                     selectedCards.forEach { it.isSelected = false }
-                                    gameManager.clearDialogEvent()
+                                    gameManager.clearGameDialogEvent()
                                 },
                                 onCancel = {
-                                    gameManager.clearDialogEvent()
+                                    gameManager.clearGameDialogEvent()
                                 }
                             )
                         )

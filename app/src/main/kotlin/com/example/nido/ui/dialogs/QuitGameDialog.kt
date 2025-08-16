@@ -25,14 +25,14 @@ fun QuitGameDialog(
 
     AlertDialog(
         onDismissRequest = {
-            gameManager.clearDialogEvent()
+            gameManager.clearGameDialogEvent()
             onCancel()
         },
         title = { Text(stringResource(R.string.quit_game)) },
         text = { Text(stringResource(R.string.do_you_really_want_to_quit)) },
         confirmButton = {
             TextButton(onClick = {
-                gameManager.clearDialogEvent()
+                gameManager.clearGameDialogEvent()
                 onConfirm()
             }) {
                 Text(stringResource(R.string.yes))
@@ -40,7 +40,7 @@ fun QuitGameDialog(
         },
         dismissButton = {
             TextButton(onClick = {
-                gameManager.clearDialogEvent()
+                gameManager.clearGameDialogEvent()
                 onCancel()
             }) {
                 Text(stringResource(R.string.cancel))

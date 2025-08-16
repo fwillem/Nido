@@ -37,7 +37,6 @@ import com.example.nido.data.model.Card
 import com.example.nido.data.model.CardColor
 import com.example.nido.data.model.Combination
 import com.example.nido.game.rules.GameRules
-import com.example.nido.events.DialogEvent
 import com.example.nido.ui.theme.NidoColors
 import com.example.nido.ui.views.CardView
 import com.example.nido.utils.Constants.NB_OF_DISCARDED_CARDS_TO_SHOW
