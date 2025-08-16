@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nido.R
-import com.example.nido.events.DialogEvent
 import com.example.nido.game.FakeGameManager
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.preview.NidoPreview

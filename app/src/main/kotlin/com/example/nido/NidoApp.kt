@@ -8,10 +8,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.nido.data.SavedPlayer
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.AppDialogEvent
 import com.example.nido.game.GameViewModel
 import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.dialogs.BlueScreenOfDeathDialog
 import com.example.nido.ui.dialogs.CardSelectionDialog
 import com.example.nido.ui.dialogs.GameOverDialog
 import com.example.nido.ui.dialogs.QuitGameDialog
@@ -51,7 +52,7 @@ fun NidoApp(
                     currentRoute = AppScreen.Routes.GAME
                 },
                 onQuit = {
-                    gameManager.setDialogEvent(DialogEvent.QuitGame)
+                    gameManager.setAppDialogEvent(AppDialogEvent.QuitApp)
 
                 },
                 modifier = modifier.padding(innerPadding)
@@ -99,12 +100,19 @@ fun NidoApp(
         }
     }
     // ── Centralized Dialog Observer ──
-    if (gameState.dialogEvent != null) {
-        when (val event = gameState.dialogEvent) {
-            
-            is DialogEvent.QuitGame -> QuitGameDialog(onConfirm = { activity?.finish()}, onCancel = {})
-            else -> TRACE(DEBUG) { "Unhandled dialog event: $event" }
-            //else -> TRACE(FATAL) { "Unknown or unexpected event : ${gameState.dialogEvent}" }
+    val appEvent = gameState.appDialogEvent
+    if (appEvent != null) {
+        when (appEvent) {
+            is AppDialogEvent.QuitApp -> QuitGameDialog(
+                onConfirm = { gameManager.clearAppDialogEvent(); activity?.finish() },
+                onCancel  = { gameManager.clearAppDialogEvent() }
+            )
+            is AppDialogEvent.BlueScreenOfDeath -> BlueScreenOfDeathDialog(
+                tag = appEvent.tag,
+                message = appEvent.message,
+                onExit = { gameManager.clearAppDialogEvent() }
+            )
         }
     }
+
 }

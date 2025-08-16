@@ -1,37 +1,40 @@
 package com.example.nido.utils
 
 import android.util.Log
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.UiEventBridge
 
 /**
- * A simple logging utility that provides custom trace functionality with emojis
- * and more meaningful tags. The aim of this utility is:
- * - Best of the original (simplicity, Logcat compatibility, inline efficiency)
- * - Modern improvements (emojis, auto-tagging for caller identification, thread safety, println integration)
- * - Completely future-proof – Can be extended (print to file, remote debugging, conditional traces) without modifying existing code
+ * TRACE logging utility.
+ *
+ * Goals:
+ * - Keep Logcat-friendly simplicity and inline efficiency.
+ * - Add readable emojis and auto-tagging (Class:method).
+ * - Avoid duplicate println() when TRACE() builds the string.
+ * - Integrate with the UI event system for fatal errors (BSOD dialog).
+ *
+ * Architecture tie-in:
+ * - For FATAL logs, we DO NOT throw here. We emit an AppDialogEvent.BlueScreenOfDeath
+ *   via UiEventBridge so the UI (NidoApp) can show a blocking dialog.
+ *   If you prefer an immediate crash, uncomment the throw at the end of the FATAL branch.
  */
 
-/**
- * Log levels for TRACE.
- */
+/** Log levels for TRACE. */
 enum class TraceLogLevel {
-    VERBOSE,     // Very detailed traces
-    DEBUG,       // Detailed traces
-    INFO,        // Basic traces
-    WARNING,     // Warning (abnormal situation, not planned)
-    ERROR,       // Error, something went wrong but program can go on. Needs to be solved
-    FATAL        // Fatal error, will raise an exception
+    VERBOSE,    // Very detailed traces
+    DEBUG,      // Detailed traces
+    INFO,       // Basic traces
+    WARNING,    // Abnormal but recoverable
+    ERROR,      // Error: app can continue, needs attention
+    FATAL       // Fatal: routed to BSOD dialog + optional crash
 }
 
-/**
- * Maximum tag length for Android Studio Logcat.
- * Some Android API levels enforce a maximum tag length (commonly 23 characters).
- */
+/** Max tag length (some Android versions enforce 23 chars). */
 const val tagMaxLen = 23
 
 /**
- * Attempts to generate a meaningful tag by inspecting the current stack trace.
- * It uses the caller's class and method name (formatted as "ClassName:methodName").
- * If the tag exceeds [tagMaxLen], it will be truncated appropriately.
+ * Generate a meaningful tag from the caller's stack trace in the form "ClassName:methodName".
+ * If it exceeds [tagMaxLen], truncate class/method parts intelligently.
  */
 fun getTag(): String {
     val stackTrace = Throwable().stackTrace
@@ -52,72 +55,69 @@ fun getTag(): String {
     }
 }
 
-/**
- * Returns an emoji based on the trace log level.
- */
+/** Emoji decoration by level (purely cosmetic). */
 fun emojiForLevel(level: TraceLogLevel): String = when (level) {
-    TraceLogLevel.VERBOSE    -> "🟡"
-    TraceLogLevel.DEBUG      -> "🟡"
-    TraceLogLevel.INFO       -> "🟡"
-    TraceLogLevel.WARNING    -> "⚠"
-    TraceLogLevel.ERROR      -> "❌"
-    TraceLogLevel.FATAL      -> "\uD83D\uDC80" // Death's head emoji
+    TraceLogLevel.VERBOSE -> "🟡"
+    TraceLogLevel.DEBUG   -> "🟡"
+    TraceLogLevel.INFO    -> "🟡"
+    TraceLogLevel.WARNING -> "⚠"
+    TraceLogLevel.ERROR   -> "❌"
+    TraceLogLevel.FATAL   -> "\uD83D\uDC80" // skull
 }
 
 /**
- * Thread-local flag to detect when TRACE() is running.
- * This prevents the custom println() from printing duplicate output when called within TRACE().
+ * Thread-local guard to prevent our custom println() from double-printing
+ * when TRACE() itself generates the message string.
  */
-val isInsideTrace = ThreadLocal.withInitial { false }
+private val isInsideTrace = ThreadLocal.withInitial { false }
 
 /**
- * Logs a message at the specified trace log level.
- * Prevents duplicate logs by suppressing println() when used inside TRACE().
+ * Log a message at the given level. For FATAL:
+ * - Log with WTF
+ * - Emit a BSOD dialog event via UiEventBridge (handled globally by NidoApp)
+ * - (Optional) Throw to crash immediately — commented out to let the dialog show
  *
- * @param level the log level.
- * @param tag an optional tag. Defaults to a generated tag from [getTag].
- * @param message a lambda that returns the log message.
+ * @param level   Log level.
+ * @param tag     Optional tag; defaults to auto-generated from caller.
+ * @param message Lazy message builder.
  */
 inline fun TRACE(
     level: TraceLogLevel,
     tag: String = getTag(),
     message: () -> String
 ) {
-    isInsideTrace.set(true)  // Prevent duplicate printing via println()
     val decoratedMessage = "${emojiForLevel(level)} ${message()}"
-    isInsideTrace.set(false) // Restore normal println() behavior
+    val plainMessage = "${message()}"
 
     when (level) {
         TraceLogLevel.VERBOSE -> Log.v(tag, decoratedMessage)
-        TraceLogLevel.DEBUG    -> Log.d(tag, decoratedMessage)
-        TraceLogLevel.INFO     -> Log.i(tag, decoratedMessage)
-        TraceLogLevel.WARNING  -> Log.w(tag, decoratedMessage)
-        TraceLogLevel.ERROR    -> Log.e(tag, decoratedMessage)
-        TraceLogLevel.FATAL    -> {
+        TraceLogLevel.DEBUG   -> Log.d(tag, decoratedMessage)
+        TraceLogLevel.INFO    -> Log.i(tag, decoratedMessage)
+        TraceLogLevel.WARNING -> Log.w(tag, decoratedMessage)
+        TraceLogLevel.ERROR   -> Log.e(tag, decoratedMessage)
+        TraceLogLevel.FATAL   -> {
             Log.wtf(tag, decoratedMessage)
-            throw RuntimeException(decoratedMessage)
+
+            // Route to the global BSOD dialog (AppDialogEvent handled by NidoApp).
+            // This respects the two-pipes architecture: UI events go through UiEventBridge.
+            UiEventBridge.emit(
+                AppDialogEvent.BlueScreenOfDeath(
+                    tag = tag,
+                    message = { message }
+                )
+            )
+
+            // If you prefer to crash immediately instead of showing the dialog, uncomment:
+            // throw RuntimeException(decoratedMessage)
         }
     }
 }
 
-/**
- * Custom println function that prevents duplicate logs when used inside TRACE().
- * If TRACE() is active (as determined by [isInsideTrace]), it returns the message
- * without printing; otherwise, it prints to the standard output.
- */
-fun println(message: String): String {
-    return if (isInsideTrace.get() ?: false) {
-        message // Do not print if inside TRACE()
-    } else {
-        message.also { kotlin.io.println(it) } // Normal println behavior, but also returns the message
-    }
-}
 
-/**
- * Spare: Emoji bank.
- */
+/** Spare emoji bank for future use. */
 object TraceEmojisBank {
-    val emojis = arrayOf("😀", "😂", "😎", "😍", "🥳", "🟢", "🟡", "🟥", "🟦", "🟨", "🔹", "❌", "✅", "🔄","🍾","⭐","🔥","✨","🌟")
+    val emojis = arrayOf(
+        "😀","😂","😎","😍","🥳","🟢","🟡","🟥","🟦","🟨",
+        "🔹","❌","✅","🔄","🍾","⭐","🔥","✨","🌟"
+    )
 }
-
-

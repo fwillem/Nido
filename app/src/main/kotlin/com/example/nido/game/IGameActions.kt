@@ -2,7 +2,7 @@ package com.example.nido.game
 
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Player
-import com.example.nido.events.DialogEvent
+import com.example.nido.events.GameDialogEvent
 import com.example.nido.utils.Debug
 
 
@@ -15,7 +15,6 @@ interface IGameActions {
         fun getAIMove()
         fun processSkip()
        // fun withdrawCardsFromMat(cardsToWithdraw: List<Card>)
-        fun setDialogEvent(event: DialogEvent)
-        fun clearDialogEvent()
+
     }
 

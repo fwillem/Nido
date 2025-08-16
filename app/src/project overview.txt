@@ -1,8 +1,0 @@
-Project Overview (Nido)
-I'm developing a game with Android Studio, Kotlin, and Jetpack Compose.
-
-Project Architecture Note:
-Currently, the ViewModel class is mostly an empty shell and is present only for historical or structural reasons.
-All game state and business logic is managed by GameManager, which acts as the single source of truth.
-The ViewModel may be further developed or integrated in future phases, but as of now, all state mutations and game flow are centralized within GameManager.
-
