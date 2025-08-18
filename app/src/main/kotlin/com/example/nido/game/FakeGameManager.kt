@@ -59,12 +59,12 @@ class FakeGameManager : IGameManager {
     // ✅ Create a fake game state for previews/tests
     private val _gameState = MutableStateFlow(
         GameState(
-            playerId = currentPlayerId,
             turnInfo = turnInfo,
             pointLimit = 15,
             players = listOf(dummyLocalPlayer, dummyAIPlayer1, dummyAIPlayer2),
             startingPlayerIndex = 0,
             currentPlayerIndex = 0,
+            currentPlayerId = currentPlayerId,
             currentCombinationOnMat = Combination(mutableStateListOf(Card(3, "MOCHA"), Card(3, "GREEN"))),
             discardPile = mutableStateListOf(Card(2, "ORANGE")),
             deck = mutableStateListOf(Card(7, "PINK")),

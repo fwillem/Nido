@@ -22,8 +22,8 @@
 # --- Aliases I currently use ---
 
 # Savepoint alias:
-# Creates an auto-save commit + timestamp tag, then pushes.
-git config --global alias.savepoint '!git add . && git commit -m "Auto-save" && git tag -a $(date +%Y-%m-%d_%H-%M-%S) -m "Archived version" && git push origin HEAD && git push origin $(date +%Y-%m-%d_%H-%M-%S)'
+# Creates an auto-save commit + timestamp tag, then pushes only branch + tag.
+git config --global alias.savepoint '!t=$(date +%Y-%m-%d_%H-%M-%S) && git add . && git commit -m "Auto-save" && git tag -a "$t" -m "Archived version" && git push origin HEAD && git push origin "$t"'
 
 # Release alias:
 # Creates & switches to a new branch, commits, tags, and pushes branch + tag.
@@ -33,8 +33,8 @@ git config --global alias.release '!f() { \
   git add . && \
   git commit -m "Release $1: $desc" || true && \
   git tag -a "$1" -m "$desc" && \
-  git push origin "$1" && \
-  git push origin "$1"; \
+  git push origin "refs/heads/$1:refs/heads/$1" && \
+  git push origin "refs/tags/$1:refs/tags/$1"; \
 }; f'
 
 # --- Usage examples ---
@@ -53,3 +53,6 @@ git config --global --unset alias.<name>
 
 # Check where config is stored (global/system/local)
 git config --list --show-origin
+
+# Show all refs (branches + tags)
+git show-ref --heads --tags

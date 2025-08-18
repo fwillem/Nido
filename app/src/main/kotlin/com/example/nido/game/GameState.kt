@@ -11,7 +11,6 @@ import com.example.nido.events.GameDialogEvent
 import com.example.nido.utils.Constants
 
 data class GameState(
-    val playerId: String = "",
     val turnInfo: TurnInfo = TurnInfo(),
     val doNotAutoPlayAI: Boolean = false,
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
@@ -19,6 +18,7 @@ data class GameState(
     val players: List<Player> = emptyList(),
     val startingPlayerIndex: Int = 0,
     val currentPlayerIndex: Int = 0,
+    val currentPlayerId: String = "",
 
     val currentCombinationOnMat: Combination = Combination(mutableListOf()),
     val discardPile: SnapshotStateList<Card> = mutableStateListOf(),
@@ -38,7 +38,7 @@ data class GameState(
     val matBanner: String? = null,
 
     // Used to display info in turnHint
-    val lastActivePLayer: Player? = null,
+    val lastActivePlayer: Player? = null,
 
     // The last kept card (the one kept by the lastActivePLayer
     val lastKeptCard: Card? = null
@@ -46,7 +46,6 @@ data class GameState(
     override fun toString(): String {
         return """
             🔍 GameState Debug Info:
-            💠 Player ID: $playerId
             💠 Turn Info: $turnInfo
             💠 Do Not Auto Play AI: $doNotAutoPlayAI
             💠 Point Limit: $pointLimit
@@ -59,14 +58,13 @@ data class GameState(
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
             💠 Turn Hint: $turnHint
             💠 Mat Banner: ${matBanner ?: "None"}
-            💠 Last Active Player: ${lastActivePLayer?.name ?: "None"}
+            💠 Last Active Player: ${lastActivePlayer?.name ?: "None"}
             💠 Turn ID : $turnId
         """.trimIndent()
     }
 
     fun deepCopy(): GameState {
         return GameState(
-            playerId = this.playerId,
             turnInfo = this.turnInfo.copy(),
             doNotAutoPlayAI = this.doNotAutoPlayAI,
             pointLimit = this.pointLimit,
@@ -74,6 +72,7 @@ data class GameState(
             players = this.players.map { it.copy() },
             startingPlayerIndex = this.startingPlayerIndex,
             currentPlayerIndex = this.currentPlayerIndex,
+            currentPlayerId = this.currentPlayerId,
 
             currentCombinationOnMat = Combination(this.currentCombinationOnMat.cards.toMutableList()),
             discardPile = mutableStateListOf<Card>().apply { addAll(this@GameState.discardPile) },
@@ -89,7 +88,7 @@ data class GameState(
 
             turnHint = this.turnHint,
             matBanner = this.matBanner,
-            lastActivePLayer = this.lastActivePLayer?.copy(),
+            lastActivePlayer = this.lastActivePlayer?.copy(),
             lastKeptCard = this.lastKeptCard?.copy()
         )
     }

@@ -141,6 +141,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         if (oldState.discardPile != newState.discardPile) changes.add("🗑 discardPile: ${oldState.discardPile} ➝ ${newState.discardPile}")
         if (oldState.startingPlayerIndex != newState.startingPlayerIndex) changes.add("🔢 startingPlayerIndex: ${oldState.startingPlayerIndex} ➝ ${newState.startingPlayerIndex}")
         if (oldState.currentPlayerIndex != newState.currentPlayerIndex) changes.add("🎯 currentPlayerIndex: ${oldState.currentPlayerIndex} ➝ ${newState.currentPlayerIndex}")
+        if (oldState.currentPlayerId != newState.currentPlayerId) changes.add("🆔 currentPlayerId: ${oldState.currentPlayerId} ➝ ${newState.currentPlayerId}")
         if (oldState.currentCombinationOnMat != newState.currentCombinationOnMat) changes.add("🟨 currentCombinationOnMat: ${oldState.currentCombinationOnMat} ➝ ${newState.currentCombinationOnMat}")
         if (oldState.soundOn != newState.soundOn) changes.add("🔊 soundOn: ${oldState.soundOn} ➝ ${newState.soundOn}")
         if (oldState.gameDialogEvent != newState.gameDialogEvent) changes.add("🎲 gameDialogEvent: ${oldState.gameDialogEvent} ➝ ${newState.gameDialogEvent}")
@@ -149,7 +150,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         if (oldState.pointLimit != newState.pointLimit) changes.add("🎯 pointLimit: ${oldState.pointLimit} ➝ ${newState.pointLimit}")
         if (oldState.turnId != newState.turnId) changes.add("🔄 turnId: ${oldState.turnId} ➝ ${newState.turnId}")
         if (oldState.turnInfo != newState.turnInfo) changes.add("💡 turnInfo: ${oldState.turnInfo} ➝ ${newState.turnInfo}")
-        if (oldState.playerId != newState.playerId) changes.add("🆔 playerId: ${oldState.playerId} ➝ ${newState.playerId}")
 
         // Print only changed values.
         if (changes.isNotEmpty()) {
@@ -165,10 +165,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
             discardPile = newState.discardPile,
             startingPlayerIndex = newState.startingPlayerIndex,
             currentPlayerIndex = newState.currentPlayerIndex,
+            currentPlayerId = newState.currentPlayerId,
             currentCombinationOnMat = newState.currentCombinationOnMat,
             skipCount = newState.skipCount,
             turnInfo = newState.turnInfo,
-            playerId = newState.playerId,
             pointLimit = newState.pointLimit,
             soundOn = newState.soundOn,
             appDialogEvent = newState.appDialogEvent,

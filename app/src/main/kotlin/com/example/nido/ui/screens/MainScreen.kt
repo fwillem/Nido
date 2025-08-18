@@ -357,11 +357,11 @@ fun PreviewMainScreen() {
     }}
 
     val dummyGameState = GameState(
-        playerId = dummyPlayers[0].id,
         pointLimit = 100,
         players = dummyPlayers,
         startingPlayerIndex = 0,
         currentPlayerIndex = 0,
+        currentPlayerId = dummyPlayers.first().id,
         currentCombinationOnMat = dummyPlaymat,
         discardPile = dummyDiscardPile,
         deck = dummyDeck,
