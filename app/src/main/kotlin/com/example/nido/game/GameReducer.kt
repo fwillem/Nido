@@ -43,11 +43,14 @@ private fun GameState.withUpdatedCombination(
 
 // Centralized refresh
 private fun GameState.withUIRefresh(): GameState {
+    val freshTurnInfo = calculateTurnInfo(this)
+    val freshHint = buildTurnHint(this.copy(turnInfo = freshTurnInfo))
     return this.copy(
-        turnInfo = calculateTurnInfo(this), // recompute live turnInfo
-        turnHint = buildTurnHint(this)      //  rebuild text
+        turnInfo = freshTurnInfo,
+        turnHint = freshHint
     )
 }
+
 
 fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
     val result = when (event) {
@@ -350,19 +353,21 @@ private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
 
 
 
-/** Baseline instruction:
+/**
+ * Baseline instruction:
  * A) must play 1
  * OR
  * B) can play N+ (N or N+1).
+ *
+ * ⚠️ Assumes state.turnInfo is up-to-date.
+ * Normally safe because reducers always refresh state via withUIRefresh().
+ * If you call buildTurnHint() manually, ensure you pass a state with a fresh turnInfo,
+ * e.g. by calling calculateTurnInfo(state) first.
  */
 private fun baselineTurnHint(state: GameState): String {
     val n = state.currentCombinationOnMat.cards.size.takeIf { it > 0 } ?: 1
 
-    // Since turnInfo is now calculated at the end of the reducer, we need to make sure here that we've got fresh information
-
-    val info = calculateTurnInfo(state)
-
-    return if (!info.canSkip) {
+    return if (!state.turnInfo.canSkip) {
         "You must play one card (or go All In!)"
     } else {
         "You can play $n or ${n+1} cards"
