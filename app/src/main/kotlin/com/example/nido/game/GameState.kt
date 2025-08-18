@@ -42,6 +42,10 @@ data class GameState(
 
     // The last kept card (the one kept by the lastActivePLayer
     val lastKeptCard: Card? = null
+
+    // History of games
+    val gameHistory: List<GameHistory> = emptyList()
+
 ) {
     override fun toString(): String {
         return """
