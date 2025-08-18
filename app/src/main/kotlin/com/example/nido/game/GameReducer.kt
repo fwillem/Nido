@@ -44,7 +44,8 @@ private fun GameState.withUpdatedCombination(
 // Centralized refresh
 private fun GameState.withUIRefresh(): GameState {
     val freshTurnInfo = calculateTurnInfo(this)
-    val freshHint = buildTurnHint(this.copy(turnInfo = freshTurnInfo))
+    val currentPlayerType = this.players[this.currentPlayerIndex].playerType
+    val freshHint = buildTurnHint(this.copy(turnInfo = freshTurnInfo), currentPlayerType)
     return this.copy(
         turnInfo = freshTurnInfo,
         turnHint = freshHint
@@ -364,10 +365,21 @@ private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
  * If you call buildTurnHint() manually, ensure you pass a state with a fresh turnInfo,
  * e.g. by calling calculateTurnInfo(state) first.
  */
-private fun baselineTurnHint(state: GameState): String {
-    val n = state.currentCombinationOnMat.cards.size.takeIf { it > 0 } ?: 1
+private fun baselineTurnHint(gameState: GameState,  currentPlayerType: PlayerType): String {
+    val n = gameState.currentCombinationOnMat.cards.size.takeIf { it > 0 } ?: 1
 
-    return if (!state.turnInfo.canSkip) {
+    if (currentPlayerType != PlayerType.LOCAL) {
+        // AI & Remote players don't need hints, they just play.
+        return ""
+    }
+
+    if (gameState.turnInfo.displaySkipCounter)
+    {
+        return("You cannot beat that one !")
+    }
+
+
+    return if (!gameState.turnInfo.canSkip) {
         "You must play one card (or go All In!)"
     } else {
         "You can play $n or ${n+1} cards"
@@ -377,16 +389,16 @@ private fun baselineTurnHint(state: GameState): String {
 /** Optional suffix for "kept this card".
  * Shown as: " — YOU kept PINK 8" or " — Thorstein kept PINK 8".
  */
-private fun keptSuffix(state: GameState): String {
+private fun keptSuffix(state: GameState, currentPlayerType: PlayerType): String {
     val player = state.lastActivePlayer ?: return ""
     val kept = state.lastKeptCard ?: return ""
     val who = if (player.playerType == PlayerType.LOCAL) "YOU" else player.name
-    return " — $who kept ${kept.color} ${kept.value}"
+    return "$who kept ${kept.color} ${kept.value}"
 }
 
 /** Final hint assembled from baseline + kept suffix. */
-private fun buildTurnHint(state: GameState): String {
-    val base = baselineTurnHint(state)
-    val kept = keptSuffix(state)
-    return base + kept
+private fun buildTurnHint(state: GameState, currentPlayerType: PlayerType): String {
+    val base = baselineTurnHint(state, currentPlayerType)
+    val kept = keptSuffix(state, currentPlayerType)
+    return base + if (base.isEmpty()) kept else ""
 }
