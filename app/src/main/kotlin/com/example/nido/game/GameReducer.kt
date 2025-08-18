@@ -83,17 +83,25 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
     newState = dealCards(newState)
     TRACE(VERBOSE) { "New round started: $newState" }
 
+    // Reset the turn hint.
+    newState = dealCards(newState)
+    val resetState = newState.copy(
+        lastActivePLayer = null,
+        lastKeptCard = null
+    )
+    val newStateWithHint = resetState.copy(turnHint = buildTurnHint(resetState))
+
     // Is the current player an AI and autoPLauy is enabled we shall start the AI timer.
 
-    if (currentPlayer.playerType == PlayerType.AI && !newState.doNotAutoPlayAI) {
+    if (currentPlayer.playerType == PlayerType.AI && !newStateWithHint.doNotAutoPlayAI) {
         TRACE(DEBUG) { "New Round, first player is AI: ${currentPlayer.name}" }
-        sideEffects += GameSideEffect.StartAITimer(newState.turnId)
+        sideEffects += GameSideEffect.StartAITimer(newStateWithHint.turnId)
     }
     else {
         TRACE(DEBUG) { "New Round, first  player is human: ${currentPlayer.name}" }
     }
 
-    return ReducerResult(newState = newState,sideEffects = sideEffects)
+    return ReducerResult(newState = newStateWithHint,sideEffects = sideEffects)
 }
 
 private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardToKeep: Card?) : ReducerResult
@@ -319,4 +327,44 @@ private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
 
 
     return ReducerResult(state, sideEffects = sideEffects)
+}
+
+/** "YOU" if player is the local human, otherwise the player's name. */
+/* TODO TO LOCALIZE */
+private fun displayNameFor(state: GameState, playerId: String?): String {
+    if (playerId == null) return ""
+    return if (playerId == state.playerId) "YOU" else {
+        state.players.firstOrNull { it.id == playerId }?.name ?: ""
+    }
+}
+
+/** Baseline instruction: A) must play 1  OR  B) can play N+ (N or N+1). */
+private fun baselineTurnHint(state: GameState): String {
+    // N is the size of the current combo on the mat; if empty, N = 1.
+    val n = state.currentCombinationOnMat.cards.size.takeIf { it > 0 } ?: 1
+
+    // If the starting player must open a round, cannot skip.
+    // We lean on TurnInfo.canSkip when available; default false if not maintained.
+    val mustPlay = !state.turnInfo.canSkip && state.currentCombinationOnMat.cards.isEmpty()
+
+    return if (mustPlay) {
+        "You must play 1"
+    } else {
+        "You can play ${n}+"
+    }
+}
+
+/** Optional suffix for "kept this card". Shown as: " — Thorstein kept PINK 8". */
+private fun keptSuffix(state: GameState): String {
+    val actor = state.lastActivePLayer?.id ?: return ""
+    val kept = state.lastKeptCard ?: return ""
+    val who = displayNameFor(state, actor)
+    return " — $who kept ${kept.color} ${kept.value}"
+}
+
+/** Final hint. */
+private fun buildTurnHint(state: GameState): String {
+    val base = baselineTurnHint(state)
+    val kept = keptSuffix(state)
+    return base + kept
 }

@@ -1,34 +1,55 @@
-git config --global alias.savepoint '!git add . && git commit -m "Auto-save" && git tag -a $(date +%Y-%m-%d_%H-%M-%S) -m "Archived version" && git push && git push --tags'
+# =========================================================
+# GitCmd.txt
+# ---------------------------------------------------------
+# ⚠️ This file is JUST A NOTE for myself.
+# Git does NOT read this file automatically.
+# 
+# If I want to make an alias real, I must run the line in
+# a terminal once:
+#     git config --global alias.<name> '<command>'
+#
+# Aliases live in my global ~/.gitconfig (Linux/Mac)
+# or C:\Users\<me>\.gitconfig (Windows).
+# They persist until I delete them with:
+#     git config --global --unset alias.<name>
+#
+# They are NOT tied to a specific repo: all repos share them.
+# They only disappear if I:
+#   • uninstall Git and delete my .gitconfig
+#   • or move to another machine (unless I copy .gitconfig)
+# =========================================================
 
+# --- Aliases I currently use ---
 
+# Savepoint alias:
+# Creates an auto-save commit + timestamp tag, then pushes.
+git config --global alias.savepoint '!git add . && git commit -m "Auto-save" && git tag -a $(date +%Y-%m-%d_%H-%M-%S) -m "Archived version" && git push origin HEAD && git push origin $(date +%Y-%m-%d_%H-%M-%S)'
 
-
+# Release alias:
+# Creates & switches to a new branch, commits, tags, and pushes branch + tag.
 git config --global alias.release '!f() { \
   read -p "Enter release description: " desc && \
+  git checkout -b "$1" && \
   git add . && \
-  git commit -m "Release $1: $desc" && \
+  git commit -m "Release $1: $desc" || true && \
   git tag -a "$1" -m "$desc" && \
-  git push && \
-  git push --tags; \
+  git push origin "$1" && \
+  git push origin "$1"; \
 }; f'
 
-git config --global alias.release '!f() { read -p "Enter release description: " desc && git add . && git commit -m "Release $1: $desc" && git tag -a "$1" -m "$desc" && git push && git push --tags;}; f'
+# --- Usage examples ---
+# git release v0.70    -> makes branch v0.70, tags it, pushes both
+# git savepoint        -> auto-save commit + timestamp tag
 
+# =========================================================
+# Dictionary / Useful commands
+# ---------------------------------------------------------
 
+# Show all global aliases currently active
+git config --get-regexp '^alias\.'
 
+# Remove a specific alias
+git config --global --unset alias.<name>
 
-
-git config --global alias.release '!f() { git checkout -b "$1" && read -p "Enter release description: " desc && git add . && git commit -m "Release $1: $desc" && git tag -a "$1" -m "$desc" && git push -u origin "$1" && git push --tags; }; f'
-
-
-git config --global alias.release '!f() { git checkout -b "$1" && read -p "Enter release description: " desc && git add . && git commit -m "Release $1: $desc" && git tag -a "release-$1" -m "$desc" && git push -u origin "$1" && git push --tags; }; f'
-
-
-git config --global alias.release '!f() { git checkout -b "$1" && read -p "Enter release description: " desc && git add . && if ! git diff-index --quiet HEAD -- ; then git commit -m "Release $1: $desc"; else echo "No changes to commit";   fi && git tag -a "release-$1" -m "$desc" && git push -u origin "$1" && git push --tags; }; f'
-
-
-git release v0.70
-
-git savepoint
-
-git push -u origin working-v0.3
+# Check where config is stored (global/system/local)
+git config --list --show-origin
