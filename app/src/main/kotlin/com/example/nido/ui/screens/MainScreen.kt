@@ -107,7 +107,7 @@ fun MainScreen(
                     .background(Color.DarkGray),
                 contentAlignment = Alignment.Center
             ) {
-                CommentsView(actionButtonsMap,debug)
+                CommentsView(actionButtonsMap)
             }
 
             // 🔹 Player Information Row

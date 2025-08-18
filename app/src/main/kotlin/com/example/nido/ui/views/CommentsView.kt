@@ -5,12 +5,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nido.ui.LocalGameManager
 import com.example.nido.utils.Debug
 
 @Composable
-fun CommentsView(actions: Map<String, () -> Unit>, debug : Debug) {
+fun CommentsView(actions: Map<String, () -> Unit>) {
+    val gameManager = LocalGameManager.current
+    val gameState = gameManager.gameState.value
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -23,8 +29,10 @@ fun CommentsView(actions: Map<String, () -> Unit>, debug : Debug) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Nido",
+                text = gameState.turnHint.ifBlank { "…" },
                 fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
                 lineHeight = 8.sp,
                 // modifier = Modifier.padding(end = 4.dp, start = 36.dp)
                 // Removed padding to ensure text is perfectly centered
