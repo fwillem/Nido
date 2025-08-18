@@ -59,6 +59,9 @@ import kotlinx.coroutines.launch
  * - The caller decides what to do in onExit() (e.g., hardRestartApp, crash, etc.).
  */
 
+val gitHubTests = "11:15"
+
+
 @Composable
 fun BlueScreenOfDeathDialog(
     tag: String = getTag(),
@@ -98,6 +101,7 @@ fun BlueScreenOfDeathDialogCool(
     onExit: () -> Unit
 ) {
     // Flash RED/BLUE and invert text color. Purely visual.
+
     var isRed by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         while (true) {
