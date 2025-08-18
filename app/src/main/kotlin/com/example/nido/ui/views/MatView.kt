@@ -126,12 +126,6 @@ fun MatView(
 
             }
 
-        // Real MAT
-        val lastActor = gameState.lastActivePLayer
-        val matNotEmpty = gameState.currentCombinationOnMat.cards.isNotEmpty()
-        val showSnack = lastActor != null && matNotEmpty
-
-
 
         Box(
             modifier = Modifier
@@ -159,15 +153,9 @@ fun MatView(
             }
 
             // SnackBar
-            if (showSnack) {
-                // Option A: by player type (preferred per your decision)
-                val isYou = lastActor!!.playerType == PlayerType.LOCAL
-
-                // Option B (equivalent): by your flag
-                // val isYou = lastActor!!.isLocallyManaged
-
-                val label = if (isYou) "YOU played:" else "${lastActor.name} played:"
-                Snackbar { Text(label) }
+            val banner = gameState.matBanner
+            if (banner != null) {
+                Snackbar { Text(banner) }
             }
 
             TurnActionButtons(

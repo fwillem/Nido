@@ -11,6 +11,7 @@ import com.example.nido.utils.TraceLogLevel.VERBOSE
 import com.example.nido.utils.TraceLogLevel.FATAL
 import com.example.nido.utils.TraceLogLevel.INFO
 import com.example.nido.data.model.Hand
+import com.example.nido.data.model.Player
 import com.example.nido.data.repository.DeckRepository
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.PlayerType
@@ -23,6 +24,23 @@ data class ReducerResult(
     val followUpEvents: List<GameEvent> = emptyList(),
     val sideEffects: List<GameSideEffect> = emptyList()
 )
+
+private fun GameState.withUpdatedCombination(
+    combination: Combination,
+    player: Player?
+): GameState {
+    val banner = if (player != null) {
+        if (player.playerType == PlayerType.LOCAL) "YOU played:" else "${player.name} played:"
+    } else {
+        null // e.g. mat cleared
+    }
+
+    return this.copy(
+        currentCombinationOnMat = combination,
+        matBanner = banner
+    )
+}
+
 
 fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
     return when (event) {

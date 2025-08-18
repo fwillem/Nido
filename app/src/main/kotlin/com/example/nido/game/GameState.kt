@@ -35,6 +35,7 @@ data class GameState(
 
     // 🔹 NEW unified hint string consumed by CommentsView
     val turnHint: String = "",
+    val matBanner: String? = null,
 
     // Used to display info in turnHint
     val lastActivePLayer: Player? = null,
@@ -57,6 +58,7 @@ data class GameState(
             💠 Discard Pile: ${discardPile.joinToString(", ") { it.toString() }}
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
             💠 Turn Hint: $turnHint
+            💠 Mat Banner: ${matBanner ?: "None"}
             💠 Last Active Player: ${lastActivePLayer?.name ?: "None"}
             💠 Turn ID : $turnId
         """.trimIndent()
@@ -86,6 +88,7 @@ data class GameState(
             turnId = this.turnId,
 
             turnHint = this.turnHint,
+            matBanner = this.matBanner,
             lastActivePLayer = this.lastActivePLayer?.copy(),
             lastKeptCard = this.lastKeptCard?.copy()
         )
