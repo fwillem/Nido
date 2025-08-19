@@ -19,7 +19,7 @@ enum class VersionOptions {
  *
  * @param modifier Modifier to position/pad this label
  * @param option Controls what to display: FULL, SHORT (just branch),
- *               DATE (just build time), or TAG (just git tag)
+ *               DATE (just build time), or TAG (just git tag () not sure what it means)
  */
 @Composable
 fun VersionLabel(
