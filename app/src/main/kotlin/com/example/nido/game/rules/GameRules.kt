@@ -216,9 +216,16 @@ fun calculateTurnInfo(gameState: GameState): TurnInfo {
         playmatCombo.cards.isEmpty() && gameState.skipCount == 0
 
     // 🟢 Can the user go all-in? (i.e., play their whole hand at once as a valid combo)
+    // CAUTION THeir was a bug, we corrected it
+    /*
     val canGoAllIn =
         isFirstMoveOfRound &&
                 unselectedCards.isEmpty() && // All cards selected
+                GameRules.isValidCombination(Combination(handCards.toMutableList()))
+
+     */
+    val canGoAllIn =
+        isFirstMoveOfRound &&
                 GameRules.isValidCombination(Combination(handCards.toMutableList()))
 
     // ────────────────────────────────────────────────
@@ -299,63 +306,3 @@ fun calculateTurnInfo(gameState: GameState): TurnInfo {
         displayNotifyRemotePlayer = displayNotifyRemotePlayer
     )
 }
-
-/*
-fun calculateTurnInfo(gameState: GameState): TurnInfo {
-    val currentPlayer = gameState.players[gameState.currentPlayerIndex]
-    val isLocal = currentPlayer.playerType == PlayerType.LOCAL
-
-    if (!isLocal) {
-        return TurnInfo() // all false
-    }
-
-    val handCards = currentPlayer.hand.cards
-    val selectedCards = handCards.filter { it.isSelected }
-    val hasSelection = selectedCards.isNotEmpty()
-    val selectedCombination = Combination(selectedCards.toMutableList())
-
-    val playmatCombo = gameState.currentCombinationOnMat
-    val isFirstMoveOfRound = playmatCombo.cards.isEmpty() && gameState.skipCount == 0
-
-    val canGoAllIn = isFirstMoveOfRound &&
-            GameRules.isValidCombination(Combination(handCards.toMutableList()))
-
-    val isSelectionValid = hasSelection &&
-            GameRules.isValidMove(playmatCombo, selectedCombination, handCards.size)
-
-    val possibleMoves = GameRules.findValidCombinations(handCards)
-    val canPlayAny = possibleMoves.any {
-        GameRules.isValidMove(playmatCombo, it, handCards.size)
-    }
-
-    val mustSkip = !canPlayAny && handCards.isNotEmpty()
-    val canSkip = !isFirstMoveOfRound
-
-    val (displayPlay, displaySkip, displaySkipCounter) = when {
-        isSelectionValid -> Triple(true, false, false)
-        mustSkip -> Triple(false, false, true)
-        canSkip -> Triple(false, true, false)
-        else -> Triple(false, false, false)
-    }
-
-    val displayRemove = hasSelection
-
-    if (listOf(displayPlay, displaySkip, displaySkipCounter).count { it } > 1) {
-        TRACE(FATAL) {
-            "💥 Multiple action buttons would be visible at once! " +
-                    "displaySkipCounter=$displaySkipCounter, displaySkip=$displaySkip, displayPlay=$displayPlay\n" +
-                    "GameState: $gameState"
-        }
-    }
-
-    return TurnInfo(
-        canSkip = canSkip,
-        canGoAllIn = canGoAllIn,
-        displaySkip = displaySkip,
-        displaySkipCounter = displaySkipCounter,
-        displayPlay = displayPlay,
-        displayRemove = displayRemove
-    )
-}
-*/
-

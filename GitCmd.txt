@@ -1,9 +1,10 @@
+
 # =========================================================
 # GitCmd.txt
 # ---------------------------------------------------------
 # ⚠️ This file is JUST A NOTE for myself.
 # Git does NOT read this file automatically.
-# 
+#
 # If I want to make an alias real, I must run the line in
 # a terminal once:
 #     git config --global alias.<name> '<command>'
@@ -19,11 +20,11 @@
 #   • or move to another machine (unless I copy .gitconfig)
 # =========================================================
 
-# --- Aliases I currently use ---
+# --- Aliases I currently use (copy/paste these into the shell if needed) ---
 
 # Savepoint alias:
-# Creates an auto-save commit + timestamp tag, then pushes only branch + tag.
-git config --global alias.savepoint '!t=$(date +%Y-%m-%d_%H-%M-%S) && git add . && git commit -m "Auto-save" && git tag -a "$t" -m "Archived version" && git push origin HEAD && git push origin "$t"'
+# Creates an auto-save commit + timestamp tag, pushes the current branch and tag, and echoes the commit, tag and branch.
+git config --global alias.savepoint '!t=$(date +%Y-%m-%d_%H-%M-%S) && git add . && git commit -m "Auto-save" && git tag -a "$t" -m "Archived version" && br=$(git symbolic-ref --short HEAD) && git push origin "HEAD:refs/heads/$br" && git push origin "$t" && echo "Created savepoint — Commit: $(git rev-parse HEAD) Tag: $t Branch: $br"'
 
 # Release alias:
 # Creates & switches to a new branch, commits, tags, and pushes branch + tag.
@@ -36,6 +37,8 @@ git config --global alias.release '!f() { \
   git push origin "refs/heads/$1:refs/heads/$1" && \
   git push origin "refs/tags/$1:refs/tags/$1"; \
 }; f'
+
+
 
 # --- Usage examples ---
 # git release v0.70    -> makes branch v0.70, tags it, pushes both

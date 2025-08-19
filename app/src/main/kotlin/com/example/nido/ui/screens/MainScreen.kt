@@ -145,7 +145,6 @@ fun MainScreen(
 
                 MatView(
                     playmat = playmatSnapshotList,
-                    discardPile = discardPile,
                     debug = debug,
                     currentPlayerHand = currentHand,
                     onPlayCombination = { playedCards, cardToKeep ->

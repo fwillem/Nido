@@ -16,6 +16,7 @@ import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.PlayerType
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.rules.calculateTurnInfo
+import com.example.nido.replay.GameRecorder
 import com.example.nido.utils.TraceLogLevel
 
 
@@ -30,7 +31,7 @@ private fun GameState.withUpdatedCombination(
     player: Player?
 ): GameState {
     val banner = if (player != null) {
-        if (player.playerType == PlayerType.LOCAL) "YOU played:" else "${player.name} played:"
+        if (player.playerType == PlayerType.LOCAL) "Your move" else "${player.name}'s move"
     } else {
         null // e.g. mat cleared
     }
@@ -62,6 +63,15 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
         is GameEvent.RoundOver -> ReducerResult(state) // reserved
         is GameEvent.GameOver -> ReducerResult(state)  // reserved
         is GameEvent.AITimerExpired -> handleAITimerExpired(state, event.turnId)
+        is GameEvent.QuitGame -> handleQuitGame(state)
+    }
+
+    // 📝 Record the event into replay history
+    val currentPlayerId = state.players.getOrNull(state.currentPlayerIndex)?.id
+    GameRecorder.record(event, playerId = currentPlayerId)
+
+    if (event is GameEvent.GameOver || event is GameEvent.QuitGame) {
+        GameRecorder.endSession()
     }
 
     // Systematic refresh after every reducer
@@ -352,7 +362,18 @@ private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
 }
 
 
+private fun handleQuitGame(state: GameState): ReducerResult {
+    TRACE(INFO) { "Quit Game requested" }
 
+
+    // Possible side effect: show dialog
+    val sideEffects = listOf<GameSideEffect>(
+        GameSideEffect.ShowDialog(
+            GameDialogEvent.QuitGame
+        )
+    )
+    return ReducerResult(state, sideEffects = sideEffects)
+}
 
 /**
  * Baseline instruction:
@@ -361,7 +382,7 @@ private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
  * B) can play N+ (N or N+1).
  *
  * ⚠️ Assumes state.turnInfo is up-to-date.
- * Normally safe because reducers always refresh state via withUIRefresh().
+ * Normally safe because reduce rs always refresh state via withUIRefresh().
  * If you call buildTurnHint() manually, ensure you pass a state with a fresh turnInfo,
  * e.g. by calling calculateTurnInfo(state) first.
  */
@@ -380,7 +401,7 @@ private fun baselineTurnHint(gameState: GameState,  currentPlayerType: PlayerTyp
 
 
     return if (!gameState.turnInfo.canSkip) {
-        "You must play one card (or go All In!)"
+        "You must play one card" + (if (gameState.turnInfo.canGoAllIn) " (or go All In!)" else "")
     } else {
         "You can play $n or ${n+1} cards"
     }

@@ -8,6 +8,7 @@ import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
+import com.example.nido.replay.GameSession
 import com.example.nido.utils.Constants
 
 data class GameState(
@@ -41,10 +42,12 @@ data class GameState(
     val lastActivePlayer: Player? = null,
 
     // The last kept card (the one kept by the lastActivePLayer
-    val lastKeptCard: Card? = null
+    val lastKeptCard: Card? = null,
 
     // History of games
-    val gameHistory: List<GameHistory> = emptyList()
+    val sessions: MutableList<GameSession> = mutableListOf(),  // history of all games
+    val currentSession: GameSession? = null                    // active session
+
 
 ) {
     override fun toString(): String {
