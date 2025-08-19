@@ -44,7 +44,10 @@ object GameManager : IGameManager {
 
         // Choose a random starting player.
         // TODO For debug we will simplify, the right value is :  val startingPlayerIndex = (0 until selectedPlayers.size).random()
-        val startingPlayerIndex = -1 // Start by the Human Player
+        // val startingPlayerIndex = (0 until selectedPlayers.size).random()
+        // val startingPlayerIndex = -1 // Start by the Human Player
+        val startingPlayerIndex = (0 until selectedPlayers.size).random()
+
 
         val initializedPlayers =
             GameRules.initializePlayerScores(selectedPlayers, selectedPointLimit)
