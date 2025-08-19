@@ -84,14 +84,16 @@ fun NidoApp(
                 initialPointLimit = viewModel.savedPointLimit.value,
                 debug = viewModel.savedDebug.value,
                 onDone = { selectedPlayers, selectedPointLimit, debug ->
+
+                    // handle language change (hard restart if changed)
+                    val previousLang = viewModel.savedDebug.value.language
+                    val newLang = debug.language
+
                     // persist settings
                     viewModel.savePlayers(selectedPlayers.map { SavedPlayer.fromPlayer(it) })
                     viewModel.savePointLimit(selectedPointLimit)
                     viewModel.saveDebug(debug)
 
-                    // handle language change (hard restart if changed)
-                    val previousLang = viewModel.savedDebug.value.language
-                    val newLang = debug.language
                     if (newLang != previousLang && activity != null) {
                         LocaleUtils.saveLanguage(activity, newLang)
                         LocaleUtils.setAppLocaleAndHardRestart(activity, newLang)

@@ -203,8 +203,7 @@ fun SetupScreen(
                     modifier = Modifier.weight(1f),
                     onClick = {
                         if (selectedPlayers.size < Constants.GAME_MAX_PLAYERS) {
-                            // ID codé en dur pour le POC. Tu changeras ça quand tu feras du vrai réseau.
-                            val remoteId = "REMOTE1"
+                            val remoteId = UUID.randomUUID().toString()
                             val name = context.getString(R.string.remote_player)
                             selectedPlayers = selectedPlayers + RemotePlayer(
                                 id = remoteId,
