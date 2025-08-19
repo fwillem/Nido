@@ -7,8 +7,8 @@ plugins {
 }
 
 import java.io.ByteArrayOutputStream
-        import java.text.SimpleDateFormat
-        import java.util.Date
+        import java.time.LocalDateTime
+        import java.time.format.DateTimeFormatter
 
 /**
  * Run a command and return its stdout (trimmed).
@@ -24,15 +24,18 @@ fun execAndGetStdout(vararg cmd: String): String {
     return stdout.toString().trim()
 }
 
-// Get current branch name
-val branchName: String = execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
-    .ifEmpty { "unknown" }
+// Try to read the most recent tag; if none, fall back to short SHA
+val gitTag: String = execAndGetStdout("git", "describe", "--tags", "--abbrev=0")
+    .takeIf { it.isNotEmpty() }
+    ?: execAndGetStdout("git", "rev-parse", "--short", "HEAD")
 
-// Current build date/time, formatted as yyyy-MM-dd_HH-mm-ss
-val buildTime: String = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(Date())
+// Get current branch name, strip "heads/" prefix if present
+val branchRaw: String = execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
+val branchName: String = branchRaw.removePrefix("heads/")
 
-// Concatenate for unique version name
-val versionName: String = "$branchName-$buildTime"
+// Build time in a consistent format
+val buildTime: String = LocalDateTime.now()
+    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
 
 android {
     namespace = "com.example.nido"
@@ -43,11 +46,12 @@ android {
         minSdk = 25
         targetSdk = 35
         versionCode = 1
-        versionName = versionName  // <-- Branch name and build time!
+        versionName = gitTag
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Inject string resources for branch name and build time
+        // Inject Git metadata as string resources
+        resValue("string", "git_tag", gitTag)
         resValue("string", "branch_name", branchName)
         resValue("string", "build_time", buildTime)
     }
@@ -61,6 +65,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -72,57 +77,29 @@ android {
         compose = true
     }
 
-    // ADD THIS sourceSets BLOCK
     sourceSets {
         getByName("main") {
-            // Change 'java.srcDirs' to 'kotlin.srcDirs'
             kotlin.srcDirs("src/main/kotlin")
             res.srcDirs("src/main/res")
             assets.srcDirs("src/main/assets")
         }
     }
 
-
-    // Combine and move the lint block to the end of the android block (as you originally intended)
     lint {
-        // Fail the build if errors are found
         abortOnError = true
-
-        // Treat all warnings as errors
         warningsAsErrors = true
-
-        // Optional: Enable checking for all issues, including those disabled by default
         checkAllWarnings = true
-
-        // Optional: Don't ignore test sources. Setting this to 'false' means lint WILL check test sources.
-        // If you truly want to ignore test sources, set it to 'true'. Given your goal, you likely want to check them.
         checkTestSources = false
-
-        // Optional: Include dependencies
-        // 'checkDependencies = true' is usually the default and recommended to catch issues in libraries.
-        // Setting it to 'false' might hide issues in transitive dependencies.
-        checkDependencies = true // Changed to true, as it's generally a good idea.
-
-        // To output HTML report automatically (often done by default with 'lint' task):
+        checkDependencies = true
         htmlReport = true
-        xmlReport = false // If you only want HTML
-
-        // To specify a baseline file to ignore existing issues (as suggested by lint output):
-        // baseline file("lint-baseline.xml")
-
-        // Crucial for your use case: Explicitly enable the HardcodedText check.
-        // This issue primarily targets UI elements (XML, Compose Text).
-        // For general hardcoded strings in Kotlin logic, Lint's default checks might not cover everything.
-        // You might need a custom Lint check or another static analysis tool for that.
-        enable.add("HardcodedText") // This is the correct way to enable a specific check
+        xmlReport = false
+        enable.add("HardcodedText")
     }
-
 }
 
 tasks.named("check") {
     dependsOn("lintDebug")
 }
-
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -143,10 +120,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.json)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-  //  lintChecks("androidx.compose.ui:ui-tooling:1.6.0") {
-  //      exclude(group = "org.jetbrains.skiko", module = "skiko")
-  //  }
 }

@@ -10,14 +10,16 @@ import com.example.nido.R
 enum class VersionOptions {
     FULL,
     SHORT,
-    DATE
+    DATE,
+    TAG
 }
 
 /**
  * A small text label showing the current version and/or build date.
  *
  * @param modifier Modifier to position/pad this label
- * @param option Controls what to display: FULL, SHORT (just version), or DATE (just date)
+ * @param option Controls what to display: FULL, SHORT (just branch),
+ *               DATE (just build time), or TAG (just git tag)
  */
 @Composable
 fun VersionLabel(
@@ -26,10 +28,13 @@ fun VersionLabel(
 ) {
     val branchName = stringResource(R.string.branch_name)
     val buildTime = stringResource(R.string.build_time)
+    val gitTag = stringResource(R.string.git_tag)
+
     val label = when (option) {
         VersionOptions.FULL -> "$branchName ($buildTime)"
         VersionOptions.SHORT -> branchName
         VersionOptions.DATE -> buildTime
+        VersionOptions.TAG -> gitTag
     }
 
     Text(

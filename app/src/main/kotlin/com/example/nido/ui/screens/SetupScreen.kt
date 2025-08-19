@@ -38,6 +38,7 @@ import com.example.nido.utils.Debug
 import androidx.compose.ui.platform.LocalContext
 import com.example.nido.data.model.PlayerType
 import com.example.nido.game.multiplayer.RemotePlayer
+import com.example.nido.ui.components.VersionOptions
 import com.example.nido.utils.LanguagePicker
 import com.example.nido.utils.AppLanguage
 
@@ -322,7 +323,7 @@ fun SetupScreen(
         }
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
             Spacer(modifier = Modifier.weight(1f))
-            VersionLabel(modifier = Modifier.align(Alignment.CenterVertically))
+            VersionLabel(modifier = Modifier.align(Alignment.CenterVertically),option = VersionOptions.TAG)
         }
     }
 }
