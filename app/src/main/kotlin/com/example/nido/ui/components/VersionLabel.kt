@@ -7,6 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.nido.R
 
+// Variable used to check correctness version read on github by external agent such as AI agents
+val gitHubDebug = "20/08/2025 10:48:00"
+
 enum class VersionOptions {
     FULL,
     SHORT,
