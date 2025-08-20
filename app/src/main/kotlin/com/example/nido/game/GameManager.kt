@@ -13,6 +13,7 @@ import com.example.nido.data.model.Hand
 import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.engine.GameEventDispatcher
+import com.example.nido.replay.GameRecorder
 import kotlin.Int
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -40,6 +41,8 @@ object GameManager : IGameManager {
     override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean) {
         TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit" }
 
+        // Start a new recoding session
+        GameRecorder.startNewSession()
 
 
         // Choose a random starting player.

@@ -59,7 +59,7 @@ import kotlinx.coroutines.launch
  * - The caller decides what to do in onExit() (e.g., hardRestartApp, crash, etc.).
  */
 
-val gitHubTests = "15:54"
+val gitHubTests = "17:19"
 
 
 @Composable

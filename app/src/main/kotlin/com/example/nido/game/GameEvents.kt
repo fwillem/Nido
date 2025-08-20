@@ -14,6 +14,7 @@ sealed class GameEvent() {
     object RoundOver : GameEvent()
     object GameOver : GameEvent()
     data class AITimerExpired(val turnId: Int) : GameEvent()
+    object QuitGame : GameEvent()
 
     // Add additional events as needed.
 }
