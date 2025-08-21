@@ -40,6 +40,66 @@ import java.util.UUID
 val DEFAULT_TEXT_STYLE: TextStyle
     @Composable get() = MaterialTheme.typography.titleMedium
 
+
+@Composable
+fun EditablePlayerName(
+    name: String,
+    onNameChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var editing by remember { mutableStateOf(false) }
+    var internalName by remember { mutableStateOf(TextFieldValue(name)) }
+
+    if (editing) {
+        OutlinedTextField(
+            value = internalName,
+            onValueChange = { internalName = it.copy(text = it.text.take(16)) },
+            singleLine = true,
+            modifier = modifier,
+            label = { Text(stringResource(R.string.your_name), style = DEFAULT_TEXT_STYLE) },
+            trailingIcon = {
+                IconButton(onClick = {
+                    val trimmed = internalName.text.trim().ifBlank { "Jil" }
+                    onNameChange(trimmed)
+                    editing = false
+                }) {
+                    Icon(Icons.Default.Check, contentDescription = stringResource(R.string.done))
+                }
+            },
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    val trimmed = internalName.text.trim().ifBlank { "Jil" }
+                    onNameChange(trimmed)
+                    editing = false
+                }
+            )
+        )
+    } else {
+        Row(
+            modifier = modifier
+                .clickable {
+                    editing = true
+                    internalName = TextFieldValue(name)
+                }
+                .padding(vertical = 4.dp, horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("👤", fontSize = 20.sp)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(name, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground)
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = stringResource(R.string.edit),
+                modifier = Modifier
+                    .size(16.dp)
+                    .padding(start = 6.dp)
+            )
+        }
+    }
+}
+
+
 @Composable
 fun SetupScreen(
     initialPlayers: List<Player>,
@@ -159,7 +219,7 @@ fun SetupScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Point Limit
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(R.string.point_limit),
                         style = DEFAULT_TEXT_STYLE,
@@ -187,7 +247,7 @@ fun SetupScreen(
                 }
 
                 // Animations (3 boutons)
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = stringResource(R.string.animations),
                         style = DEFAULT_TEXT_STYLE,
@@ -203,7 +263,8 @@ fun SetupScreen(
                             aiTimerDuration = preset.durationMs // garde la valeur ms alignée
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        height = 40
+                        height = 40.dp,
+                       // width = 400,
                     )
                 }
             }
@@ -220,10 +281,8 @@ fun SetupScreen(
                 LanguagePicker(
                     selectedLanguage = selectedLanguage,
                     onSelected = { selectedLanguage = it },
-                    modifier = Modifier.weight(1f)
                 )
                 Row(
-                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -232,7 +291,6 @@ fun SetupScreen(
                     Text(text = stringResource(R.string.display_ai_hands), style = DEFAULT_TEXT_STYLE)
                 }
                 Row(
-                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
