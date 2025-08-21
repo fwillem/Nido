@@ -8,7 +8,7 @@ import com.example.nido.utils.Debug
 
 interface IGameActions {
         fun initialize(viewModel: GameViewModel)
-        fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean)
+        fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean,aiTimerDuration: Int)
         fun startNewRound()
         fun playCombination(selectedCards: List<Card>, cardToKeep: Card?)
         fun skipTurn()

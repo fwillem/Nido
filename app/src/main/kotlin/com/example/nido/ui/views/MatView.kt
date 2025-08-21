@@ -63,8 +63,8 @@ fun MatView(
     bannerCornerRadius: Dp = 12.dp,
 
     // Contraintes de taille du Snackbar (par défaut non spécifiées)
-    bannerMinWidth: Dp = 164.dp,
-    bannerMaxWidth: Dp = 256.dp,
+    bannerMinWidth: Dp = 104.dp,
+    bannerMaxWidth: Dp = 124.dp,
     bannerMinHeight: Dp = Dp.Unspecified,
     bannerMaxHeight: Dp = 36.dp,
     // Contrôle de la typographie du texte du Snackbar

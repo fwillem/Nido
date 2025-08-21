@@ -21,12 +21,12 @@
     <string name="edit">Modifier</string>
     <string name="game_setup">Configuration du jeu</string>
     <string name="players">Joueurs (%1$d) :</string>
-    <string name="add_AI_player">Ajouter joueur Bot\t</string>
+    <string name="add_AI_player">Ajouter joueur Bot	</string>
     <string name="remove_player">Supprimer un joueur</string>
     <string name="debug_options">Options de débogage</string>
     <string name="disable_ai_autoplay">Désactiver lecture automatique IA</string>
     <string name="display_ai_hands">Afficher les mains IA</string>
-    <string name="point_limit">Limite de points : %1$d</string>
+    <string name="point_limit">Limite de points</string>
     <string name="tap_to_start">Appuyez pour commencer…</string>
     <string name="sort_mode">Mode de tri : %1$s</string>
     <string name="quit">Quitter</string>
@@ -39,4 +39,6 @@
     <string name="remote_human">Humain distant</string>
     <string name="human">Humain</string>
     <string name="bot">Bot</string>
+    <!-- Ajout -->
+    <string name="animations">Animations</string>
 </resources>

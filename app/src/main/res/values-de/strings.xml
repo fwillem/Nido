@@ -21,17 +21,17 @@
     <string name="edit">Bearbeiten</string>
     <string name="game_setup">Spielkonfiguration</string>
     <string name="players">Spieler (%1$d):</string>
-    <string name="add_AI_player">Bot-Spieler hinzufügen\t</string>
+    <string name="add_AI_player">Bot-Spieler hinzufügen	</string>
     <string name="remove_player">Spieler entfernen</string>
     <string name="debug_options">Debug-Optionen</string>
     <string name="disable_ai_autoplay">KI-Autoplay deaktivieren</string>
     <string name="display_ai_hands">KI-Handkarten anzeigen</string>
-    <string name="point_limit">Punktelimit: %1$d</string>
+    <string name="point_limit">Punktelimit</string>
     <string name="tap_to_start">Tippe zum Starten…</string>
     <string name="sort_mode">Sortiermodus: %1$s</string>
     <string name="quit">Beenden</string>
     <string name="locale_marker">Deutsch</string>
-    <string name="playai">Bot spielen\t</string>
+    <string name="playai">Bot spielen	</string>
     <string name="ping">🏓 Ping! 🏓</string>
     <string name="add_remote_player">Entfernten Spieler hinzufügen</string>
     <string name="remote_player">Ferner Spieler</string>
@@ -39,4 +39,5 @@
     <string name="remote_human">Ferner Mensch</string>
     <string name="human">Mensch</string>
     <string name="bot">Bot</string>
+    <string name="animations">Animationen</string>
 </resources>

@@ -1,6 +1,9 @@
 Structure du dossier pour le volume OneDrive
 Le numéro de série du volume est D4DF-CD93
 D:.
+|   link_to_github.txt
+|   Nido_Project_Instructions.docx
+|   project_overview.docx
 |   project_tree.txt
 |   
 +---androidTest
@@ -43,24 +46,29 @@ D:.
 |   |               |           DeckRepository.kt
 |   |               |           
 |   |               +---events
-|   |               |       AppEvent.kt
+|   |               |       AppDialogEvent.kt
+|   |               |       GameDialogEvent.kt
+|   |               |       UiEventBridge.kt
 |   |               |       
 |   |               +---game
 |   |               |   |   FakeGameManager.kt
 |   |               |   |   GameEvents.kt
 |   |               |   |   GameManager.kt
 |   |               |   |   GameReducer.kt
+|   |               |   |   GameSideEffect.kt
 |   |               |   |   GameState.kt
 |   |               |   |   IGameActions.kt
 |   |               |   |   IGameManager.kt
 |   |               |   |   IGameStateProvider.kt
 |   |               |   |   LocalPlayer.kt
 |   |               |   |   TurnInfo.kt
-|   |               |   |   TurnPhase.kt
 |   |               |   |   
 |   |               |   +---ai
 |   |               |   |       AIPlayer.kt
 |   |               |   |       Heuristics.kt
+|   |               |   |       
+|   |               |   +---engine
+|   |               |   |       GameEventDispatcher.kt
 |   |               |   |       
 |   |               |   +---multiplayer
 |   |               |   |       NetworkManager.kt
@@ -70,15 +78,25 @@ D:.
 |   |               |           GameRules.kt
 |   |               |           ScoringSystem.kt
 |   |               |           
+|   |               +---replay
+|   |               |       GameAction.kt
+|   |               |       GameRecorder.kt
+|   |               |       GameSession.kt
+|   |               |       
 |   |               +---ui
 |   |               |   |   LocalGameManager.kt
 |   |               |   |   Screen.kt
 |   |               |   |   
 |   |               |   +---components
+|   |               |   |       IconGallery.kt
 |   |               |   |       NidoScreenScaffold.kt
+|   |               |   |       NumberStepper.kt
+|   |               |   |       NumberStepperPill.kt
+|   |               |   |       NumberWheelPicker.kt
 |   |               |   |       VersionLabel.kt
 |   |               |   |       
 |   |               |   +---dialogs
+|   |               |   |       BlueScreenOfDeath.kt
 |   |               |   |       CardSelectionDialog.kt
 |   |               |   |       GameEventDialogs.kt
 |   |               |   |       GameOverDialog.kt
@@ -117,6 +135,9 @@ D:.
 |   |               +---utils
 |   |               |       Constants.kt
 |   |               |       Debug.kt
+|   |               |       LanguagePicker.kt
+|   |               |       LocaleUtils.kt
+|   |               |       RestartUtils.kt
 |   |               |       SortingUtils.kt
 |   |               |       TestData.kt
 |   |               |       TestIDE.kt
@@ -140,62 +161,63 @@ D:.
 |       |       splash.png
 |       |       
 |       +---drawable-nodpi
-|       |       back_cover.png
-|       |       nido_card_b_1.png
-|       |       nido_card_b_2.png
-|       |       nido_card_b_3.png
-|       |       nido_card_b_4.png
-|       |       nido_card_b_5.png
-|       |       nido_card_b_6.png
-|       |       nido_card_b_7.png
-|       |       nido_card_b_8.png
-|       |       nido_card_b_9.png
-|       |       nido_card_g_1.png
-|       |       nido_card_g_2.png
-|       |       nido_card_g_3.png
-|       |       nido_card_g_4.png
-|       |       nido_card_g_5.png
-|       |       nido_card_g_6.png
-|       |       nido_card_g_7.png
-|       |       nido_card_g_8.png
-|       |       nido_card_g_9.png
-|       |       nido_card_m_1.png
-|       |       nido_card_m_2.png
-|       |       nido_card_m_3.png
-|       |       nido_card_m_4.png
-|       |       nido_card_m_5.png
-|       |       nido_card_m_6.png
-|       |       nido_card_m_7.png
-|       |       nido_card_m_8.png
-|       |       nido_card_m_9.png
-|       |       nido_card_o_1.png
-|       |       nido_card_o_2.png
-|       |       nido_card_o_3.png
-|       |       nido_card_o_4.png
-|       |       nido_card_o_5.png
-|       |       nido_card_o_6.png
-|       |       nido_card_o_7.png
-|       |       nido_card_o_8.png
-|       |       nido_card_o_9.png
-|       |       nido_card_p_1.png
-|       |       nido_card_p_2.png
-|       |       nido_card_p_3.png
-|       |       nido_card_p_4.png
-|       |       nido_card_p_5.png
-|       |       nido_card_p_6.png
-|       |       nido_card_p_7.png
-|       |       nido_card_p_8.png
-|       |       nido_card_p_9.png
-|       |       nido_card_r_1.png
-|       |       nido_card_r_2.png
-|       |       nido_card_r_3.png
-|       |       nido_card_r_4.png
-|       |       nido_card_r_5.png
-|       |       nido_card_r_6.png
-|       |       nido_card_r_7.png
-|       |       nido_card_r_8.png
-|       |       nido_card_r_9.png
-|       |       
+|       |   |   back_cover.png
+|       |   |   nido_card_b_1.png
+|       |   |   nido_card_b_2.png
+|       |   |   nido_card_b_3.png
+|       |   |   nido_card_b_4.png
+|       |   |   nido_card_b_5.png
+|       |   |   nido_card_b_6.png
+|       |   |   nido_card_b_7.png
+|       |   |   nido_card_b_8.png
+|       |   |   nido_card_b_9.png
+|       |   |   nido_card_g_1.png
+|       |   |   nido_card_g_2.png
+|       |   |   nido_card_g_3.png
+|       |   |   nido_card_g_4.png
+|       |   |   nido_card_g_5.png
+|       |   |   nido_card_g_6.png
+|       |   |   nido_card_g_7.png
+|       |   |   nido_card_g_8.png
+|       |   |   nido_card_g_9.png
+|       |   |   nido_card_m_1.png
+|       |   |   nido_card_m_2.png
+|       |   |   nido_card_m_3.png
+|       |   |   nido_card_m_4.png
+|       |   |   nido_card_m_5.png
+|       |   |   nido_card_m_6.png
+|       |   |   nido_card_m_7.png
+|       |   |   nido_card_m_8.png
+|       |   |   nido_card_m_9.png
+|       |   |   nido_card_o_1.png
+|       |   |   nido_card_o_2.png
+|       |   |   nido_card_o_3.png
+|       |   |   nido_card_o_4.png
+|       |   |   nido_card_o_5.png
+|       |   |   nido_card_o_6.png
+|       |   |   nido_card_o_7.png
+|       |   |   nido_card_o_8.png
+|       |   |   nido_card_o_9.png
+|       |   |   nido_card_p_1.png
+|       |   |   nido_card_p_2.png
+|       |   |   nido_card_p_3.png
+|       |   |   nido_card_p_4.png
+|       |   |   nido_card_p_5.png
+|       |   |   nido_card_p_6.png
+|       |   |   nido_card_p_7.png
+|       |   |   nido_card_p_8.png
+|       |   |   nido_card_p_9.png
+|       |   |   nido_card_r_1.png
+|       |   |   nido_card_r_2.png
+|       |   |   nido_card_r_3.png
+|       |   |   nido_card_r_4.png
+|       |   |   nido_card_r_5.png
+|       |   |   nido_card_r_6.png
+|       |   |   nido_card_r_7.png
+|       |   |   nido_card_r_8.png
+|       |   |   nido_card_r_9.png
+|       |   |   
+|       |   \---ResArchives
 |       +---drawable-xhdpi
 |       |       splash.png
 |       |       
@@ -244,6 +266,9 @@ D:.
 |       |       ic_launcher_round.webp
 |       |       splash.png
 |       |       
+|       +---raw
+|       |       siren.wav
+|       |       
 |       +---values
 |       |       colors.xml
 |       |       strings.xml
@@ -252,7 +277,6 @@ D:.
 |       +---values-de
 |       |       strings.xml
 |       |       
-|       +---values-de-rDE
 |       +---values-es
 |       |       strings.xml
 |       |       

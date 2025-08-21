@@ -50,7 +50,15 @@ object Constants {
 
     // UI General
     const val NB_OF_DISCARDED_CARDS_TO_SHOW = 4
-    const val AI_THINKING_DURATION_MS = 1200L
+
+
+    // in milliseconds
+    const val AI_THINKING_DURATION_MIN = 500
+    const val AI_THINKING_DURATION_DEFAULT = 1200
+    const val AI_THINKING_DURATION_MAX = 3000
+    const val AI_THINKING_DURATION_STEPS = 300
+
+
 
     const val DEFAULT_LOCAL_PLAYER_NAME = "Jil"
     const val DEFAULT_LOCAL_PLAYER_AVATAR = "👩"

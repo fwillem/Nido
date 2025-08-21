@@ -31,7 +31,7 @@ import com.example.nido.ui.views.HandView
 import com.example.nido.ui.views.MatView
 import com.example.nido.ui.views.PlayersRowView
 import com.example.nido.utils.Constants
-import com.example.nido.utils.Constants.AI_THINKING_DURATION_MS
+import com.example.nido.utils.Constants.AI_THINKING_DURATION_DEFAULT
 import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
 import com.example.nido.utils.Debug
 import com.example.nido.utils.SortMode

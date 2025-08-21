@@ -148,6 +148,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         if (oldState.appDialogEvent != newState.appDialogEvent) changes.add("🎲 appDialogEvent: ${oldState.appDialogEvent} ➝ ${newState.appDialogEvent}")
         if (oldState.skipCount != newState.skipCount) changes.add("⏭ skipCount: ${oldState.skipCount} ➝ ${newState.skipCount}")
         if (oldState.pointLimit != newState.pointLimit) changes.add("🎯 pointLimit: ${oldState.pointLimit} ➝ ${newState.pointLimit}")
+        if (oldState.soundOn != newState.soundOn) changes.add("🔊 soundOn: ${oldState.soundOn} ➝ ${newState.soundOn}")
+        if (oldState.aiTimerDuration != newState.aiTimerDuration) changes.add("⏱ aiTimerDuration: ${oldState.aiTimerDuration} ➝ ${newState.aiTimerDuration}")
+
         if (oldState.turnId != newState.turnId) changes.add("🔄 turnId: ${oldState.turnId} ➝ ${newState.turnId}")
         if (oldState.turnInfo != newState.turnInfo) changes.add("💡 turnInfo: ${oldState.turnInfo} ➝ ${newState.turnInfo}")
 

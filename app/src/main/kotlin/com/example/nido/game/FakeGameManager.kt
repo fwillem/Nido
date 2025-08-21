@@ -7,6 +7,7 @@ import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.rules.GameRules
 import com.example.nido.game.ai.AIPlayer
+import com.example.nido.utils.Constants
 import com.example.nido.utils.Debug
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,6 +62,7 @@ class FakeGameManager : IGameManager {
         GameState(
             turnInfo = turnInfo,
             pointLimit = 15,
+            aiTimerDuration = Constants.AI_THINKING_DURATION_DEFAULT,
             players = listOf(dummyLocalPlayer, dummyAIPlayer1, dummyAIPlayer2),
             startingPlayerIndex = 0,
             currentPlayerIndex = 0,
@@ -81,7 +83,7 @@ class FakeGameManager : IGameManager {
         // No-op: Fake implementation doesn't need a ViewModel.
     }
 
-    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean) {
+    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean,aiTimerDuration: Int) {
         // Simulate starting a new game by resetting _gameState
     }
 

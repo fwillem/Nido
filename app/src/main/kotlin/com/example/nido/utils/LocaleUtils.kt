@@ -19,6 +19,7 @@ object LocaleUtils {
      * Apply the given language to the provided [context].
      * Returns the context adjusted for the new configuration.
      *
+     *
      * Important: this does NOT persist the language. Call [saveLanguage] for that.
      */
     fun setLocale(context: Context, language: String): Context {

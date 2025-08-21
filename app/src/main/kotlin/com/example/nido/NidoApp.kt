@@ -68,7 +68,9 @@ fun NidoApp(
                     }
                     val pointLimit = viewModel.savedPointLimit.value
                     val doNotAutoPlayAI = viewModel.savedDebug.value.doNotAutoPlayerAI
-                    gameManager.startNewGame(players, pointLimit, doNotAutoPlayAI)
+                    val AITimerDuration = viewModel.savedDebug.value.aiTimerDuration
+
+                    gameManager.startNewGame(players, pointLimit, doNotAutoPlayAI,AITimerDuration)
                     currentRoute.value = AppScreen.Routes.GAME
                 },
                 onQuit = {

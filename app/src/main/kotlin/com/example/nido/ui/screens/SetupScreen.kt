@@ -33,15 +33,21 @@ import com.example.nido.utils.Constants
 import com.example.nido.utils.Constants.GAME_DEFAULT_POINT_LIMIT
 import com.example.nido.utils.Constants.GAME_MIN_PLAYERS
 import java.util.UUID
-import com.example.nido.utils.LocaleUtils
 import com.example.nido.utils.Debug
 import androidx.compose.ui.platform.LocalContext
 import com.example.nido.data.model.PlayerType
 import com.example.nido.game.multiplayer.RemotePlayer
 import com.example.nido.ui.components.VersionOptions
 import com.example.nido.utils.LanguagePicker
-import com.example.nido.utils.AppLanguage
+import com.example.nido.ui.components.NumberStepperPill
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.TextStyle
+import com.example.nido.ui.components.AITimerMode
+import com.example.nido.ui.components.AITimerSelector
 
+// Style texte par défaut (hors noms de joueurs)
+val DEFAULT_TEXT_STYLE: TextStyle
+    @Composable get() = MaterialTheme.typography.titleMedium
 
 @Composable
 fun EditablePlayerName(
@@ -58,7 +64,7 @@ fun EditablePlayerName(
             onValueChange = { internalName = it.copy(text = it.text.take(16)) },
             singleLine = true,
             modifier = modifier,
-            label = { Text(stringResource(R.string.your_name)) },
+            label = { Text(stringResource(R.string.your_name), style = DEFAULT_TEXT_STYLE) },
             trailingIcon = {
                 IconButton(onClick = {
                     val trimmed = internalName.text.trim().ifBlank { "Jil" }
@@ -125,12 +131,16 @@ fun SetupScreen(
     var aiDontAutoPlay by rememberSaveable { mutableStateOf(debug.doNotAutoPlayerAI) }
     var selectedLanguage by rememberSaveable { mutableStateOf(debug.language) }
 
-    val context = LocalContext.current
-    // 👇 Dynamically fetch only available languages
-    val languages = remember { LocaleUtils.getSupportedLanguages(context) }
+    var aiTimerMode by rememberSaveable { mutableStateOf(AiTimerMode.fromDuration(debug.aiTimerDuration)) }
+    var aiTimerDuration by rememberSaveable { mutableStateOf(aiTimerMode.durationMs) }
 
-    val stepSize = 5
-    val validSteps = (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSize).toList()
+    val context = LocalContext.current
+
+    val stepSizePointLimit = 5
+    val validStepsPointLimit = (Constants.GAME_MIN_POINT_LIMIT..Constants.GAME_MAX_POINT_LIMIT step stepSizePointLimit).toList()
+
+    val validStepsAITimer = (Constants.AI_THINKING_DURATION_MIN .. Constants.AI_THINKING_DURATION_MAX step Constants.AI_THINKING_DURATION_STEPS).toList()
+
 
     NidoScreenScaffold(
         cardInnerPaddingVertical = 8.dp,
@@ -138,7 +148,7 @@ fun SetupScreen(
         maxContentHeight = null
     ) {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
                 .padding(4.dp)
         ) {
@@ -148,7 +158,7 @@ fun SetupScreen(
             ) {
                 Text(
                     text = stringResource(R.string.game_setup),
-                    style = MaterialTheme.typography.headlineMedium,
+                    style = DEFAULT_TEXT_STYLE,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -157,10 +167,8 @@ fun SetupScreen(
 
 
             // Sélecteur de langue
-            var expanded by remember { mutableStateOf(false) }
-
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.players, selectedPlayers.size))
+                Text(stringResource(R.string.players, selectedPlayers.size), style = DEFAULT_TEXT_STYLE)
                 EditablePlayerName(
                     name = selectedPlayers[0].name,
                     onNameChange = { newName ->
@@ -170,6 +178,7 @@ fun SetupScreen(
                     }
                 )
                 selectedPlayers.drop(1).forEach { player ->
+                    // noms de joueurs: on garde tel quel
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("${player.avatar} ${player.name}", fontSize = 18.sp)
                 }
@@ -234,36 +243,95 @@ fun SetupScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Point limit slider
+            // Ligne: deux groupes (Point limit + stepper) et (AI timer + stepper)
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp),
-                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                    Text(stringResource(R.string.point_limit, selectedPointLimit))
-                    Slider(
-                        value = selectedPointLimit.toFloat(),
-                        onValueChange = { newValue ->
-                            selectedPointLimit =
-                                validSteps.minByOrNull { kotlin.math.abs(it - newValue.toInt()) }
-                                    ?: Constants.GAME_DEFAULT_POINT_LIMIT
-                        },
-                        valueRange = Constants.GAME_MIN_POINT_LIMIT.toFloat()..Constants.GAME_MAX_POINT_LIMIT.toFloat(),
-                        steps = (validSteps.size - 2)
+                // Groupe 1: Point Limit
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.point_limit),
+                        style = DEFAULT_TEXT_STYLE,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+                    Spacer(Modifier.width(16.dp))
+                    NumberStepperPill(
+                        value = selectedPointLimit,
+                        values = validStepsPointLimit,
+                        onValueChange = { selectedPointLimit = it },
+                        modifier = Modifier
+                            .widthIn(min = 56.dp, max = 120.dp)
+                            .height(40.dp),
+                        wrapAround = false
+                    ) { v ->
+                        Text(
+                            text = v.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 1
+                        )
+                    }
+                }
+
+                // Groupe 2: AI Timer
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.animations),
+                        style = DEFAULT_TEXT_STYLE,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    /*
+                    NumberStepperPill(
+                        value = aiTimerDuration,
+                        values = validStepsAITimer,
+                        onValueChange = { aiTimerDuration = it },
+                        modifier = Modifier
+                            .widthIn(min = 56.dp, max = 160.dp)
+                            .height(40.dp),
+                        wrapAround = false
+                    ) { v ->
+                        Text(
+                            text = v.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 1
+                        )
+                    }
+
+                     */
+                    AiTimerSelector(
+                        selected = aiTimerMode,
+                        onSelected = { mode ->
+                            aiTimerMode = mode
+                            aiTimerDuration = mode.durationMs // garde la valeur ms alignée
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        height = 40.dp
+                    )
+                }
             }
 
-            // Debug options
-            Text(stringResource(R.string.debug_options), style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Sélecteur de langue
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+               // horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 LanguagePicker(
@@ -278,19 +346,25 @@ fun SetupScreen(
                 ) {
                     Checkbox(checked = displayAIsHands, onCheckedChange = { displayAIsHands = it })
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.display_ai_hands))
+                    Text(
+                        text = stringResource(R.string.display_ai_hands),
+                        style = DEFAULT_TEXT_STYLE,
+                    )
                 }
                 Row(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f), // Added modifier
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Checkbox(checked = aiDontAutoPlay, onCheckedChange = { aiDontAutoPlay = it })
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.disable_ai_autoplay))
+                    Text(
+                        text = stringResource(R.string.disable_ai_autoplay),
+                        style = DEFAULT_TEXT_STYLE,
+
+                    )
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
 
 
@@ -299,21 +373,21 @@ fun SetupScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
-                    onClick = onCancel,
+                    onClick = onCancel
                 ) {
                     Text(stringResource(R.string.cancel))
                 }
 
-                val activity = context as? android.app.Activity
-                Button(
+                Button( // Added Button Composable
                     onClick = {
                         val newDebug = debug.copy(
                             displayAIsHands = displayAIsHands,
                             doNotAutoPlayerAI = aiDontAutoPlay,
-                            language = selectedLanguage
-                        )
+                            language = selectedLanguage,
+                            aiTimerDuration = aiTimerDuration
+                        ) // Missing parenthesis
                         onDone(selectedPlayers, selectedPointLimit, newDebug)
-                    },
+                    }, // Comma here
                     enabled = selectedPlayers.size >= 2
                 ) {
                     Text(stringResource(R.string.done))

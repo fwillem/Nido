@@ -38,8 +38,8 @@ object GameManager : IGameManager {
      * This function now only sets up the base state (players, point limit, deck, startingIndex) without dealing cards.
      * Then it calls startNewRound() to handle round-specific initialization.
      */
-    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean) {
-        TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit" }
+    override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean, AITimerDuration: Int) {
+        TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit, doNotAutoPlayAI: $doNotAutoPlayAI, AITimerDuration: $AITimerDuration" }
 
         // Start a new recoding session
         GameRecorder.startNewSession()
@@ -63,6 +63,7 @@ object GameManager : IGameManager {
             pointLimit = selectedPointLimit,
             startingPlayerIndex = startingPlayerIndex,
             currentPlayerIndex = startingPlayerIndex,
+            aiTimerDuration = AITimerDuration
         )
         _gameState.value = initialState
         TRACE(INFO) { "Initial gameState set: ${gameState.value}" }
@@ -234,49 +235,13 @@ object GameManager : IGameManager {
     }
 
 
-    private fun launchAITimer(turnId: Int) {
+    private fun launchAITimer(turnId: Int, duration: Int) {
+        // TODO TOCHANGE Should not use global Scope
         GlobalScope.launch {
-            delay(Constants.AI_THINKING_DURATION_MS)
+            delay(duration.toLong())
             dispatcher.enqueueEvent(GameEvent.AITimerExpired(turnId))
         }
     }
-/*
-    override fun withdrawCardsFromMat(cardsToWithdraw: List<Card>) {
-        val currentGameState = gameState.value
-        val currentPlayer = getCurrentPlayer()
-
-        TRACE(DEBUG) { "Withdrawing cards $cardsToWithdraw from ${currentPlayer.name}'s hand." }
-
-        // Create a copy of the current player's hand and add back the withdrawn cards.
-        val updatedHand = currentPlayer.hand.copy()
-        cardsToWithdraw.forEach { card ->
-            updatedHand.addCard(card)
-        }
-        val updatedPlayer = currentPlayer.copy(hand = updatedHand)
-
-        // Update the players list with the updated player.
-        val updatedPlayers = currentGameState.players.toMutableList().apply {
-            this[currentGameState.currentPlayerIndex] = updatedPlayer
-        }
-
-        // Withdraw the cards from selectedCards.
-        // We create a new mutable list and remove the withdrawn cards.
-        val updatedSelectedCards = mutableStateListOf<Card>().apply {
-            addAll(currentGameState.selectedCards)
-        }
-        updatedSelectedCards.removeAll(cardsToWithdraw)
-
-        // Create the new game state with the updated players and selectedCards.
-        val updatedState = currentGameState.copy(
-            players = updatedPlayers,
-            selectedCards = updatedSelectedCards
-        )
-
-        getViewModel().updateGameState(updatedState)
-        TRACE(DEBUG) { "Withdrawn cards ${cardsToWithdraw.joinToString()} returned to ${currentPlayer.name}'s hand." }
-    }
-
- */
 
 
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
@@ -327,6 +292,7 @@ object GameManager : IGameManager {
         skipCount: Int = gameState.value.skipCount,
         turnInfo: TurnInfo = gameState.value.turnInfo,
         pointLimit: Int = gameState.value.pointLimit,
+        aiTimerDuration: Int = gameState.value.aiTimerDuration,
         soundOn: Boolean = gameState.value.soundOn,
         appDialogEvent: AppDialogEvent? = gameState.value.appDialogEvent,
         gameDialogEvent: GameDialogEvent? = gameState.value.gameDialogEvent,
@@ -344,6 +310,7 @@ object GameManager : IGameManager {
             skipCount = skipCount,
             turnInfo = turnInfo,
             pointLimit = pointLimit,
+            aiTimerDuration = aiTimerDuration,
             soundOn = soundOn,
             appDialogEvent = appDialogEvent,
             gameDialogEvent = gameDialogEvent,
@@ -361,48 +328,11 @@ object GameManager : IGameManager {
 
     private fun handleSideEffect(effect: GameSideEffect) {
         when (effect) {
-            is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId)
+            is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId, this.gameState.value.aiTimerDuration)
             is GameSideEffect.ShowDialog -> setGameDialogEvent(effect.dialog)
             is GameSideEffect.GetAIMove -> getAIMove()
         }
     }
-    /*
-        TODO TO REMOVE
-     */
-    /*
-    private fun dispatchEvent(initialEvent: GameEvent) {
-        val eventQueue = ArrayDeque<GameEvent>()
-        eventQueue.add(initialEvent)
-
-        // Guard against external concurrency
-        if (!isDispatching.compareAndSet(false, true)) {
-            TRACE(FATAL) { "RE-ENTRANCE detected in dispatchEvent!" }
-        }
-        try {
-            while (eventQueue.isNotEmpty()) {
-                val event = eventQueue.removeFirst()
-                val currentState = gameState.value
-                val result = gameReducer(currentState, event)
-
-                updateGameState(result.newState)
-
-                result.sideEffects.forEach { effect ->
-                    when (effect) {
-                        is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId)
-                        is GameSideEffect.ShowDialog -> setDialogEvent(effect.dialog)
-                        is GameSideEffect.GetAIMove -> getAIMove()
-                    }
-                }
-
-                // for followUpEvents, add them to the queue
-                result.followUpEvents.forEach { followUp -> eventQueue.addLast(followUp) }
-            }
-        } finally {
-            isDispatching.set(false)
-        }
-    }
-
-     */
 
 }
 

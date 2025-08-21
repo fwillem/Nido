@@ -26,7 +26,7 @@
     <string name="debug_options">Opciones de depuración</string>
     <string name="disable_ai_autoplay">Desactivar reproducción automática IA</string>
     <string name="display_ai_hands">Mostrar manos IA</string>
-    <string name="point_limit">Límite de puntos: %1$d</string>
+    <string name="point_limit">Límite de puntos</string>
     <string name="tap_to_start">Toca para empezar…</string>
     <string name="sort_mode">Modo de ordenación: %1$s</string>
     <string name="quit">Salir</string>
@@ -39,4 +39,5 @@
     <string name="remote_human">Humano remoto</string>
     <string name="human">Humano</string>
     <string name="bot">Bot</string>
+    <string name="animations">Animaciones</string>
 </resources>

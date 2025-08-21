@@ -31,7 +31,11 @@ private fun GameState.withUpdatedCombination(
     player: Player?
 ): GameState {
     val banner = if (player != null) {
-        if (player.playerType == PlayerType.LOCAL) "Your move" else "${player.name}'s move"
+//        if (player.playerType == PlayerType.LOCAL) "Your move" else "${player.name}'s move"
+        "${player.name}"
+
+      //  if (player.playerType == PlayerType.LOCAL) "You" else "${player.name}"
+
     } else {
         null // e.g. mat cleared
     }
@@ -109,7 +113,8 @@ private fun handleNewRoundStarted(state: GameState) : ReducerResult {
             currentPlayerIndex = newStartingPlayerIndex,
             turnId = state.turnId + 1,
             currentPlayerId = currentPlayer.id,
-            lastActivePlayer = null,
+            lastPlayerWhoPlayed = null,
+            lastPlayerWhoSkipped = null,
             lastKeptCard = null
         )
         .withUpdatedCombination(Combination(mutableStateListOf()), null)
@@ -205,8 +210,12 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
             )
         }
         // Update newState with updated players (and any round/game state if needed)
-        newState = state.copy(players = updatedPlayers)
-
+        newState = state.copy(
+            players = updatedPlayers,
+            lastPlayerWhoPlayed = player,   // who completed the winning play
+            lastPlayerWhoSkipped = null,    // clear any "X skipped" hint
+            lastKeptCard = null             // nothing was kept on a winning play
+        )
     } else {
         // Build a new discard pile:
         // It consists of the existing discard pile plus the cards from the current combination
@@ -230,7 +239,8 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                 players = updatedPlayers,
                 discardPile = newDiscardPile,
                 skipCount = 0,
-                lastActivePlayer = player,
+                lastPlayerWhoPlayed = player,
+                lastPlayerWhoSkipped = null, // Reset the last player who skipped
                 lastKeptCard = cardToKeep
             )
             .withUpdatedCombination(newCombination, player)
@@ -270,13 +280,18 @@ private fun handlePlayerSkipped(gameState: GameState ) : ReducerResult
         newState = gameState
             .copy(
                 discardPile = newDiscardPile,
-                skipCount = 0
+                skipCount = 0,
+                lastPlayerWhoSkipped = null // clear transient skip info on reset
             )
             .withUpdatedCombination(Combination(mutableListOf()), null)
     } else {
 
         // We just update the new skipcount
-        newState = gameState.copy(skipCount = newSkipCount)
+        newState = gameState
+            .copy(
+                skipCount = newSkipCount,
+                lastPlayerWhoSkipped = player,
+        )
 
     }
 
@@ -388,17 +403,30 @@ private fun handleQuitGame(state: GameState): ReducerResult {
  */
 private fun baselineTurnHint(gameState: GameState,  currentPlayerType: PlayerType): String {
     val n = gameState.currentCombinationOnMat.cards.size.takeIf { it > 0 } ?: 1
+    val lastPlayerWhoSkipped : Player? = gameState.lastPlayerWhoSkipped
+
+    val matIsEmpty = gameState.currentCombinationOnMat.cards.isEmpty()
+    val hasLastPlay : Player? = gameState.lastPlayerWhoPlayed
+    val currentPlayer = gameState.players[gameState.currentPlayerIndex]
+
+
 
     if (currentPlayerType != PlayerType.LOCAL) {
-        // AI & Remote players don't need hints, they just play.
-        return ""
+        // In order order to make game lively, we describe what happens
+        if (lastPlayerWhoSkipped != null) {
+            return "${lastPlayerWhoSkipped.name} skipped"
+        } else  if ((matIsEmpty) && (hasLastPlay != null))  {
+            return "The mat was discarded. ${currentPlayer.name} plays next"
+        }
+        else {
+            return keptSuffix(gameState, currentPlayerType)
+        }
     }
 
     if (gameState.turnInfo.displaySkipCounter)
     {
         return("You cannot beat that one !")
     }
-
 
     return if (!gameState.turnInfo.canSkip) {
         "You must play one card" + (if (gameState.turnInfo.canGoAllIn) " (or go All In!)" else "")
@@ -411,15 +439,15 @@ private fun baselineTurnHint(gameState: GameState,  currentPlayerType: PlayerTyp
  * Shown as: " — YOU kept PINK 8" or " — Thorstein kept PINK 8".
  */
 private fun keptSuffix(state: GameState, currentPlayerType: PlayerType): String {
-    val player = state.lastActivePlayer ?: return ""
+    val player = state.lastPlayerWhoPlayed ?: return ""
     val kept = state.lastKeptCard ?: return ""
-    val who = if (player.playerType == PlayerType.LOCAL) "YOU" else player.name
+    val who = if (player.playerType == PlayerType.LOCAL) "You" else player.name
     return "$who kept ${kept.color} ${kept.value}"
 }
 
 /** Final hint assembled from baseline + kept suffix. */
 private fun buildTurnHint(state: GameState, currentPlayerType: PlayerType): String {
     val base = baselineTurnHint(state, currentPlayerType)
-    val kept = keptSuffix(state, currentPlayerType)
-    return base + if (base.isEmpty()) kept else ""
+   //  val kept = keptSuffix(state, currentPlayerType)
+    return base
 }

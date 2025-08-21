@@ -15,6 +15,7 @@ data class GameState(
     val turnInfo: TurnInfo = TurnInfo(),
     val doNotAutoPlayAI: Boolean = false,
     val pointLimit: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
+    val aiTimerDuration: Int = Constants.AI_THINKING_DURATION_DEFAULT,
 
     val players: List<Player> = emptyList(),
     val startingPlayerIndex: Int = 0,
@@ -39,9 +40,10 @@ data class GameState(
     val matBanner: String? = null,
 
     // Used to display info in turnHint
-    val lastActivePlayer: Player? = null,
+    val lastPlayerWhoPlayed: Player? = null, // Used to know who played the cards that are currently on the mat
+    val lastPlayerWhoSkipped: Player? = null, // Used to provide hints to the player
 
-    // The last kept card (the one kept by the lastActivePLayer
+    // The last kept card (the one kept by the lastActivePLayer)
     val lastKeptCard: Card? = null,
 
     // History of games
@@ -56,6 +58,7 @@ data class GameState(
             💠 Turn Info: $turnInfo
             💠 Do Not Auto Play AI: $doNotAutoPlayAI
             💠 Point Limit: $pointLimit
+            💠 AI Timer Duration: $aiTimerDuration
             💠 Nb of players: ${players.size}
             💠 Starting Player Index: $startingPlayerIndex
             💠 Current Player Index: $currentPlayerIndex
@@ -65,7 +68,8 @@ data class GameState(
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
             💠 Turn Hint: $turnHint
             💠 Mat Banner: ${matBanner ?: "None"}
-            💠 Last Active Player: ${lastActivePlayer?.name ?: "None"}
+            💠 Last Player Who Played: ${lastPlayerWhoPlayed?.name ?: "None"}
+            💠 Last Player Who Skipped: ${'$'}{lastPlayerWhoSkipped?.name ?: "None}
             💠 Turn ID : $turnId
         """.trimIndent()
     }
@@ -74,7 +78,9 @@ data class GameState(
         return GameState(
             turnInfo = this.turnInfo.copy(),
             doNotAutoPlayAI = this.doNotAutoPlayAI,
+
             pointLimit = this.pointLimit,
+            aiTimerDuration = this.aiTimerDuration,
 
             players = this.players.map { it.copy() },
             startingPlayerIndex = this.startingPlayerIndex,
@@ -95,7 +101,8 @@ data class GameState(
 
             turnHint = this.turnHint,
             matBanner = this.matBanner,
-            lastActivePlayer = this.lastActivePlayer?.copy(),
+            lastPlayerWhoPlayed = this.lastPlayerWhoPlayed?.copy(),
+            lastPlayerWhoSkipped = this.lastPlayerWhoSkipped?.copy(),
             lastKeptCard = this.lastKeptCard?.copy()
         )
     }
