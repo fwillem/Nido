@@ -1,6 +1,5 @@
 package com.example.nido.game
 import androidx.compose.runtime.mutableStateListOf
-import com.example.nido.R
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.utils.Constants
@@ -20,7 +19,6 @@ import com.example.nido.game.SoundEffect
 import com.example.nido.game.TurnHintMsg
 import com.example.nido.game.rules.calculateTurnInfo
 import com.example.nido.replay.GameRecorder
-import kotlin.to
 
 
 data class ReducerResult(
@@ -190,20 +188,25 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
         GameRules.updatePlayersScores(updatedPlayers)
         val gameOver = GameRules.isGameOver(updatedPlayers, state.pointLimit)
 
+        val rankings = GameRules.getPlayerRankings(updatedPlayers)
+
+        val localPlayerWonGame =
+            rankings.isNotEmpty() && rankings.first().first.playerType == PlayerType.LOCAL
+
         if (gameOver) {
 
             TRACE(INFO) { "Game is over! 🍾" }
             TRACE(INFO) { "Side effect Show Dialog and Game Event GameOver" }
 
-            // Add a ShowDialog side effect for game over
+
             sideEffects += GameSideEffect.ShowDialog(
                 GameDialogEvent.GameOver(
-                    playerRankings = GameRules.getPlayerRankings(updatedPlayers)
+                    playerRankings = rankings
                 )
             )
 
-            // Add a GameEvent for game over
-            followUpEvents += GameEvent.GameOver
+            // Follow-up event now includes the outcome
+            followUpEvents += GameEvent.GameOver(localPlayerWonGame)
 
         } else {
             TRACE(INFO) { "SetDialogEvent RoundOver" }
@@ -214,6 +217,10 @@ private fun handleCardPlayed(state: GameState, selectedCards: List<Card>, cardTo
                     playersHandScore = GameRules.getPlayerHandScores(updatedPlayers)
                 )
             )
+
+            // We also need to trigger the RoundOver event for sound management
+            followUpEvents += GameEvent.RoundOver(localPlayerWonGame)
+
         }
         // Update newState with updated players (and any round/game state if needed)
         newState = state.copy(
@@ -475,29 +482,31 @@ private fun buildTurnHint(state: GameState, currentPlayerType: PlayerType): Turn
  * Keep this list in sync with your UI mapping where some effects may be mapped to `null`.
  * This local gate avoids enqueuing sounds that will never play.
  */
-private val MutedEffects: Set<SoundEffect> = setOf(
+private val UnMutedEffects: Set<SoundEffect> = setOf(
 
 // 🎲 Game lifecycle
-    // SoundEffect.NewRound,
-    // SoundEffect.CardPlayed,
-    // SoundEffect.Skip,
-    SoundEffect.TurnStart,
-    SoundEffect.RoundOver,
-   // SoundEffect.GameOver,
+    SoundEffect.NewRound,
+    SoundEffect.CardPlayed,
+    SoundEffect.Skip,
+    // SoundEffect.TurnStart,
+    SoundEffect.RoundOverWin,
+    SoundEffect.RoundOverLose,
+    SoundEffect.GameOverWin,
+    SoundEffect.GameOverLose,
 
 // 💡 Hints
-    SoundEffect.CannotBeat,
-    SoundEffect.MustPlayOne,
-    SoundEffect.MustPlayAllIn,
-    SoundEffect.CanPlayChoice,
-    // SoundEffect.MatDiscarded,
-    SoundEffect.YouKept,
-    SoundEffect.PlayerKept,
-    SoundEffect.PlayerSkippedHint
+    // SoundEffect.CannotBeat,
+    // SoundEffect.MustPlayOne,
+    // SoundEffect.MustPlayAllIn,
+    // SoundEffect.CanPlayChoice,
+    SoundEffect.MatDiscarded,
+    // SoundEffect.YouKept,
+    // SoundEffect.PlayerKept,
+    // SoundEffect.PlayerSkippedHint
 )
 
 /** Returns true if this effect should be enqueued (i.e., not muted). */
-private fun isAudible(effect: SoundEffect): Boolean = effect !in MutedEffects
+private fun isAudible(effect: SoundEffect): Boolean = effect in UnMutedEffects
 
 /**
  * Pure function used at the end of the reducer to decide which one-shot SFX to produce.
@@ -522,27 +531,42 @@ private fun synthesizeSfx(
         is GameEvent.CardPlayed      -> effects += SoundEffect.CardPlayed
         is GameEvent.PlayerSkipped   -> effects += SoundEffect.Skip
         is GameEvent.NextTurn        -> effects += SoundEffect.TurnStart
-        is GameEvent.RoundOver       -> effects += SoundEffect.RoundOver
-        is GameEvent.GameOver        -> effects += SoundEffect.GameOver
+        is GameEvent.RoundOver -> {
+            effects += if (event.localPlayerWon) SoundEffect.RoundOverWin
+            else                          SoundEffect.RoundOverLose
+        }
+        is GameEvent.GameOver -> {
+            effects += if (event.localPlayerWon) SoundEffect.GameOverWin
+            else                          SoundEffect.GameOverLose
+        }
         is GameEvent.AITimerExpired,
         is GameEvent.QuitGame        -> { /* no sound */ }
     }
 
-    // -------- Hint → SoundEffect (1:1) --------
-    when (val hint = next.turnHintMsg) {
-        is TurnHintMsg.PlayerSkipped         -> effects += SoundEffect.PlayerSkippedHint
-        is TurnHintMsg.MatDiscardedNext      -> effects += SoundEffect.MatDiscarded
-        is TurnHintMsg.YouCannotBeat         -> effects += SoundEffect.CannotBeat
-        is TurnHintMsg.YouMustPlayOne        -> effects += if (hint.canAllIn) SoundEffect.MustPlayAllIn else SoundEffect.MustPlayOne
-        is TurnHintMsg.YouCanPlayNOrNPlusOne -> effects += SoundEffect.CanPlayChoice
-        is TurnHintMsg.YouKept               -> effects += SoundEffect.YouKept
-        is TurnHintMsg.PlayerKept            -> effects += SoundEffect.PlayerKept
-        null                                 -> { /* no hint */ }
+    /*
+    when (event) {
+        is GameEvent.GameOver -> println("Toto GameOver event received in synthesizeSfx, localPlayerWon=${event.localPlayerWon}")
+        else -> ""
+    }
+    */
+
+
+// -------- Hint → SoundEffect (1:1), only on hint transitions --------
+    val hintChanged = next.turnHintMsg != prev.turnHintMsg
+    if (hintChanged) {
+        when (val hint = next.turnHintMsg) {
+            is TurnHintMsg.PlayerSkipped         -> effects += SoundEffect.PlayerSkippedHint
+            is TurnHintMsg.MatDiscardedNext      -> effects += SoundEffect.MatDiscarded
+            is TurnHintMsg.YouCannotBeat         -> effects += SoundEffect.CannotBeat
+            is TurnHintMsg.YouMustPlayOne        -> effects += if (hint.canAllIn) SoundEffect.MustPlayAllIn else SoundEffect.MustPlayOne
+            is TurnHintMsg.YouCanPlayNOrNPlusOne -> effects += SoundEffect.CanPlayChoice
+            is TurnHintMsg.YouKept               -> effects += SoundEffect.YouKept
+            is TurnHintMsg.PlayerKept            -> effects += SoundEffect.PlayerKept
+            null                                 -> { /* no hint */ }
+        }
     }
 
     // Gate per-effect to avoid enqueuing sounds that are intentionally silent.
-    // If you also want to avoid duplicates (e.g., Skip from both event and hint),
-    // you can call `distinct()` before mapping to side effects.
     return effects
         .filter(::isAudible)   // drop muted effects
         //.distinct()          // (optional) uncomment to dedupe within the same pass

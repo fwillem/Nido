@@ -18,8 +18,10 @@ enum class SoundEffect {
     CardPlayed,
     Skip,
     TurnStart,
-    RoundOver,
-    GameOver,
+    RoundOverWin,
+    RoundOverLose,
+    GameOverWin,
+    GameOverLose,
 
     // TurnHintMsg (optional, enable later)
     CannotBeat,

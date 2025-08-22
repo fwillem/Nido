@@ -11,8 +11,8 @@ sealed class GameEvent() {
     object PlayerSkipped : GameEvent()
 
     object NextTurn : GameEvent()
-    object RoundOver : GameEvent()
-    object GameOver : GameEvent()
+    data class RoundOver(val localPlayerWon: Boolean) : GameEvent()
+    data class GameOver(val localPlayerWon: Boolean) : GameEvent()
     data class AITimerExpired(val turnId: Int) : GameEvent()
     object QuitGame : GameEvent()
 

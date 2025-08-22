@@ -9,6 +9,7 @@ import com.example.nido.game.SoundEffect
 import com.example.nido.game.SoundVolume
 import com.example.nido.R
 
+
 /**
  * Centralized sound handler for side effects coming from GameManager.
  * It observes the pending sounds in GameState and plays them using SoundPool.
@@ -49,23 +50,30 @@ fun SoundSideEffectHandler(
         onDispose { soundPool.release() }
     }
 
-    // Play new pending sounds when list changes
-    LaunchedEffect(pending) {
-        if (volume == SoundVolume.off) return@LaunchedEffect
+    // 🟠 Always consume items to avoid backlog, even if volume is off or id is missing
+    LaunchedEffect(pending, volume) {
+        val gain = volume.toFloat()
 
-        for (effect in pending) {
+        if (gain <= 0f) {
+            // Volume off: do not play, but consume so the queue stays clean
+            pending.forEach { effect -> onConsumed(effect) }
+            return@LaunchedEffect
+        }
+
+        pending.forEach { effect ->
             val id = soundIds[effect]
             if (id != null) {
                 soundPool.play(
                     id,
-                    volume.toFloat(), // left volume
-                    volume.toFloat(), // right volume
-                    1,                // priority
-                    0,                // no loop
-                    1f                // normal rate
+                    gain, // left volume
+                    gain, // right volume
+                    1,    // priority
+                    0,    // no loop
+                    1f    // normal rate
                 )
-                onConsumed(effect) // notify GameManager → remove from pending list
             }
+            // 🟢 Consume even if id is null (unmapped effect) to keep the queue consistent
+            onConsumed(effect)
         }
     }
 }
@@ -80,8 +88,11 @@ private fun loadSounds(context: Context, pool: SoundPool): Map<SoundEffect, Int>
         SoundEffect.CardPlayed to pool.load(context, R.raw.play,    1),
         SoundEffect.Skip       to pool.load(context, R.raw.skip,    1),
         SoundEffect.TurnStart  to pool.load(context, R.raw.hum1,    1),
-        SoundEffect.RoundOver  to pool.load(context, R.raw.gloop,   1),
-        SoundEffect.GameOver   to pool.load(context, R.raw.game_over,   1),
+        SoundEffect.RoundOverWin  to pool.load(context, R.raw.round_over_win,   1),
+        SoundEffect.RoundOverLose  to pool.load(context, R.raw.round_over_lose,   1),
+        SoundEffect.GameOverWin   to pool.load(context, R.raw.game_over,   1),
+        SoundEffect.GameOverLose   to pool.load(context, R.raw.game_over_lose,   1),
+
 
         // 💡 Hints
         SoundEffect.CannotBeat     to pool.load(context, R.raw.error,    1),
