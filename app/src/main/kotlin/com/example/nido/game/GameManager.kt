@@ -248,7 +248,7 @@ object GameManager : IGameManager {
         updateGameState(pendingSounds = cur.pendingSounds + effect) // only the changed field
     }
 
-    private fun consumeSound(effect: SoundEffect) {
+    override fun consumeSound(effect: SoundEffect) {
         val cur = gameState.value
         updateGameState(pendingSounds = cur.pendingSounds - effect) // only the changed field
     }

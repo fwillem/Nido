@@ -1,5 +1,6 @@
 package com.example.nido.game
 import androidx.compose.runtime.mutableStateListOf
+import com.example.nido.R
 import com.example.nido.data.model.Card
 import com.example.nido.data.model.Combination
 import com.example.nido.utils.Constants
@@ -15,8 +16,11 @@ import com.example.nido.data.repository.DeckRepository
 import com.example.nido.game.rules.GameRules
 import com.example.nido.data.model.PlayerType
 import com.example.nido.events.GameDialogEvent
+import com.example.nido.game.SoundEffect
+import com.example.nido.game.TurnHintMsg
 import com.example.nido.game.rules.calculateTurnInfo
 import com.example.nido.replay.GameRecorder
+import kotlin.to
 
 
 data class ReducerResult(
@@ -293,7 +297,7 @@ private fun handlePlayerSkipped(gameState: GameState ) : ReducerResult
             .copy(
                 skipCount = newSkipCount,
                 lastPlayerWhoSkipped = player,
-        )
+            )
 
     }
 
@@ -459,23 +463,88 @@ private fun keptSuffix(state: GameState): TurnHintMsg? {
 /** Final hint assembled from baseline + kept suffix. */
 private fun buildTurnHint(state: GameState, currentPlayerType: PlayerType): TurnHintMsg ? {
     val base = baselineTurnHint(state, currentPlayerType)
-   //  val kept = keptSuffix(state, currentPlayerType)
+    //  val kept = keptSuffix(state, currentPlayerType)
     return base
 }
 
-// --- SFX synthesizer (minimal) ---
-// Pure function: decides which one-shot SFX to play for this reducer pass.
-// For micro-validation, we only handle PlayerSkipped → SoundEffect.Skip.
+
+/**
+ * Effects listed here are considered "silent" for now.
+ * If an effect is silent, we never enqueue a PlaySound for it.
+ *
+ * Keep this list in sync with your UI mapping where some effects may be mapped to `null`.
+ * This local gate avoids enqueuing sounds that will never play.
+ */
+private val MutedEffects: Set<SoundEffect> = setOf(
+
+// 🎲 Game lifecycle
+    // SoundEffect.NewRound,
+    // SoundEffect.CardPlayed,
+    // SoundEffect.Skip,
+    SoundEffect.TurnStart,
+    SoundEffect.RoundOver,
+   // SoundEffect.GameOver,
+
+// 💡 Hints
+    SoundEffect.CannotBeat,
+    SoundEffect.MustPlayOne,
+    SoundEffect.MustPlayAllIn,
+    SoundEffect.CanPlayChoice,
+    // SoundEffect.MatDiscarded,
+    SoundEffect.YouKept,
+    SoundEffect.PlayerKept,
+    SoundEffect.PlayerSkippedHint
+)
+
+/** Returns true if this effect should be enqueued (i.e., not muted). */
+private fun isAudible(effect: SoundEffect): Boolean = effect !in MutedEffects
+
+/**
+ * Pure function used at the end of the reducer to decide which one-shot SFX to produce.
+ * - Respects the master volume: when off => no sounds at all.
+ * - Gates per-effect: if an effect is muted by design, it is not enqueued.
+ * - Keeps the code simple and local to the reducer (no Android or UI dependencies).
+ */
 private fun synthesizeSfx(
     prev: GameState,
     next: GameState,
     event: GameEvent
 ): List<GameSideEffect> {
-    // Respect user setting: if sounds are off, emit nothing
+    // Master kill switch: no side effects when SFX volume is OFF
     if (next.soundEffectVolume == SoundVolume.off) return emptyList()
 
-    return when (event) {
-        is GameEvent.PlayerSkipped -> listOf(GameSideEffect.PlaySound(SoundEffect.Skip))
-        else -> emptyList()
+    // Collect candidate effects here
+    val effects = mutableListOf<SoundEffect>()
+
+    // -------- Event → SoundEffect (1:1) --------
+    when (event) {
+        is GameEvent.NewRoundStarted -> effects += SoundEffect.NewRound
+        is GameEvent.CardPlayed      -> effects += SoundEffect.CardPlayed
+        is GameEvent.PlayerSkipped   -> effects += SoundEffect.Skip
+        is GameEvent.NextTurn        -> effects += SoundEffect.TurnStart
+        is GameEvent.RoundOver       -> effects += SoundEffect.RoundOver
+        is GameEvent.GameOver        -> effects += SoundEffect.GameOver
+        is GameEvent.AITimerExpired,
+        is GameEvent.QuitGame        -> { /* no sound */ }
     }
+
+    // -------- Hint → SoundEffect (1:1) --------
+    when (val hint = next.turnHintMsg) {
+        is TurnHintMsg.PlayerSkipped         -> effects += SoundEffect.PlayerSkippedHint
+        is TurnHintMsg.MatDiscardedNext      -> effects += SoundEffect.MatDiscarded
+        is TurnHintMsg.YouCannotBeat         -> effects += SoundEffect.CannotBeat
+        is TurnHintMsg.YouMustPlayOne        -> effects += if (hint.canAllIn) SoundEffect.MustPlayAllIn else SoundEffect.MustPlayOne
+        is TurnHintMsg.YouCanPlayNOrNPlusOne -> effects += SoundEffect.CanPlayChoice
+        is TurnHintMsg.YouKept               -> effects += SoundEffect.YouKept
+        is TurnHintMsg.PlayerKept            -> effects += SoundEffect.PlayerKept
+        null                                 -> { /* no hint */ }
+    }
+
+    // Gate per-effect to avoid enqueuing sounds that are intentionally silent.
+    // If you also want to avoid duplicates (e.g., Skip from both event and hint),
+    // you can call `distinct()` before mapping to side effects.
+    return effects
+        .filter(::isAudible)   // drop muted effects
+        //.distinct()          // (optional) uncomment to dedupe within the same pass
+        .map { GameSideEffect.PlaySound(it) }
 }

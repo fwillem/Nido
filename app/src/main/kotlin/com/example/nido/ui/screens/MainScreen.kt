@@ -108,7 +108,7 @@ fun MainScreen(
                     .background(Color.DarkGray),
                 contentAlignment = Alignment.Center
             ) {
-                CommentsView(actionButtonsMap)
+                CommentsView(actions = actionButtonsMap)
             }
 
             // 🔹 Player Information Row
@@ -195,6 +195,7 @@ fun MainScreen(
                     debug = debug,
                     onDoubleClick = toggleSortMode,
                     onSortMode = toggleSortMode,
+                    actions = actionButtonsMap,
                     onSelectCard = { card ->
                         card.isSelected = !card.isSelected
 

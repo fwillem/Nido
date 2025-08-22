@@ -9,6 +9,7 @@ import com.example.nido.data.model.Player
 import com.example.nido.data.model.Hand
 import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
+import com.example.nido.game.SoundEffect
 import com.example.nido.utils.Debug
 
 val LocalGameManager = staticCompositionLocalOf<IGameManager> {
@@ -43,5 +44,7 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
 
         override fun setGameDialogEvent(event: GameDialogEvent) = getGameManagerInstance().setGameDialogEvent(event)
         override fun clearGameDialogEvent() = getGameManagerInstance().clearGameDialogEvent()
+
+        override fun consumeSound(effect: SoundEffect) = getGameManagerInstance().consumeSound(effect)
     }
 }

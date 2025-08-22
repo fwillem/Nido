@@ -169,4 +169,8 @@ class FakeGameManager : IGameManager {
         // No-op: Fake implementation doesn't handle dialogs.
     }
 
+    override fun consumeSound(effect: SoundEffect) {
+        // No-op: Fake implementation doesn't handle sounds.
+    }
+
 }

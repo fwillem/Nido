@@ -15,8 +15,10 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.nido.data.SavedPlayer
 import com.example.nido.events.AppDialogEvent
 import com.example.nido.game.GameViewModel
+import com.example.nido.game.SoundEffect
 import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.components.SoundSideEffectHandler
 import com.example.nido.ui.dialogs.BlueScreenOfDeathDialog
 import com.example.nido.ui.dialogs.QuitGameDialog
 import com.example.nido.ui.screens.LandingScreen
@@ -167,5 +169,15 @@ fun NidoApp(
             }
         }
     }
+
+    // 🔊 Minimal SFX handler (plays pending sounds and consumes them)
+    SoundSideEffectHandler(
+        pending = gameState.pendingSounds,
+        volume = gameState.soundEffectVolume,           // Low/Medium/High/off
+        onConsumed = { effect: SoundEffect ->
+            // Remove it from state so it won't replay on recomposition
+            gameManager.consumeSound(effect)
+        }
+    )
 
 }
