@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Nido</string>
     <string name="daring_to_challenge_the_gods">¿Te atreves a desafiar a Odín ?</string>
     <string name="play">Jugar</string>
     <string name="setup">Configuración</string>
@@ -27,6 +26,7 @@
     <string name="disable_ai_autoplay">Desactivar reproducción automática IA</string>
     <string name="display_ai_hands">Mostrar manos IA</string>
     <string name="point_limit">Límite de puntos</string>
+    <string name="copy_details">Copiar detalles</string>
     <string name="tap_to_start">Toca para empezar…</string>
     <string name="sort_mode">Modo de ordenación: %1$s</string>
     <string name="quit">Salir</string>
@@ -40,4 +40,14 @@
     <string name="human">Humano</string>
     <string name="bot">Bot</string>
     <string name="animations">Animaciones</string>
+    <string name="hint_player_skipped">%1$s ha pasado turno.</string>
+    <string name="hint_mat_discarded">Se descartó el tapete. %1$s juega a continuación.</string>
+    <string name="hint_cannot_beat">¡No puedes superar esa jugada!</string>
+    <string name="hint_must_play">Debes jugar una carta.</string>
+    <string name="hint_or_all_in"> (¡o hacer all-in!)</string>
+    <string name="hint_can_play">Puedes jugar %1$d o %2$d cartas.</string>
+    <string name="hint_you_kept">Has conservado %1$s.</string>
+    <string name="hint_player_kept">El jugador %1$s conservó %2$s.</string>
+    <string name="banner_play">%1$s juega</string>
+
 </resources>

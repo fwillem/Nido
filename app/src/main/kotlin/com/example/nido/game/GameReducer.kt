@@ -440,7 +440,7 @@ private fun baselineTurnHint(gameState: GameState,  currentPlayerType: PlayerTyp
 private fun keptSuffix(state: GameState): TurnHintMsg? {
     val player = state.lastPlayerWhoPlayed ?: return null
     val kept = state.lastKeptCard ?: return null
-    val cardKept = "${kept.color} ${kept.value}"
+    val cardKept = "${kept.value} ${kept.color}"
 
     if (player.playerType == PlayerType.LOCAL) {
         return TurnHintMsg.YouKept(cardKept)

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Nido</string>
     <string name="daring_to_challenge_the_gods">Wagst du es, Odin herauszufordern ?</string>
     <string name="play">Spielen</string>
     <string name="setup">Einstellungen</string>
@@ -26,6 +25,7 @@
     <string name="debug_options">Debug-Optionen</string>
     <string name="disable_ai_autoplay">KI-Autoplay deaktivieren</string>
     <string name="display_ai_hands">KI-Handkarten anzeigen</string>
+    <string name="copy_details">Details kopieren</string>
     <string name="point_limit">Punktelimit</string>
     <string name="tap_to_start">Tippe zum Starten…</string>
     <string name="sort_mode">Sortiermodus: %1$s</string>
@@ -41,9 +41,12 @@
     <string name="bot">Bot</string>
     <string name="animations">Animationen</string>
     <string name="hint_player_skipped">%1$s hat seinen Zug übersprungen.</string>
-    <string name="hint_mat_discarded">%1$s hat die Matte verworfen. Weiter!</string>
-    <string name="hint_cannot_beat">Du kannst nicht schlagen. Du kannst passen.</string>
-    <string name="hint_must_play">Du musst eine Karte spielen</string>
-    <string name="hint_or_all_in"> oder All-in gehen</string>
-    <string name="hint_can_play">Du kannst %1$d oder %2$d spielen</string>
+    <string name="hint_mat_discarded">Die Matte wurde verworfen. %1$s ist als Nächstes dran.</string>
+    <string name="hint_cannot_beat">Du kannst das nicht überbieten!</string>
+    <string name="hint_must_play">Du musst eine Karte spielen.</string>
+    <string name="hint_or_all_in"> (oder All-in gehen!)</string>
+    <string name="hint_can_play">Du kannst %1$d oder %2$d Karten spielen.</string>
+    <string name="hint_you_kept">Du hast %1$s behalten.</string>
+    <string name="hint_player_kept">Spieler %1$s hat %2$s behalten.</string>
+    <string name="banner_play">%1$s spielt</string>
 </resources>

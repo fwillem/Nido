@@ -24,7 +24,9 @@ fun TurnHintText(state: GameState) {
         is TurnHintMsg.YouMustPlayOne        -> stringResource(R.string.hint_must_play) +
                 if (m.canAllIn) stringResource(R.string.hint_or_all_in) else ""
         is TurnHintMsg.YouCanPlayNOrNPlusOne -> stringResource(R.string.hint_can_play, m.n, m.n + 1)
-        else                             -> ""
+        is TurnHintMsg.YouKept               -> stringResource(R.string.hint_you_kept, m.card)
+        is TurnHintMsg.PlayerKept            -> stringResource(R.string.hint_player_kept, m.name, m.card)
+        null                                -> ""
     }
     Text(text, fontWeight = FontWeight.Bold, color = Color.White)
 }

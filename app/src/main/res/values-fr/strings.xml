@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Nido</string>
     <string name="daring_to_challenge_the_gods">Prêt à défier Odin ?</string>
     <string name="play">Jouer</string>
     <string name="setup">Configuration</string>
@@ -26,6 +25,7 @@
     <string name="debug_options">Options de débogage</string>
     <string name="disable_ai_autoplay">Désactiver lecture automatique IA</string>
     <string name="display_ai_hands">Afficher les mains IA</string>
+    <string name="copy_details">Copier les détails</string>
     <string name="point_limit">Limite de points</string>
     <string name="tap_to_start">Appuyez pour commencer…</string>
     <string name="sort_mode">Mode de tri : %1$s</string>
@@ -42,9 +42,13 @@
     <!-- Ajout -->
     <string name="animations">Animations</string>
     <string name="hint_player_skipped">%1$s a passé son tour.</string>
-    <string name="hint_mat_discarded">%1$s a défaussé le tapis. Suivant !</string>
-    <string name="hint_cannot_beat">Vous ne pouvez pas battre. Vous pouvez passer.</string>
-    <string name="hint_must_play">Vous devez jouer une carte</string>
-    <string name="hint_or_all_in"> ou tout jouer</string>
-    <string name="hint_can_play">Vous pouvez jouer %1$d ou %2$d</string>
+    <string name="hint_mat_discarded">Le tapis a été défaussé. %1$s joue ensuite.</string>
+    <string name="hint_cannot_beat">Vous ne pouvez pas battre cette combinaison !</string>
+    <string name="hint_must_play">Vous devez jouer une carte.</string>
+    <string name="hint_or_all_in"> (ou faites tapis !)</string>
+    <string name="hint_can_play">Vous pouvez jouer %1$d ou %2$d cartes.</string>
+    <string name="hint_you_kept">Vous avez conservé %1$s.</string>
+    <string name="hint_player_kept">Le joueur %1$s a conservé %2$s.</string>
+    <string name="banner_play">%1$s joue</string>
+
 </resources>
