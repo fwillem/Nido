@@ -40,4 +40,10 @@
     <string name="human">Mensch</string>
     <string name="bot">Bot</string>
     <string name="animations">Animationen</string>
+    <string name="hint_player_skipped">%1$s hat seinen Zug übersprungen.</string>
+    <string name="hint_mat_discarded">%1$s hat die Matte verworfen. Weiter!</string>
+    <string name="hint_cannot_beat">Du kannst nicht schlagen. Du kannst passen.</string>
+    <string name="hint_must_play">Du musst eine Karte spielen</string>
+    <string name="hint_or_all_in"> oder All-in gehen</string>
+    <string name="hint_can_play">Du kannst %1$d oder %2$d spielen</string>
 </resources>

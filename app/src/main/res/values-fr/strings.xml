@@ -41,4 +41,10 @@
     <string name="bot">Bot</string>
     <!-- Ajout -->
     <string name="animations">Animations</string>
+    <string name="hint_player_skipped">%1$s a passé son tour.</string>
+    <string name="hint_mat_discarded">%1$s a défaussé le tapis. Suivant !</string>
+    <string name="hint_cannot_beat">Vous ne pouvez pas battre. Vous pouvez passer.</string>
+    <string name="hint_must_play">Vous devez jouer une carte</string>
+    <string name="hint_or_all_in"> ou tout jouer</string>
+    <string name="hint_can_play">Vous pouvez jouer %1$d ou %2$d</string>
 </resources>

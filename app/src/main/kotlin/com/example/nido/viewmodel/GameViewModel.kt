@@ -152,6 +152,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         if (oldState.aiTimerDuration != newState.aiTimerDuration) changes.add("⏱ aiTimerDuration: ${oldState.aiTimerDuration} ➝ ${newState.aiTimerDuration}")
 
         if (oldState.turnId != newState.turnId) changes.add("🔄 turnId: ${oldState.turnId} ➝ ${newState.turnId}")
+        if (oldState.turnHintMsg != newState.turnHintMsg) changes.add("💬 turnHintMsg: ${oldState.turnHintMsg} ➝ ${newState.turnHintMsg}")
+        if (oldState.bannerMsg != newState.bannerMsg) changes.add("📢 bannerMsg: ${oldState.bannerMsg} ➝ ${newState.bannerMsg}")
         if (oldState.turnInfo != newState.turnInfo) changes.add("💡 turnInfo: ${oldState.turnInfo} ➝ ${newState.turnInfo}")
 
         // Print only changed values.

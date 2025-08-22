@@ -5,7 +5,6 @@ import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.data.model.PlayerType
 import com.example.nido.game.rules.GameRules
-import com.example.nido.utils.Constants
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.example.nido.data.model.PlayerActionType
@@ -297,6 +296,9 @@ object GameManager : IGameManager {
         appDialogEvent: AppDialogEvent? = gameState.value.appDialogEvent,
         gameDialogEvent: GameDialogEvent? = gameState.value.gameDialogEvent,
         turnId: Int = gameState.value.turnId,
+        turnHintMsg: TurnHintMsg? = gameState.value.turnHintMsg,
+        bannerMsg: BannerMsg? = gameState.value.bannerMsg,
+
         doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI
     ) {
         _gameState.value = gameState.value.copy(
@@ -315,6 +317,8 @@ object GameManager : IGameManager {
             appDialogEvent = appDialogEvent,
             gameDialogEvent = gameDialogEvent,
             turnId = turnId,
+            turnHintMsg = gameState.value.turnHintMsg,
+            bannerMsg = gameState.value.bannerMsg,
             doNotAutoPlayAI = doNotAutoPlayAI
         )
     }

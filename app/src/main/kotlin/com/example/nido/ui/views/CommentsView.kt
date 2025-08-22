@@ -1,16 +1,33 @@
 package com.example.nido.ui.views
 
+import com.example.nido.game.GameState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.nido.R
+import com.example.nido.game.TurnHintMsg
 import com.example.nido.ui.LocalGameManager
-import com.example.nido.utils.Debug
+
+@Composable
+fun TurnHintText(state: GameState) {
+    val text = when (val m = state.turnHintMsg) {
+        is TurnHintMsg.PlayerSkipped         -> stringResource(R.string.hint_player_skipped, m.name)
+        is TurnHintMsg.MatDiscardedNext      -> stringResource(R.string.hint_mat_discarded, m.name)
+        is TurnHintMsg.YouCannotBeat         -> stringResource(R.string.hint_cannot_beat)
+        is TurnHintMsg.YouMustPlayOne        -> stringResource(R.string.hint_must_play) +
+                if (m.canAllIn) stringResource(R.string.hint_or_all_in) else ""
+        is TurnHintMsg.YouCanPlayNOrNPlusOne -> stringResource(R.string.hint_can_play, m.n, m.n + 1)
+        else                             -> ""
+    }
+    Text(text, fontWeight = FontWeight.Bold, color = Color.White)
+}
 
 @Composable
 fun CommentsView(actions: Map<String, () -> Unit>) {
@@ -28,15 +45,7 @@ fun CommentsView(actions: Map<String, () -> Unit>) {
             modifier = Modifier.weight(0.8f, fill = true),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = gameState.turnHint.ifBlank { "…" },
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                lineHeight = 8.sp,
-                // modifier = Modifier.padding(end = 4.dp, start = 36.dp)
-                // Removed padding to ensure text is perfectly centered
-            )
+            TurnHintText(gameState)
         }
 
         // Vertical Divider (Material3 only provides horizontal, but this works)

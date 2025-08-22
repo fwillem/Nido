@@ -137,13 +137,13 @@ fun SetupScreen(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(4.dp)
+                .padding(0.dp)
         ) {
             // Centered headline
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = stringResource(R.string.game_setup),
-                    style = DEFAULT_TEXT_STYLE,
+                    style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }

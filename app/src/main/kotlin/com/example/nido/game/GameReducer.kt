@@ -17,7 +17,6 @@ import com.example.nido.data.model.PlayerType
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.rules.calculateTurnInfo
 import com.example.nido.replay.GameRecorder
-import com.example.nido.utils.TraceLogLevel
 
 
 data class ReducerResult(
@@ -31,18 +30,14 @@ private fun GameState.withUpdatedCombination(
     player: Player?
 ): GameState {
     val banner = if (player != null) {
-//        if (player.playerType == PlayerType.LOCAL) "Your move" else "${player.name}'s move"
-        "${player.name}"
-
-      //  if (player.playerType == PlayerType.LOCAL) "You" else "${player.name}"
-
+        BannerMsg.Play(player.name)
     } else {
-        null // e.g. mat cleared
+        null
     }
 
     return this.copy(
         currentCombinationOnMat = combination,
-        matBanner = banner
+        bannerMsg = banner
     )
 }
 
@@ -50,10 +45,10 @@ private fun GameState.withUpdatedCombination(
 private fun GameState.withUIRefresh(): GameState {
     val freshTurnInfo = calculateTurnInfo(this)
     val currentPlayerType = this.players[this.currentPlayerIndex].playerType
-    val freshHint = buildTurnHint(this.copy(turnInfo = freshTurnInfo), currentPlayerType)
+    val freshHintMsg = buildTurnHint(this.copy(turnInfo = freshTurnInfo), currentPlayerType)
     return this.copy(
         turnInfo = freshTurnInfo,
-        turnHint = freshHint
+        turnHintMsg = freshHintMsg
     )
 }
 
@@ -401,7 +396,7 @@ private fun handleQuitGame(state: GameState): ReducerResult {
  * If you call buildTurnHint() manually, ensure you pass a state with a fresh turnInfo,
  * e.g. by calling calculateTurnInfo(state) first.
  */
-private fun baselineTurnHint(gameState: GameState,  currentPlayerType: PlayerType): String {
+private fun baselineTurnHint(gameState: GameState,  currentPlayerType: PlayerType): TurnHintMsg? {
     val n = gameState.currentCombinationOnMat.cards.size.takeIf { it > 0 } ?: 1
     val lastPlayerWhoSkipped : Player? = gameState.lastPlayerWhoSkipped
 
@@ -414,39 +409,48 @@ private fun baselineTurnHint(gameState: GameState,  currentPlayerType: PlayerTyp
     if (currentPlayerType != PlayerType.LOCAL) {
         // In order order to make game lively, we describe what happens
         if (lastPlayerWhoSkipped != null) {
-            return "${lastPlayerWhoSkipped.name} skipped"
+            return TurnHintMsg.PlayerSkipped(lastPlayerWhoSkipped.name)
+
+
         } else  if ((matIsEmpty) && (hasLastPlay != null))  {
-            return "The mat was discarded. ${currentPlayer.name} plays next"
+            return TurnHintMsg.MatDiscardedNext(currentPlayer.name)
         }
-        else {
-            return keptSuffix(gameState, currentPlayerType)
-        }
+        else return keptSuffix(gameState)
+
     }
 
     if (gameState.turnInfo.displaySkipCounter)
     {
-        return("You cannot beat that one !")
+        return TurnHintMsg.YouCannotBeat
     }
 
     return if (!gameState.turnInfo.canSkip) {
-        "You must play one card" + (if (gameState.turnInfo.canGoAllIn) " (or go All In!)" else "")
+        TurnHintMsg.YouMustPlayOne(canAllIn = gameState.turnInfo.canGoAllIn)
     } else {
-        "You can play $n or ${n+1} cards"
+        TurnHintMsg.YouCanPlayNOrNPlusOne(n = n)
     }
 }
+
+
 
 /** Optional suffix for "kept this card".
  * Shown as: " — YOU kept PINK 8" or " — Thorstein kept PINK 8".
  */
-private fun keptSuffix(state: GameState, currentPlayerType: PlayerType): String {
-    val player = state.lastPlayerWhoPlayed ?: return ""
-    val kept = state.lastKeptCard ?: return ""
-    val who = if (player.playerType == PlayerType.LOCAL) "You" else player.name
-    return "$who kept ${kept.color} ${kept.value}"
+
+private fun keptSuffix(state: GameState): TurnHintMsg? {
+    val player = state.lastPlayerWhoPlayed ?: return null
+    val kept = state.lastKeptCard ?: return null
+    val cardKept = "${kept.color} ${kept.value}"
+
+    if (player.playerType == PlayerType.LOCAL) {
+        return TurnHintMsg.YouKept(cardKept)
+    } else {
+        return TurnHintMsg.PlayerKept(player.name, cardKept)
+    }
 }
 
 /** Final hint assembled from baseline + kept suffix. */
-private fun buildTurnHint(state: GameState, currentPlayerType: PlayerType): String {
+private fun buildTurnHint(state: GameState, currentPlayerType: PlayerType): TurnHintMsg ? {
     val base = baselineTurnHint(state, currentPlayerType)
    //  val kept = keptSuffix(state, currentPlayerType)
     return base

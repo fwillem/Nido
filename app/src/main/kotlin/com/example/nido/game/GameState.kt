@@ -36,8 +36,9 @@ data class GameState(
     val turnId: Int = 0,
 
     // 🔹 NEW unified hint string consumed by CommentsView
-    val turnHint: String = "",
-    val matBanner: String? = null,
+    val turnHintMsg: TurnHintMsg? = null,
+    val bannerMsg: BannerMsg? = null,
+
 
     // Used to display info in turnHint
     val lastPlayerWhoPlayed: Player? = null, // Used to know who played the cards that are currently on the mat
@@ -66,8 +67,8 @@ data class GameState(
             💠 Current Combination on Mat: ${currentCombinationOnMat ?: "None"}
             💠 Discard Pile: ${discardPile.joinToString(", ") { it.toString() }}
             💠 Deck: ${deck.joinToString(", ") { it.toString() }}
-            💠 Turn Hint: $turnHint
-            💠 Mat Banner: ${matBanner ?: "None"}
+            💠 Turn Hint: $turnHintMsg ?: "None"
+            💠 Banner Message: ${bannerMsg ?: "None"}
             💠 Last Player Who Played: ${lastPlayerWhoPlayed?.name ?: "None"}
             💠 Last Player Who Skipped: ${'$'}{lastPlayerWhoSkipped?.name ?: "None}
             💠 Turn ID : $turnId
@@ -99,8 +100,8 @@ data class GameState(
 
             turnId = this.turnId,
 
-            turnHint = this.turnHint,
-            matBanner = this.matBanner,
+            turnHintMsg = this.turnHintMsg,
+            bannerMsg = this.bannerMsg,
             lastPlayerWhoPlayed = this.lastPlayerWhoPlayed?.copy(),
             lastPlayerWhoSkipped = this.lastPlayerWhoSkipped?.copy(),
             lastKeptCard = this.lastKeptCard?.copy()

@@ -40,4 +40,17 @@
     <string name="copy_details">Copy details</string>
     <string name="point_limit">Point Limit</string>
     <string name="animations">Animations</string>
+
+
+
+    <string name="hint_player_skipped">%1$s skipped</string>
+    <string name="hint_mat_discarded">The mat was discarded. %1$s plays next</string>
+    <string name="hint_cannot_beat">You cannot beat that one!</string>
+    <string name="hint_must_play">You must play one card</string>
+    <string name="hint_or_all_in"> (or go All In!)</string>
+    <string name="hint_can_play">You can play %1$d or %2$d cards</string>
+
+    <string name="banner_play">%1$s Play</string>
+
+
 </resources>
