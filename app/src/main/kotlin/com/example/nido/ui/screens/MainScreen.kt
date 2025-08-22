@@ -22,6 +22,7 @@ import com.example.nido.game.GameState
 import com.example.nido.game.LocalPlayer
 import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.IGameViewModelPreview
+import com.example.nido.game.SoundVolume
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.dialogs.*
 import com.example.nido.ui.theme.NidoColors
@@ -365,7 +366,9 @@ fun PreviewMainScreen() {
         discardPile = dummyDiscardPile,
         deck = dummyDeck,
         skipCount = 0,
-        soundOn = true,
+        soundEffectVolume = SoundVolume.Medium,
+        soundMusicVolume = SoundVolume.Medium,
+        pendingSounds = emptyList(),
         gameDialogEvent = null,
         appDialogEvent = null,
         turnId = 1

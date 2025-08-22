@@ -51,6 +51,7 @@ D:.
 |   |               |       UiEventBridge.kt
 |   |               |       
 |   |               +---game
+|   |               |   |   BannerMsg.kt
 |   |               |   |   FakeGameManager.kt
 |   |               |   |   GameEvents.kt
 |   |               |   |   GameManager.kt
@@ -61,6 +62,7 @@ D:.
 |   |               |   |   IGameManager.kt
 |   |               |   |   IGameStateProvider.kt
 |   |               |   |   LocalPlayer.kt
+|   |               |   |   TurnHintMsg.kt
 |   |               |   |   TurnInfo.kt
 |   |               |   |   
 |   |               |   +---ai
@@ -88,6 +90,7 @@ D:.
 |   |               |   |   Screen.kt
 |   |               |   |   
 |   |               |   +---components
+|   |               |   |       AITimerSelector.kt
 |   |               |   |       IconGallery.kt
 |   |               |   |       NidoScreenScaffold.kt
 |   |               |   |       NumberStepper.kt

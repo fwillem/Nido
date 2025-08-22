@@ -6,4 +6,5 @@ sealed class GameSideEffect {
     data class StartAITimer(val turnId: Int) : GameSideEffect()
     data class ShowDialog(val dialog: GameDialogEvent) : GameSideEffect()
     object GetAIMove : GameSideEffect()
+    data class PlaySound(val effect: SoundEffect) : GameSideEffect()
 }

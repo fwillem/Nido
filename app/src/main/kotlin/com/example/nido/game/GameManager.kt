@@ -242,6 +242,16 @@ object GameManager : IGameManager {
         }
     }
 
+    // Inside GameManager (keep them private)
+    private fun enqueueSound(effect: SoundEffect) {
+        val cur = gameState.value
+        updateGameState(pendingSounds = cur.pendingSounds + effect) // only the changed field
+    }
+
+    private fun consumeSound(effect: SoundEffect) {
+        val cur = gameState.value
+        updateGameState(pendingSounds = cur.pendingSounds - effect) // only the changed field
+    }
 
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
         val currentGameState = gameState.value
@@ -292,12 +302,13 @@ object GameManager : IGameManager {
         turnInfo: TurnInfo = gameState.value.turnInfo,
         pointLimit: Int = gameState.value.pointLimit,
         aiTimerDuration: Int = gameState.value.aiTimerDuration,
-        soundOn: Boolean = gameState.value.soundOn,
+        soundEffectVolume : SoundVolume = gameState.value.soundEffectVolume,
+        soundMusicVolume : SoundVolume = gameState.value.soundMusicVolume,
+        pendingSounds: List<SoundEffect> = gameState.value.pendingSounds,
         appDialogEvent: AppDialogEvent? = gameState.value.appDialogEvent,
         gameDialogEvent: GameDialogEvent? = gameState.value.gameDialogEvent,
         turnId: Int = gameState.value.turnId,
-        turnHintMsg: TurnHintMsg? = gameState.value.turnHintMsg,
-        bannerMsg: BannerMsg? = gameState.value.bannerMsg,
+
 
         doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI
     ) {
@@ -313,8 +324,10 @@ object GameManager : IGameManager {
             turnInfo = turnInfo,
             pointLimit = pointLimit,
             aiTimerDuration = aiTimerDuration,
-            soundOn = soundOn,
             appDialogEvent = appDialogEvent,
+            soundEffectVolume = soundEffectVolume,
+            soundMusicVolume = soundMusicVolume,
+            pendingSounds = pendingSounds,
             gameDialogEvent = gameDialogEvent,
             turnId = turnId,
             turnHintMsg = gameState.value.turnHintMsg,
@@ -335,6 +348,9 @@ object GameManager : IGameManager {
             is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId, this.gameState.value.aiTimerDuration)
             is GameSideEffect.ShowDialog -> setGameDialogEvent(effect.dialog)
             is GameSideEffect.GetAIMove -> getAIMove()
+            is GameSideEffect.PlaySound -> enqueueSound(effect.effect)
+
+
         }
     }
 

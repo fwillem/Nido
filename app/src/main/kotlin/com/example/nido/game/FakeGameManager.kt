@@ -71,7 +71,11 @@ class FakeGameManager : IGameManager {
             discardPile = mutableStateListOf(Card(2, "ORANGE")),
             deck = mutableStateListOf(Card(7, "PINK")),
             skipCount = 0,
-            soundOn = true,
+            soundEffectVolume = SoundVolume.Medium,
+            soundMusicVolume = SoundVolume.Medium,
+            pendingSounds    = emptyList(),
+
+
             turnId = 1
         )
     )

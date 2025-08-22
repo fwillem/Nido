@@ -75,7 +75,14 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
 
     // Systematic refresh after every reducer
     val refreshed = result.newState.withUIRefresh()
-    return result.copy(newState = refreshed)
+
+    // Build SFX from (prev, next, event) and append them
+    val sfx = synthesizeSfx(state, refreshed, event)
+
+    return result.copy(
+        newState = refreshed,
+        sideEffects = result.sideEffects + sfx
+    )
 }
 
 
@@ -454,4 +461,21 @@ private fun buildTurnHint(state: GameState, currentPlayerType: PlayerType): Turn
     val base = baselineTurnHint(state, currentPlayerType)
    //  val kept = keptSuffix(state, currentPlayerType)
     return base
+}
+
+// --- SFX synthesizer (minimal) ---
+// Pure function: decides which one-shot SFX to play for this reducer pass.
+// For micro-validation, we only handle PlayerSkipped → SoundEffect.Skip.
+private fun synthesizeSfx(
+    prev: GameState,
+    next: GameState,
+    event: GameEvent
+): List<GameSideEffect> {
+    // Respect user setting: if sounds are off, emit nothing
+    if (next.soundEffectVolume == SoundVolume.off) return emptyList()
+
+    return when (event) {
+        is GameEvent.PlayerSkipped -> listOf(GameSideEffect.PlaySound(SoundEffect.Skip))
+        else -> emptyList()
+    }
 }

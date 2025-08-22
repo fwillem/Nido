@@ -143,12 +143,13 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         if (oldState.currentPlayerIndex != newState.currentPlayerIndex) changes.add("🎯 currentPlayerIndex: ${oldState.currentPlayerIndex} ➝ ${newState.currentPlayerIndex}")
         if (oldState.currentPlayerId != newState.currentPlayerId) changes.add("🆔 currentPlayerId: ${oldState.currentPlayerId} ➝ ${newState.currentPlayerId}")
         if (oldState.currentCombinationOnMat != newState.currentCombinationOnMat) changes.add("🟨 currentCombinationOnMat: ${oldState.currentCombinationOnMat} ➝ ${newState.currentCombinationOnMat}")
-        if (oldState.soundOn != newState.soundOn) changes.add("🔊 soundOn: ${oldState.soundOn} ➝ ${newState.soundOn}")
         if (oldState.gameDialogEvent != newState.gameDialogEvent) changes.add("🎲 gameDialogEvent: ${oldState.gameDialogEvent} ➝ ${newState.gameDialogEvent}")
         if (oldState.appDialogEvent != newState.appDialogEvent) changes.add("🎲 appDialogEvent: ${oldState.appDialogEvent} ➝ ${newState.appDialogEvent}")
         if (oldState.skipCount != newState.skipCount) changes.add("⏭ skipCount: ${oldState.skipCount} ➝ ${newState.skipCount}")
         if (oldState.pointLimit != newState.pointLimit) changes.add("🎯 pointLimit: ${oldState.pointLimit} ➝ ${newState.pointLimit}")
-        if (oldState.soundOn != newState.soundOn) changes.add("🔊 soundOn: ${oldState.soundOn} ➝ ${newState.soundOn}")
+        if (oldState.soundEffectVolume != newState.soundEffectVolume) changes.add("🔊 soundEffectVolume: ${oldState.soundEffectVolume} ➝ ${newState.soundEffectVolume}")
+        if (oldState.soundMusicVolume != newState.soundMusicVolume) changes.add("🎵 soundMusicVolume: ${oldState.soundMusicVolume} ➝ ${newState.soundMusicVolume}")
+        if (oldState.pendingSounds != newState.pendingSounds) changes.add("🔊 pendingSounds: ${oldState.pendingSounds} ➝ ${newState.pendingSounds}")
         if (oldState.aiTimerDuration != newState.aiTimerDuration) changes.add("⏱ aiTimerDuration: ${oldState.aiTimerDuration} ➝ ${newState.aiTimerDuration}")
 
         if (oldState.turnId != newState.turnId) changes.add("🔄 turnId: ${oldState.turnId} ➝ ${newState.turnId}")
@@ -175,7 +176,9 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
             skipCount = newState.skipCount,
             turnInfo = newState.turnInfo,
             pointLimit = newState.pointLimit,
-            soundOn = newState.soundOn,
+            soundEffectVolume = newState.soundEffectVolume,
+            soundMusicVolume = newState.soundMusicVolume,
+            pendingSounds = newState.pendingSounds,
             appDialogEvent = newState.appDialogEvent,
             gameDialogEvent = newState.gameDialogEvent,
             turnId = newState.turnId,

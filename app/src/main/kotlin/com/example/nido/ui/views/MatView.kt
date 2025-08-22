@@ -57,7 +57,8 @@ import com.example.nido.R
 @Composable
 fun matBannerText(state: GameState) : String {
     val text = when (val b = state.bannerMsg) {
-        is BannerMsg.Play -> stringResource(R.string.banner_play, b.name)
+       //  is BannerMsg.Play -> stringResource(R.string.banner_play, b.name)
+        is BannerMsg.Play -> stringResource(R.string.banner_play_short, b.name)
         null -> ""
     }
 

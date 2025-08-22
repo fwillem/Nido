@@ -27,7 +27,6 @@ data class GameState(
     val deck: SnapshotStateList<Card> = mutableStateListOf(),
 
     val skipCount: Int = 0,
-    val soundOn: Boolean = true,
 
     val appDialogEvent: AppDialogEvent? = null,
     val gameDialogEvent: GameDialogEvent? = null,
@@ -49,7 +48,12 @@ data class GameState(
 
     // History of games
     val sessions: MutableList<GameSession> = mutableListOf(),  // history of all games
-    val currentSession: GameSession? = null                    // active session
+    val currentSession: GameSession? = null,                    // active session
+
+    // Sounds
+    val soundEffectVolume : SoundVolume = SoundVolume.Medium,
+    val soundMusicVolume : SoundVolume = SoundVolume.Medium,
+    val pendingSounds: List<SoundEffect> = emptyList(),
 
 
 ) {
@@ -72,6 +76,9 @@ data class GameState(
             💠 Last Player Who Played: ${lastPlayerWhoPlayed?.name ?: "None"}
             💠 Last Player Who Skipped: ${'$'}{lastPlayerWhoSkipped?.name ?: "None}
             💠 Turn ID : $turnId
+            💠 Sound Effect Volume: $soundEffectVolume
+            💠 Sound Music Volume: $soundMusicVolume
+            💠 Pending Sounds: ${if (pendingSounds.isEmpty()) "None" else pendingSounds.joinToString(", ")}
         """.trimIndent()
     }
 
@@ -93,7 +100,10 @@ data class GameState(
             deck = mutableStateListOf<Card>().apply { addAll(this@GameState.deck) },
 
             skipCount = this.skipCount,
-            soundOn = this.soundOn,
+            soundEffectVolume = this.soundEffectVolume,
+            soundMusicVolume = this.soundMusicVolume,
+            pendingSounds = this.pendingSounds.toList(),
+
 
             appDialogEvent = this.appDialogEvent,
             gameDialogEvent = this.gameDialogEvent,
