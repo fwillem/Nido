@@ -150,6 +150,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         if (oldState.soundEffectVolume != newState.soundEffectVolume) changes.add("🔊 soundEffectVolume: ${oldState.soundEffectVolume} ➝ ${newState.soundEffectVolume}")
         if (oldState.soundMusicVolume != newState.soundMusicVolume) changes.add("🎵 soundMusicVolume: ${oldState.soundMusicVolume} ➝ ${newState.soundMusicVolume}")
         if (oldState.pendingSounds != newState.pendingSounds) changes.add("🔊 pendingSounds: ${oldState.pendingSounds} ➝ ${newState.pendingSounds}")
+        if (oldState.pendingMusic != newState.pendingMusic) changes.add("🎵 pendingMusic: ${oldState.pendingMusic} ➝ ${newState.pendingMusic}")
         if (oldState.aiTimerDuration != newState.aiTimerDuration) changes.add("⏱ aiTimerDuration: ${oldState.aiTimerDuration} ➝ ${newState.aiTimerDuration}")
 
         if (oldState.turnId != newState.turnId) changes.add("🔄 turnId: ${oldState.turnId} ➝ ${newState.turnId}")
@@ -179,6 +180,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
             soundEffectVolume = newState.soundEffectVolume,
             soundMusicVolume = newState.soundMusicVolume,
             pendingSounds = newState.pendingSounds,
+            pendingMusic = newState.pendingMusic,
             appDialogEvent = newState.appDialogEvent,
             gameDialogEvent = newState.gameDialogEvent,
             turnId = newState.turnId,

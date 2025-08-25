@@ -50,13 +50,15 @@ data class GameState(
     val sessions: MutableList<GameSession> = mutableListOf(),  // history of all games
     val currentSession: GameSession? = null,                    // active session
 
-    // Sounds
+    // Sounds & Music
     val soundEffectVolume : SoundVolume = SoundVolume.Medium,
     val soundMusicVolume : SoundVolume = SoundVolume.Medium,
     val pendingSounds: List<SoundEffect> = emptyList(),
+    val pendingMusic: List<MusicCommand> = emptyList(),
 
 
-) {
+
+    ) {
     override fun toString(): String {
         return """
             🔍 GameState Debug Info:
@@ -78,7 +80,8 @@ data class GameState(
             💠 Turn ID : $turnId
             💠 Sound Effect Volume: $soundEffectVolume
             💠 Sound Music Volume: $soundMusicVolume
-            💠 Pending Sounds: ${if (pendingSounds.isEmpty()) "None" else pendingSounds.joinToString(", ")}
+            💠 Pending Sounds: ${if (pendingSounds.isEmpty()) "None" else pendingSounds.joinToString(", ")}  
+            💠 Pending Music Commands: ${if (pendingMusic.isEmpty()) "None" else pendingMusic.joinToString(", ")}
         """.trimIndent()
     }
 
@@ -103,9 +106,11 @@ data class GameState(
             soundEffectVolume = this.soundEffectVolume,
             soundMusicVolume = this.soundMusicVolume,
             pendingSounds = this.pendingSounds.toList(),
+            pendingMusic = this.pendingMusic.toList(),
 
 
-            appDialogEvent = this.appDialogEvent,
+
+        appDialogEvent = this.appDialogEvent,
             gameDialogEvent = this.gameDialogEvent,
 
             turnId = this.turnId,

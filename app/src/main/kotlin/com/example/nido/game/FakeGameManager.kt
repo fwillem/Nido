@@ -74,6 +74,7 @@ class FakeGameManager : IGameManager {
             soundEffectVolume = SoundVolume.Medium,
             soundMusicVolume = SoundVolume.Medium,
             pendingSounds    = emptyList(),
+            pendingMusic     = emptyList(),
 
 
             turnId = 1
@@ -171,6 +172,10 @@ class FakeGameManager : IGameManager {
 
     override fun consumeSound(effect: SoundEffect) {
         // No-op: Fake implementation doesn't handle sounds.
+    }
+
+    override fun consumeMusic(cmd: MusicCommand) {
+        // No-op: Fake implementation doesn't handle music.
     }
 
 }

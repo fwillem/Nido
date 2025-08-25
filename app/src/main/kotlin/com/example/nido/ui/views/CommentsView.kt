@@ -44,7 +44,7 @@ fun CommentsView(actions: Map<String, () -> Unit>) {
     ) {
         // Text zone - 80%
         Box(
-            modifier = Modifier.weight(0.8f, fill = true),
+            modifier = Modifier.weight(0.99f, fill = true),
             contentAlignment = Alignment.Center
         ) {
             TurnHintText(gameState)
@@ -62,7 +62,7 @@ fun CommentsView(actions: Map<String, () -> Unit>) {
 
         // Buttons zone - 20%
         Row(
-            modifier = Modifier.weight(0.2f, fill = true),
+            modifier = Modifier.weight(0.01f, fill = true),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {

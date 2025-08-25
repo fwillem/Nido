@@ -370,6 +370,7 @@ fun PreviewMainScreen() {
         soundEffectVolume = SoundVolume.Medium,
         soundMusicVolume = SoundVolume.Medium,
         pendingSounds = emptyList(),
+        pendingMusic = emptyList(),
         gameDialogEvent = null,
         appDialogEvent = null,
         turnId = 1

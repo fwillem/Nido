@@ -253,6 +253,20 @@ object GameManager : IGameManager {
         updateGameState(pendingSounds = cur.pendingSounds - effect) // only the changed field
     }
 
+    // 🟢 Add helpers (keep enqueue private; expose consume for UI)
+    private fun enqueueMusic(cmd: MusicCommand) {
+        val cur = gameState.value
+        updateGameState(pendingMusic = cur.pendingMusic + cmd)
+    }
+
+    /** Public so UI handler can remove the command after executing it. */
+    override fun consumeMusic(cmd: MusicCommand) {
+        val cur = gameState.value
+        updateGameState(pendingMusic = cur.pendingMusic - cmd)
+    }
+
+
+
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
         val currentGameState = gameState.value
         if (playerIndex in currentGameState.players.indices) {
@@ -305,6 +319,7 @@ object GameManager : IGameManager {
         soundEffectVolume : SoundVolume = gameState.value.soundEffectVolume,
         soundMusicVolume : SoundVolume = gameState.value.soundMusicVolume,
         pendingSounds: List<SoundEffect> = gameState.value.pendingSounds,
+        pendingMusic: List<MusicCommand> = gameState.value.pendingMusic,
         appDialogEvent: AppDialogEvent? = gameState.value.appDialogEvent,
         gameDialogEvent: GameDialogEvent? = gameState.value.gameDialogEvent,
         turnId: Int = gameState.value.turnId,
@@ -328,6 +343,7 @@ object GameManager : IGameManager {
             soundEffectVolume = soundEffectVolume,
             soundMusicVolume = soundMusicVolume,
             pendingSounds = pendingSounds,
+            pendingMusic = pendingMusic,
             gameDialogEvent = gameDialogEvent,
             turnId = turnId,
             turnHintMsg = gameState.value.turnHintMsg,
@@ -349,7 +365,8 @@ object GameManager : IGameManager {
             is GameSideEffect.ShowDialog -> setGameDialogEvent(effect.dialog)
             is GameSideEffect.GetAIMove -> getAIMove()
             is GameSideEffect.PlaySound -> enqueueSound(effect.effect)
-
+            is GameSideEffect.PlayMusic -> enqueueMusic(MusicCommand.Play(effect.track, effect.loop))
+            is GameSideEffect.StopMusic -> enqueueMusic(MusicCommand.Stop)
 
         }
     }

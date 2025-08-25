@@ -14,4 +14,6 @@ interface IGameManager : IGameStateProvider, IGameActions {
     fun clearGameDialogEvent()
     /** Consume a one-shot sound so it won’t replay on recomposition. */
     fun consumeSound(effect: SoundEffect)
+    fun consumeMusic(cmd: MusicCommand)
+
 }

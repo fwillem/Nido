@@ -18,6 +18,7 @@ import com.example.nido.game.GameViewModel
 import com.example.nido.game.SoundEffect
 import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
+import com.example.nido.ui.components.MusicSideEffectHandler
 import com.example.nido.ui.components.SoundSideEffectHandler
 import com.example.nido.ui.dialogs.BlueScreenOfDeathDialog
 import com.example.nido.ui.dialogs.QuitGameDialog
@@ -179,5 +180,13 @@ fun NidoApp(
             gameManager.consumeSound(effect)
         }
     )
+
+    // NidoApp.kt (dans @Composable NidoApp)
+    MusicSideEffectHandler(
+        pending = gameState.pendingMusic,
+        volume  = gameState.soundMusicVolume,
+        onConsumed = { cmd -> gameManager.consumeMusic(cmd) }
+    )
+
 
 }

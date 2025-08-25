@@ -80,10 +80,11 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
 
     // Build SFX from (prev, next, event) and append them
     val sfx = synthesizeSfx(state, refreshed, event)
+    val mx  = synthesizeMusic(state, refreshed, event)
 
     return result.copy(
         newState = refreshed,
-        sideEffects = result.sideEffects + sfx
+        sideEffects = result.sideEffects + sfx + mx
     )
 }
 
@@ -571,4 +572,29 @@ private fun synthesizeSfx(
         .filter(::isAudible)   // drop muted effects
         //.distinct()          // (optional) uncomment to dedupe within the same pass
         .map { GameSideEffect.PlaySound(it) }
+}
+
+
+/** Decide which background music to play/stop based on the event. */
+private fun synthesizeMusic(
+    prev: GameState,
+    next: GameState,
+    event: GameEvent
+): List<GameSideEffect> {
+    // Respect user's music volume: if off, emit nothing
+    if (next.soundMusicVolume == SoundVolume.off) return emptyList()
+
+    return when (event) {
+        is GameEvent.NewRoundStarted -> listOf(
+            GameSideEffect.PlayMusic(MusicTrack.InGame, loop = true)
+        )
+        is GameEvent.GameOver -> listOf(
+            GameSideEffect.PlayMusic(
+                track = if (event.localPlayerWon) MusicTrack.Victory else MusicTrack.Defeat,
+                loop = false
+            )
+        )
+        is GameEvent.QuitGame -> listOf(GameSideEffect.StopMusic)
+        else -> emptyList()
+    }
 }
