@@ -71,8 +71,8 @@ class FakeGameManager : IGameManager {
             discardPile = mutableStateListOf(Card(2, "ORANGE")),
             deck = mutableStateListOf(Card(7, "PINK")),
             skipCount = 0,
-            soundEffectVolume = SoundVolume.Medium,
-            soundMusicVolume = SoundVolume.Medium,
+            soundEffectVolume = SoundVolume.Off,
+            soundMusicVolume = SoundVolume.Off,
             pendingSounds    = emptyList(),
             pendingMusic     = emptyList(),
 
@@ -176,6 +176,18 @@ class FakeGameManager : IGameManager {
 
     override fun consumeMusic(cmd: MusicCommand) {
         // No-op: Fake implementation doesn't handle music.
+    }
+
+    override fun consumeNotice(notice: UiNotice) {
+        // No-op: Fake implementation doesn't handle notices.
+    }
+
+    override fun chatWithRemotePlayer(remotePlayerId: String, text: String) {
+        // No-op: Fake implementation doesn't handle networking.
+    }
+
+    override fun pingTestPeerIfPossible() {
+        // No-op: Fake implementation doesn't handle networking.
     }
 
 }

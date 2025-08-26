@@ -110,7 +110,7 @@ private fun loadSounds(context: Context, pool: SoundPool): Map<SoundEffect, Int>
  * Extension function to convert SoundVolume enum to float gain (0.0 – 1.0).
  */
 private fun SoundVolume.toFloat(): Float = when (this) {
-    SoundVolume.off -> 0f
+    SoundVolume.Off -> 0f
     SoundVolume.Low -> 0.3f
     SoundVolume.Medium -> 0.6f
     SoundVolume.High -> 1f

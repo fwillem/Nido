@@ -14,6 +14,20 @@ import androidx.compose.ui.unit.sp
 import com.example.nido.R
 import com.example.nido.game.TurnHintMsg
 import com.example.nido.ui.LocalGameManager
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.CompositionLocalProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import com.example.nido.game.IGameManager
+import com.example.nido.game.GameViewModel
+import com.example.nido.data.model.Card
+import com.example.nido.data.model.Player
+import com.example.nido.data.model.Hand
+import com.example.nido.events.AppDialogEvent
+import com.example.nido.events.GameDialogEvent
+import com.example.nido.game.MusicCommand
+import com.example.nido.game.SoundEffect
+import com.example.nido.game.UiNotice
 
 @Composable
 fun TurnHintText(state: GameState) {
@@ -39,7 +53,7 @@ fun CommentsView(actions: Map<String, () -> Unit>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(2.dp),
+            .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Text zone - 80%
@@ -84,5 +98,108 @@ fun CommentsView(actions: Map<String, () -> Unit>) {
         }
 
 
+    }
+}
+
+@Preview(name = "Comments - YouMustPlayOne", showBackground = true)
+@Composable
+private fun CommentsViewPreview_YouMustPlayOne() {
+    // Fake state with the desired hint
+    val fakeStateFlow = MutableStateFlow(
+        GameState(
+            turnHintMsg = TurnHintMsg.YouMustPlayOne(canAllIn = true)
+        )
+    )
+
+    // Lightweight fake GameManager just for preview
+    val fakeManager = object : IGameManager {
+        override val gameState: StateFlow<GameState> get() = fakeStateFlow
+        override fun isGameOver() = false
+        override fun getGameWinners(): List<Player> = emptyList()
+        override fun getPlayerRankings(): List<Pair<Player, Int>> = emptyList()
+        override fun getPlayerHandScores(): List<Pair<Player, Int>> = emptyList()
+        override fun getCurrentPlayerHandSize(): Int = 0
+        override fun isCurrentPlayerLocal(): Boolean = true
+        override fun currentPlayerHasValidCombination(): Boolean = false
+        override fun isValidMove(selectedCards: List<Card>): Boolean = false
+        override fun hasPlayedAllRemainingCards(): Boolean = false
+
+        override fun initialize(viewModel: GameViewModel) {}
+        override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean, aiTimerDuration: Int) {}
+        override fun startNewRound() {}
+        override fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) {}
+        override fun skipTurn() {}
+        override fun getAIMove() {}
+        override fun processSkip() {}
+
+        override fun updatePlayerHand(playerIndex: Int, hand: Hand) {}
+        override fun setAppDialogEvent(event: AppDialogEvent) {}
+        override fun clearAppDialogEvent() {}
+        override fun setGameDialogEvent(event: GameDialogEvent) {}
+        override fun clearGameDialogEvent() {}
+        override fun consumeSound(effect: SoundEffect) {}
+        override fun consumeMusic(cmd: MusicCommand) {}
+        override fun consumeNotice(notice: UiNotice) {}
+
+        override fun chatWithRemotePlayer(remotePlayerId: String, text: String) {}
+        override fun pingTestPeerIfPossible() {}
+    }
+
+    CompositionLocalProvider(LocalGameManager provides fakeManager) {
+        MaterialTheme {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                CommentsView(actions = emptyMap())
+            }
+        }
+    }
+}
+
+@Preview(name = "Comments - YouMustPlayOne (no all-in)", showBackground = true)
+@Composable
+private fun CommentsViewPreview_YouMustPlayOne_NoAllIn() {
+    val fakeStateFlow = MutableStateFlow(
+        GameState(
+            turnHintMsg = TurnHintMsg.YouMustPlayOne(canAllIn = false)
+        )
+    )
+
+    val fakeManager = object : IGameManager {
+        override val gameState: StateFlow<GameState> get() = fakeStateFlow
+        override fun isGameOver() = false
+        override fun getGameWinners(): List<Player> = emptyList()
+        override fun getPlayerRankings(): List<Pair<Player, Int>> = emptyList()
+        override fun getPlayerHandScores(): List<Pair<Player, Int>> = emptyList()
+        override fun getCurrentPlayerHandSize(): Int = 0
+        override fun isCurrentPlayerLocal(): Boolean = true
+        override fun currentPlayerHasValidCombination(): Boolean = false
+        override fun isValidMove(selectedCards: List<Card>): Boolean = false
+        override fun hasPlayedAllRemainingCards(): Boolean = false
+
+        override fun initialize(viewModel: GameViewModel) {}
+        override fun startNewGame(selectedPlayers: List<Player>, selectedPointLimit: Int, doNotAutoPlayAI: Boolean, aiTimerDuration: Int) {}
+        override fun startNewRound() {}
+        override fun playCombination(selectedCards: List<Card>, cardToKeep: Card?) {}
+        override fun skipTurn() {}
+        override fun getAIMove() {}
+        override fun processSkip() {}
+
+        override fun updatePlayerHand(playerIndex: Int, hand: Hand) {}
+        override fun setAppDialogEvent(event: AppDialogEvent) {}
+        override fun clearAppDialogEvent() {}
+        override fun setGameDialogEvent(event: GameDialogEvent) {}
+        override fun clearGameDialogEvent() {}
+        override fun consumeSound(effect: SoundEffect) {}
+        override fun consumeMusic(cmd: MusicCommand) {}
+        override fun consumeNotice(notice: UiNotice) {}
+        override fun chatWithRemotePlayer(remotePlayerId: String, text: String) {}
+        override fun pingTestPeerIfPossible() {}
+    }
+
+    CompositionLocalProvider(LocalGameManager provides fakeManager) {
+        MaterialTheme {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                CommentsView(actions = emptyMap())
+            }
+        }
     }
 }

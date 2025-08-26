@@ -7,7 +7,7 @@ package com.example.nido.game
  *
  */
 enum class SoundVolume {
-    off,
+    Off,
     Low,
     Medium,
     High

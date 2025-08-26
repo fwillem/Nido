@@ -368,7 +368,7 @@ fun PreviewMainScreen() {
         deck = dummyDeck,
         skipCount = 0,
         soundEffectVolume = SoundVolume.Medium,
-        soundMusicVolume = SoundVolume.Medium,
+        soundMusicVolume = SoundVolume.Off,
         pendingSounds = emptyList(),
         pendingMusic = emptyList(),
         gameDialogEvent = null,

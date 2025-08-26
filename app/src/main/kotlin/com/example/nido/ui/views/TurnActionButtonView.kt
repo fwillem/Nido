@@ -235,35 +235,28 @@ private fun AIPlayButton() {
 
 @Composable
 private fun NotifyRemotePlayerButton() {
-    val context = LocalContext.current
-    val mediaPlayer = remember {
-        MediaPlayer.create(context, R.raw.siren).apply {
-            isLooping = true // la sirène tourne en boucle
-        }
+    val gameManager = LocalGameManager.current
+    val state = gameManager.gameState.value
+
+    // MVP: pick the first REMOTE player; you can refine later
+    val remoteId = remember(state.players) {
+        state.players.firstOrNull { it.playerType == com.example.nido.data.model.PlayerType.REMOTE }?.id
     }
 
-    // Lance la sirène dès que le composable apparaît
-    LaunchedEffect(Unit) {
-        mediaPlayer.start()
-    }
-
-    val infiniteTransition = rememberInfiniteTransition(label = "pingBlink")
-    val alpha by infiniteTransition.animateFloat(
+    val blink = rememberInfiniteTransition(label = "pingBlink")
+    val alpha by blink.animateFloat(
         initialValue = 1f,
         targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 500),
-            repeatMode = RepeatMode.Reverse
-        ),
+        animationSpec = infiniteRepeatable(animation = tween(500), repeatMode = RepeatMode.Reverse),
         label = "pingAlpha"
     )
 
     Button(
-        onClick = {
-            mediaPlayer.stop() // stoppe la sirène au clic
-            mediaPlayer.release() // libère les ressources
-            // Do Some Network Stuff
-        },
+        // onClick = { remoteId?.let { gameManager.chatWithRemotePlayer(it, "👋 Ping!") } },
+
+
+        onClick = { gameManager.pingTestPeerIfPossible() },
+        enabled = remoteId != null,
         colors = ButtonDefaults.buttonColors(
             containerColor = NidoColors.PlayMatButtonBackground.copy(alpha = 0.8f),
             contentColor = Color.White
@@ -271,7 +264,7 @@ private fun NotifyRemotePlayerButton() {
         modifier = Modifier.padding(start = 8.dp)
     ) {
         Text(
-            text = stringResource(R.string.ping), // "Ping 🏓"
+            text = stringResource(R.string.ping),
             fontSize = 16.sp,
             color = Color.Red.copy(alpha = alpha)
         )

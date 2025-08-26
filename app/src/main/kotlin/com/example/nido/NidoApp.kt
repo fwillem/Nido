@@ -20,6 +20,8 @@ import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.components.MusicSideEffectHandler
 import com.example.nido.ui.components.SoundSideEffectHandler
+import com.example.nido.ui.components.NoticeHost
+
 import com.example.nido.ui.dialogs.BlueScreenOfDeathDialog
 import com.example.nido.ui.dialogs.QuitGameDialog
 import com.example.nido.ui.screens.LandingScreen
@@ -31,6 +33,8 @@ import com.example.nido.utils.LocaleUtils
 import com.example.nido.utils.copyDebugReport
 import com.example.nido.utils.hardRestartApp
 import java.util.UUID
+import com.example.nido.ui.components.NoticeHost
+
 
 /**
  * Hardcoded flag controlling BSOD behavior:
@@ -125,6 +129,11 @@ fun NidoApp(
             )
         }
     }
+
+    // ── Global UI Components ── SnackBars, Dialogs, Notifications, etc.
+    NoticeHost()   // Notice host inside Scaffold so it overlays any screen
+
+
 
     // ── Centralized Dialog Observer ──
     val appEvent = gameState.appDialogEvent

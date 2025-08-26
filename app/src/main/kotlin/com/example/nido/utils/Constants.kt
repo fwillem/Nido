@@ -13,7 +13,8 @@ object Constants {
 
     const val GAME_MIN_PLAYERS = 2 // Caution, Cannot be less than 1
     const val GAME_MAX_PLAYERS = 6
-    const val GAME_REDUCED_COLOR_THRESHOLD = 2 // If number of players is less or equal to this value, we use a reduced set of colors
+    const val GAME_REDUCED_COLOR_THRESHOLD =
+        2 // If number of players is less or equal to this value, we use a reduced set of colors
 
     val DECK_REMOVED_COLORS: Set<CardColor> = setOf(
         CardColor.RED,
@@ -26,10 +27,10 @@ object Constants {
 
     // 📏 🎨 UI Dimensions & Colors
     const val CARD_ON_HAND_HEIGHT = 160
-    const val CARD_ON_HAND_WIDTH = (CARD_ON_HAND_HEIGHT/2)// 80
+    const val CARD_ON_HAND_WIDTH = (CARD_ON_HAND_HEIGHT / 2)// 80
 
     const val CARD_ON_MAT_HEIGHT = 120
-    const val CARD_ON_MAT_WIDTH = (CARD_ON_MAT_HEIGHT/2)
+    const val CARD_ON_MAT_WIDTH = (CARD_ON_MAT_HEIGHT / 2)
 
     const val PLAYERS_ROW_HEIGHT = 50
     const val MAT_VIEW_HEIGHT = 150
@@ -59,7 +60,6 @@ object Constants {
     const val AI_THINKING_DURATION_STEPS = 300
 
 
-
     const val DEFAULT_LOCAL_PLAYER_NAME = "Jil"
     const val DEFAULT_LOCAL_PLAYER_AVATAR = "👩"
 
@@ -71,4 +71,27 @@ object Constants {
     // APP CONSTANTS
     const val DATASTORE_NAME = "nido_preferences"
 
+    // UID
+
+    // 🔧 Dev override (ON/OFF) + GameID commun aux 2 appareils
+    const val DEV_FORCE_ROUTING = true
+    const val DEV_FORCE_GAME_ID = "71f98cc7-7ac5-42b9-93ed-c60a456f4e2c" // <<< même valeur sur Xiaomi & VD
+
+    /* XIAOMI CONFIG */
+    const val ME_UID    = "L5vLf2aWLucgAs29hL5F7iPR7B92"
+    const val OTHER_UID = "4175Z45HfMOP5tOCDqLFlFQ0FJt2"
+
+
+
+    /* VD CONFIG
+
+
+    const val OTHER_UID    = "L5vLf2aWLucgAs29hL5F7iPR7B92"
+    const val ME_UID  = "4175Z45HfMOP5tOCDqLFlFQ0FJt2"
+*/
+
+    object RemoteTestIds {
+        const val ANONYMOUS_UID_REMOTE_PLAYER_XIAOMI    = "L5vLf2aWLucgAs29hL5F7iPR7B92"
+        const val ANONYMOUS_UID_REMOTE_PLAYER_VD        = "4175Z45HfMOP5tOCDqLFlFQ0FJt2"
+    }
 }

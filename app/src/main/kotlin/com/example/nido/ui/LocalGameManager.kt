@@ -11,6 +11,7 @@ import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.MusicCommand
 import com.example.nido.game.SoundEffect
+import com.example.nido.game.UiNotice
 import com.example.nido.utils.Debug
 
 val LocalGameManager = staticCompositionLocalOf<IGameManager> {
@@ -48,5 +49,10 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
 
         override fun consumeSound(effect: SoundEffect) = getGameManagerInstance().consumeSound(effect)
         override fun consumeMusic(cmd: MusicCommand) = getGameManagerInstance().consumeMusic(cmd)
+
+        override fun consumeNotice(notice: UiNotice) = getGameManagerInstance().consumeNotice(notice)
+
+        override fun chatWithRemotePlayer(remotePlayerId: String, text: String) = getGameManagerInstance().chatWithRemotePlayer(remotePlayerId, text)
+        override fun pingTestPeerIfPossible() = getGameManagerInstance().pingTestPeerIfPossible()
     }
 }

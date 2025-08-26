@@ -521,7 +521,7 @@ private fun synthesizeSfx(
     event: GameEvent
 ): List<GameSideEffect> {
     // Master kill switch: no side effects when SFX volume is OFF
-    if (next.soundEffectVolume == SoundVolume.off) return emptyList()
+    if (next.soundEffectVolume == SoundVolume.Off) return emptyList()
 
     // Collect candidate effects here
     val effects = mutableListOf<SoundEffect>()
@@ -582,7 +582,7 @@ private fun synthesizeMusic(
     event: GameEvent
 ): List<GameSideEffect> {
     // Respect user's music volume: if off, emit nothing
-    if (next.soundMusicVolume == SoundVolume.off) return emptyList()
+    if (next.soundMusicVolume == SoundVolume.Off) return emptyList()
 
     return when (event) {
         is GameEvent.NewRoundStarted -> listOf(

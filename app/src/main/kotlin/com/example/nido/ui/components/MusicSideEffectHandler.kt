@@ -38,7 +38,7 @@ fun MusicSideEffectHandler(
     // React to commands and volume changes
     LaunchedEffect(pending, volume) {
         val gain = when (volume) {
-            SoundVolume.off    -> 0f
+            SoundVolume.Off    -> 0f
             SoundVolume.Low    -> 0.25f
             SoundVolume.Medium -> 0.6f
             SoundVolume.High   -> 1.0f

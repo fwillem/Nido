@@ -24,6 +24,11 @@ import com.example.nido.game.getGameManagerInstance
 import com.example.nido.ui.AppScreen
 import com.example.nido.ui.LocalGameManager
 import com.example.nido.ui.theme.NidoTheme
+import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceLogLevel
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
 
@@ -46,6 +51,34 @@ class MainActivity : ComponentActivity() {
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+
+        /***
+         * Nido - Authentication - Sign-in method - Firebase console
+         * https://console.firebase.google.com/project/nido-5c885/authentication/providers
+         *
+         */
+
+        val opts = FirebaseApp.getInstance().options
+        TRACE(TraceLogLevel.DEBUG) { "FB -> projectId=${opts.projectId}, appId=${opts.applicationId}, apiKey=${opts.apiKey}" }
+
+
+        // Ensure we have a user for Firestore security rules
+        if (Firebase.auth.currentUser == null) {
+
+            Firebase.auth.signInAnonymously()
+                .addOnSuccessListener {
+                    TRACE(TraceLogLevel.INFO) { "✅ Firebase: anonymous sign-in ok (uid=${it.user?.uid})" }
+                }
+                .addOnFailureListener { e ->
+                    TRACE(TraceLogLevel.FATAL) {
+                        "❌ Firebase: anonymous sign-in failed: ${e.javaClass.simpleName}: ${e.message}"
+                    }
+                }
+        } else {
+            TRACE(TraceLogLevel.DEBUG) { "Firebase: already signed-in (uid=${Firebase.auth.currentUser?.uid})" }
+        }
+
+
 
         // Optional: jump directly to landing when restarting the app with a flag
         val forceLanding = intent.getBooleanExtra("force_landing", false)

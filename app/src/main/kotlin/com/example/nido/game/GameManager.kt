@@ -19,6 +19,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.example.nido.utils.Constants.RemoteTestIds
+
 import java.util.concurrent.atomic.AtomicBoolean
 
 private val isDispatching = AtomicBoolean(false)
@@ -41,7 +45,7 @@ object GameManager : IGameManager {
         TRACE(DEBUG) { "selectedPlayers: $selectedPlayers, selectedPointLimit: $selectedPointLimit, doNotAutoPlayAI: $doNotAutoPlayAI, AITimerDuration: $AITimerDuration" }
 
         // Start a new recoding session
-        GameRecorder.startNewSession()
+        val session = GameRecorder.startNewSession()
 
 
         // Choose a random starting player.
@@ -62,10 +66,15 @@ object GameManager : IGameManager {
             pointLimit = selectedPointLimit,
             startingPlayerIndex = startingPlayerIndex,
             currentPlayerIndex = startingPlayerIndex,
-            aiTimerDuration = AITimerDuration
+            aiTimerDuration = AITimerDuration,
+            currentSession = session
+
         )
         _gameState.value = initialState
         TRACE(INFO) { "Initial gameState set: ${gameState.value}" }
+
+        // Hook up the Firestore listener (uses sessionId + local player id)
+        connectRemoteChannelIfPossible()
 
         // Start the first round (this will shuffle the deck and deal cards).
         startNewRound()
@@ -84,6 +93,32 @@ object GameManager : IGameManager {
 
     private fun getCurrentPlayer(): Player =
         gameState.value.players[gameState.value.currentPlayerIndex]
+
+    // Get the ID of the local player (i.e. the Human), for the momment we are supose to have only one human player
+    private fun localPlayerIdOrNull(): String? =
+        gameState.value.players.firstOrNull { it.playerType == com.example.nido.data.model.PlayerType.LOCAL }?.id
+
+    // Use Firebase UID for all networking identifiers
+    private fun myFirebaseUidOrNull(): String? = Firebase.auth.currentUser?.uid
+
+    private fun connectRemoteChannelIfPossible() {
+        val gameId = gameState.value.currentSession?.sessionId ?: return
+        val myId = myFirebaseUidOrNull() ?: return                              // Use Firebase UID
+
+        com.example.nido.game.multiplayer.NetworkManager.connectToGame(
+            gameId = gameId,
+            myPlayerId = myId
+        ) { msg ->
+            when (msg.type) {
+                "chat" -> onRemoteChat(msg.fromId, msg.text.orEmpty())
+                "ping" -> onRemotePing(msg.fromId)
+                else -> TRACE(WARNING) { "Unknown remote message type: ${msg.type}" }
+            }
+        }
+
+        // Small UI feedback to confirm listener is active
+        enqueueNotice(UiNotice(message = "Listening for messages as $myId"))
+    }
 
     override fun skipTurn() {
         TRACE(DEBUG) { "skipTurn()" }
@@ -119,17 +154,6 @@ object GameManager : IGameManager {
     }
 
 
-    private fun nextTurn() {
-        val currentGameState = gameState.value
-        val nextIndex = (currentGameState.currentPlayerIndex + 1) % currentGameState.players.size
-        updateGameState(
-            currentPlayerIndex = nextIndex,
-            turnId = currentGameState.turnId + 1
-        )
-        val nextPlayer = gameState.value.players[nextIndex]
-        TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
-
-    }
 
     override fun getAIMove() {
         val aiPlayer = getCurrentPlayer()
@@ -242,6 +266,24 @@ object GameManager : IGameManager {
         }
     }
 
+    // Incoming chat
+    private fun onRemoteChat(fromId: String, text: String) {
+        TRACE(INFO) { "💌 Chat from $fromId: $text" }
+        enqueueNotice(UiNotice(message = "Message from $fromId: $text"))
+    }
+
+    // Incoming ping
+    private fun onRemotePing(fromId: String) {
+        TRACE(INFO) { "📡 Ping from $fromId" }
+        enqueueNotice(UiNotice(message = "📡 Ping received from $fromId"))
+        // Option: add a light sound, e.g. enqueueSound(SoundEffect.Gloop)
+    }
+
+    // Notice queue helpers (enqueue is private; consume is public for UI)
+    private fun enqueueNotice(notice: UiNotice) {
+        val cur = gameState.value
+        updateGameState(pendingNotices = cur.pendingNotices + notice)
+    }
     // Inside GameManager (keep them private)
     private fun enqueueSound(effect: SoundEffect) {
         val cur = gameState.value
@@ -265,6 +307,12 @@ object GameManager : IGameManager {
         updateGameState(pendingMusic = cur.pendingMusic - cmd)
     }
 
+    override fun consumeNotice(notice: UiNotice) {
+        val cur = gameState.value
+        updateGameState(pendingNotices = cur.pendingNotices - notice)
+    }
+
+
 
 
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
@@ -284,6 +332,55 @@ object GameManager : IGameManager {
         val currentPlayer = getCurrentPlayer()
         return currentPlayer.hand.cards.all { it.isSelected }
     }
+
+    override fun chatWithRemotePlayer(remotePlayerId: String, text: String) {
+        val gameId = gameState.value.currentSession?.sessionId ?: return
+        val fromId = myFirebaseUidOrNull() ?: return              // USe Firebase ID
+
+        com.example.nido.game.multiplayer.NetworkManager.sendChat(
+            gameId = gameId,
+            fromId = fromId,
+            toId = remotePlayerId,
+            text = text
+        )
+
+        TRACE(INFO) { "💬 Chat sent to $remotePlayerId: $text" }
+    }
+
+
+    /** Pick the opposite UID for our quick loopback test (device ↔ emulator). */
+    private fun defaultLoopbackPeerIdOrNull(): String? {
+        val me = Firebase.auth.currentUser?.uid ?: return null
+        return when (me) {
+            RemoteTestIds.ANONYMOUS_UID_REMOTE_PLAYER_XIAOMI -> RemoteTestIds.ANONYMOUS_UID_REMOTE_PLAYER_VD
+            RemoteTestIds.ANONYMOUS_UID_REMOTE_PLAYER_VD -> RemoteTestIds.ANONYMOUS_UID_REMOTE_PLAYER_XIAOMI
+            else -> null // Unknown device; you can hardcode a fallback if needed
+        }
+    }
+
+    /** Public API: fire a ping to a chosen remoteId. */
+    fun pingRemotePlayer(remotePlayerId: String) {
+        val gameId = gameState.value.currentSession?.sessionId ?: return
+        val fromId = myFirebaseUidOrNull() ?: return                                  // 🟢
+
+        com.example.nido.game.multiplayer.NetworkManager.sendPing(
+            gameId = gameId,
+            fromId = fromId,
+            toId = remotePlayerId
+        )
+        TRACE(INFO) { "📡 Ping sent to $remotePlayerId" }
+    }
+
+    /** Public API: convenience for the quick test (auto-select peer). */
+    override fun pingTestPeerIfPossible() {
+        val target = defaultLoopbackPeerIdOrNull()
+        if (target == null) {
+            TRACE(WARNING) { "No default loopback peer found for this UID; cannot ping." }
+            return
+        }
+        pingRemotePlayer(target)
+    }
+
 
     /**
      * Updates the entire game state with a new GameState object.
@@ -322,6 +419,7 @@ object GameManager : IGameManager {
         pendingMusic: List<MusicCommand> = gameState.value.pendingMusic,
         appDialogEvent: AppDialogEvent? = gameState.value.appDialogEvent,
         gameDialogEvent: GameDialogEvent? = gameState.value.gameDialogEvent,
+        pendingNotices: List<UiNotice> = gameState.value.pendingNotices,
         turnId: Int = gameState.value.turnId,
 
 
@@ -345,6 +443,7 @@ object GameManager : IGameManager {
             pendingSounds = pendingSounds,
             pendingMusic = pendingMusic,
             gameDialogEvent = gameDialogEvent,
+            pendingNotices = pendingNotices,
             turnId = turnId,
             turnHintMsg = gameState.value.turnHintMsg,
             bannerMsg = gameState.value.bannerMsg,
