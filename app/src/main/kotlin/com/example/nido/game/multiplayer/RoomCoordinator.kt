@@ -41,12 +41,13 @@ object RoomCoordinator {
     /**
      * Host a new "waiting" game and immediately connect locally to its messages.
      *
-     * @param ownerUid      uid of the hosting device (will be the first player)
-     * @param maxPlayers    capacity hint (used to block extra joins in transaction)
-     * @param pointLimit    game rule hint (metadata only, not enforced here)
+     * @param ownerUid         uid of the hosting device (will be the first player)
+     * @param maxPlayers       capacity hint (used to block extra joins in transaction)
+     * @param pointLimit       game rule hint (metadata only, not enforced here)
      * @param onInboundMessage callback passed to NetworkManager.connectToGame
-     * @param onConnected   invoked when room is created & connected
-     * @param onError       invoked if Firestore write fails
+     * @param onConnected      invoked when room is created & connected
+     * @param onError          invoked if Firestore write fails
+     * @param gameId           optional pre-generated id (lets callers get the id synchronously)
      */
     fun hostWaitingGame(
         ownerUid: String,
@@ -54,9 +55,9 @@ object RoomCoordinator {
         pointLimit: Int = 15,
         onInboundMessage: (NetworkManager.InboundMessage) -> Unit,
         onConnected: (HostResult) -> Unit = {},
-        onError: (String) -> Unit = {}
+        onError: (String) -> Unit = {},
+        gameId: String = newRoomCode()
     ) {
-        val gameId = newRoomCode()
         val ref = db.collection("games").document(gameId)
 
         val payload = mapOf(
@@ -73,7 +74,7 @@ object RoomCoordinator {
         ref.set(payload)
             .addOnSuccessListener {
                 NetworkManager.connectToGame(gameId, ownerUid, onInboundMessage)
-                TRACE(INFO) { "ROOM hostWaitingGame: CONNECTED to games/$gameId as $ownerUid" }
+                TRACE(WARNING) { "ROOM hostWaitingGame: CONNECTED to games/$gameId as $ownerUid" }
                 onConnected(HostResult(gameId))
             }
             .addOnFailureListener { e ->
@@ -136,9 +137,9 @@ object RoomCoordinator {
                         // Transaction result: (gameId, ownerId)
                         Pair(ref.id, s.getString("ownerId"))
                     }.addOnSuccessListener { (gameId, ownerId) ->
-                        TRACE(INFO) { "ROOM joinFirstWaitingGame: joined $gameId" }
+                        TRACE(WARNING) { "ROOM joinFirstWaitingGame: joined $gameId" }
                         NetworkManager.connectToGame(gameId, myUid, onInboundMessage)
-                        TRACE(INFO) { "ROOM joinFirstWaitingGame: CONNECTED to games/$gameId as $myUid" }
+                        TRACE(WARNING) { "ROOM joinFirstWaitingGame: CONNECTED to games/$gameId as $myUid" }
                         onConnected(JoinResult(gameId, ownerId))
                     }.addOnFailureListener {
                         // Try the next candidate room on conflict/full/not-waiting
@@ -151,5 +152,46 @@ object RoomCoordinator {
             .addOnFailureListener { e ->
                 onError(e.message ?: "query failed")
             }
+    }
+
+    // -----------------------------------------------------------------------
+    // Back-compat wrappers to match earlier GameManager calls
+    // -----------------------------------------------------------------------
+
+    /**
+     * Synchronous-style helper: returns the new gameId immediately so the caller
+     * can store it in state, while the Firestore write/connection happen async.
+     */
+    fun hostNewGame(
+        hostUid: String,
+        onInboundMessage: (NetworkManager.InboundMessage) -> Unit,
+        onConnected: (HostResult) -> Unit = {},
+        onError: (String) -> Unit = {}
+    ): HostResult {
+        val gameId = newRoomCode()
+        hostWaitingGame(
+            ownerUid = hostUid,
+            onInboundMessage = onInboundMessage,
+            onConnected = onConnected,
+            onError = onError,
+            gameId = gameId
+        )
+        return HostResult(gameId)
+    }
+
+    /**
+     * Wrapper that returns null via callback if no room could be joined.
+     */
+    fun joinFirstOpenGame(
+        myUid: String,
+        onInboundMessage: (NetworkManager.InboundMessage) -> Unit,
+        onResult: (JoinResult?) -> Unit
+    ) {
+        joinFirstWaitingGame(
+            myUid = myUid,
+            onInboundMessage = onInboundMessage,
+            onConnected = { jr -> onResult(jr) },
+            onError = { _ -> onResult(null) }
+        )
     }
 }

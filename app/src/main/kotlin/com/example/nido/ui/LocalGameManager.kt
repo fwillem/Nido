@@ -54,5 +54,12 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
 
         override fun chatWithRemotePlayer(remotePlayerId: String, text: String) = getGameManagerInstance().chatWithRemotePlayer(remotePlayerId, text)
         override fun pingTestPeerIfPossible() = getGameManagerInstance().pingTestPeerIfPossible()
+        override fun setMultiplayerState(state: com.example.nido.game.multiplayer.MultiplayerState?) = getGameManagerInstance().setMultiplayerState(state)
+        override fun getMultiplayerState() = getGameManagerInstance().getMultiplayerState()
+        override fun hostQuickRoom(myUid: String) = getGameManagerInstance().hostQuickRoom(myUid)
+        override fun joinQuickRoom(myUid: String) = getGameManagerInstance().joinQuickRoom(myUid)
+        override fun autoQuickConnect(myUid: String) = getGameManagerInstance().autoQuickConnect(myUid)
+
+
     }
 }

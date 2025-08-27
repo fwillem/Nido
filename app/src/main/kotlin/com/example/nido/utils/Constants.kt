@@ -78,10 +78,11 @@ object Constants {
     const val DEV_FORCE_GAME_ID = "71f98cc7-7ac5-42b9-93ed-c60a456f4e2c" // <<< même valeur sur Xiaomi & VD
 
     /* XIAOMI CONFIG */
+    /*
     const val ME_UID    = "L5vLf2aWLucgAs29hL5F7iPR7B92"
     const val OTHER_UID = "4175Z45HfMOP5tOCDqLFlFQ0FJt2"
 
-
+*/
 
     /* VD CONFIG
 
@@ -94,4 +95,15 @@ object Constants {
         const val ANONYMOUS_UID_REMOTE_PLAYER_XIAOMI    = "L5vLf2aWLucgAs29hL5F7iPR7B92"
         const val ANONYMOUS_UID_REMOTE_PLAYER_VD        = "4175Z45HfMOP5tOCDqLFlFQ0FJt2"
     }
+
+
+    /*
+    object RemoteTestIds {
+        const val ANONYMOUS_UID_REMOTE_PLAYER_XIAOMI    = "L5vLf2aWLucgAs29hL5F7i-GUEST"
+        const val ANONYMOUS_UID_REMOTE_PLAYER_VD        = "4175Z45HfMOP5tOCDqLFlFQ-HOST"
+    }
+
+     */
+
+
 }

@@ -61,23 +61,25 @@ class MainActivity : ComponentActivity() {
         val opts = FirebaseApp.getInstance().options
         TRACE(TraceLogLevel.DEBUG) { "FB -> projectId=${opts.projectId}, appId=${opts.applicationId}, apiKey=${opts.apiKey}" }
 
+        // get GameManager instance here to use inside auth callbacks
+        val gm: IGameManager = getGameManagerInstance()
 
         // Ensure we have a user for Firestore security rules
         if (Firebase.auth.currentUser == null) {
-
             Firebase.auth.signInAnonymously()
                 .addOnSuccessListener {
-                    TRACE(TraceLogLevel.INFO) { "✅ Firebase: anonymous sign-in ok (uid=${it.user?.uid})" }
+                    val uid = it.user!!.uid
+                    TRACE(TraceLogLevel.INFO) { "✅ Firebase: anonymous sign-in ok (uid=$uid)" }
+                    gm.autoQuickConnect(uid) // use symmetric auto-connect (join-first else host)
                 }
                 .addOnFailureListener { e ->
-                    TRACE(TraceLogLevel.FATAL) {
-                        "❌ Firebase: anonymous sign-in failed: ${e.javaClass.simpleName}: ${e.message}"
-                    }
+                    TRACE(TraceLogLevel.FATAL) { "❌ Firebase sign-in failed: ${e.javaClass.simpleName}: ${e.message}" }
                 }
         } else {
-            TRACE(TraceLogLevel.DEBUG) { "Firebase: already signed-in (uid=${Firebase.auth.currentUser?.uid})" }
+            val uid = Firebase.auth.currentUser!!.uid
+            TRACE(TraceLogLevel.DEBUG) { "Firebase: already signed-in (uid=$uid)" }
+            gm.autoQuickConnect(uid) // use symmetric auto-connect (join-first else host)
         }
-
 
 
         // Optional: jump directly to landing when restarting the app with a flag
@@ -124,4 +126,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }

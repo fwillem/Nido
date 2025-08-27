@@ -28,6 +28,7 @@ import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.MusicCommand
 import com.example.nido.game.SoundEffect
 import com.example.nido.game.UiNotice
+import com.example.nido.game.multiplayer.MultiplayerState
 
 @Composable
 fun TurnHintText(state: GameState) {
@@ -143,6 +144,11 @@ private fun CommentsViewPreview_YouMustPlayOne() {
 
         override fun chatWithRemotePlayer(remotePlayerId: String, text: String) {}
         override fun pingTestPeerIfPossible() {}
+        override fun setMultiplayerState(state: MultiplayerState?) {}
+        override fun getMultiplayerState(): MultiplayerState? = null
+        override fun hostQuickRoom(myUid: String) {}
+        override fun joinQuickRoom(myUid: String) {}
+        override fun autoQuickConnect(myUid: String) {}
     }
 
     CompositionLocalProvider(LocalGameManager provides fakeManager) {
@@ -193,6 +199,11 @@ private fun CommentsViewPreview_YouMustPlayOne_NoAllIn() {
         override fun consumeNotice(notice: UiNotice) {}
         override fun chatWithRemotePlayer(remotePlayerId: String, text: String) {}
         override fun pingTestPeerIfPossible() {}
+        override fun setMultiplayerState(state: MultiplayerState?) {}
+        override fun getMultiplayerState(): MultiplayerState? = null
+        override fun hostQuickRoom(myUid: String) {}
+        override fun joinQuickRoom(myUid: String) {}
+        override fun autoQuickConnect(myUid: String) {}
     }
 
     CompositionLocalProvider(LocalGameManager provides fakeManager) {

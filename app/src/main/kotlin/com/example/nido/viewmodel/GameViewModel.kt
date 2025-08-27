@@ -142,6 +142,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
         if (oldState.startingPlayerIndex != newState.startingPlayerIndex) changes.add("🔢 startingPlayerIndex: ${oldState.startingPlayerIndex} ➝ ${newState.startingPlayerIndex}")
         if (oldState.currentPlayerIndex != newState.currentPlayerIndex) changes.add("🎯 currentPlayerIndex: ${oldState.currentPlayerIndex} ➝ ${newState.currentPlayerIndex}")
         if (oldState.currentPlayerId != newState.currentPlayerId) changes.add("🆔 currentPlayerId: ${oldState.currentPlayerId} ➝ ${newState.currentPlayerId}")
+        if (oldState.multiplayerState != newState.multiplayerState) changes.add("🌐 multiplayerState: ${oldState.multiplayerState} ➝ ${newState.multiplayerState}")
         if (oldState.currentCombinationOnMat != newState.currentCombinationOnMat) changes.add("🟨 currentCombinationOnMat: ${oldState.currentCombinationOnMat} ➝ ${newState.currentCombinationOnMat}")
         if (oldState.gameDialogEvent != newState.gameDialogEvent) changes.add("🎲 gameDialogEvent: ${oldState.gameDialogEvent} ➝ ${newState.gameDialogEvent}")
         if (oldState.appDialogEvent != newState.appDialogEvent) changes.add("🎲 appDialogEvent: ${oldState.appDialogEvent} ➝ ${newState.appDialogEvent}")
@@ -172,6 +173,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app), IGameViewModelPre
             discardPile = newState.discardPile,
             startingPlayerIndex = newState.startingPlayerIndex,
             currentPlayerIndex = newState.currentPlayerIndex,
+            multiplayerState = newState.multiplayerState,
             currentPlayerId = newState.currentPlayerId,
             currentCombinationOnMat = newState.currentCombinationOnMat,
             skipCount = newState.skipCount,

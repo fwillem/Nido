@@ -118,7 +118,6 @@ D:.
 |   |               |   |       
 |   |               |   +---screens
 |   |               |   |       LandingScreen.kt
-|   |               |   |       LobbyScreen.kt
 |   |               |   |       MainScreen.kt
 |   |               |   |       ScoreScreen.kt
 |   |               |   |       SetupScreen.kt

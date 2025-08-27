@@ -60,11 +60,11 @@ fun getTag(): String {
 
 /** Returns an emoji based on the trace log level. */
 fun emojiForLevel(level: TraceLogLevel): String = when (level) {
-    TraceLogLevel.VERBOSE    -> "🟡"
-    TraceLogLevel.DEBUG      -> "🟡"
-    TraceLogLevel.INFO       -> "🟡"
-    TraceLogLevel.WARNING    -> "⚠"
-    TraceLogLevel.ERROR      -> "❌"
+    TraceLogLevel.VERBOSE    -> "Nido 🟡"
+    TraceLogLevel.DEBUG      -> "Nido 🟡"
+    TraceLogLevel.INFO       -> "Nido 🟡"
+    TraceLogLevel.WARNING    -> "Nido ⚠"
+    TraceLogLevel.ERROR      -> "Nido ❌"
     TraceLogLevel.FATAL      -> "\uD83D\uDC80" // Skull emoji
 }
 

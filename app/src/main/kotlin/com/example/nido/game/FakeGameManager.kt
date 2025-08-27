@@ -7,6 +7,7 @@ import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.rules.GameRules
 import com.example.nido.game.ai.AIPlayer
+import com.example.nido.game.multiplayer.MultiplayerState
 import com.example.nido.utils.Constants
 import com.example.nido.utils.Debug
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +68,7 @@ class FakeGameManager : IGameManager {
             startingPlayerIndex = 0,
             currentPlayerIndex = 0,
             currentPlayerId = currentPlayerId,
+            multiplayerState = null, // No multiplayer in fake
             currentCombinationOnMat = Combination(mutableStateListOf(Card(3, "MOCHA"), Card(3, "GREEN"))),
             discardPile = mutableStateListOf(Card(2, "ORANGE")),
             deck = mutableStateListOf(Card(7, "PINK")),
@@ -189,5 +191,17 @@ class FakeGameManager : IGameManager {
     override fun pingTestPeerIfPossible() {
         // No-op: Fake implementation doesn't handle networking.
     }
+
+    override fun setMultiplayerState(state: MultiplayerState?) {
+        // No-op: Fake implementation doesn't handle multiplayer.
+    }
+
+    override fun getMultiplayerState(): MultiplayerState? = null
+
+    override fun hostQuickRoom(myUid: String) {}
+
+    override fun joinQuickRoom(myUid: String) {}
+
+    override fun autoQuickConnect(myUid: String) {}
 
 }

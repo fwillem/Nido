@@ -8,6 +8,7 @@ import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
+import com.example.nido.game.multiplayer.MultiplayerState
 import com.example.nido.replay.GameSession
 import com.example.nido.utils.Constants
 import java.util.UUID
@@ -23,6 +24,7 @@ data class GameState(
     val startingPlayerIndex: Int = 0,
     val currentPlayerIndex: Int = 0,
     val currentPlayerId: String = "",
+    val multiplayerState: MultiplayerState? = null,
 
     val currentCombinationOnMat: Combination = Combination(mutableListOf()),
     val discardPile: SnapshotStateList<Card> = mutableStateListOf(),
@@ -74,6 +76,8 @@ data class GameState(
             💠 Nb of players: ${players.size}
             💠 Starting Player Index: $startingPlayerIndex
             💠 Current Player Index: $currentPlayerIndex
+            💠 Current Player ID: $currentPlayerId
+            💠 MultiPlayer State: $multiplayerState
             💠 Skip Count: $skipCount
             💠 Current Combination on Mat: $currentCombinationOnMat
             💠 Discard Pile: ${discardPile.joinToString(", ") { it.toString() }}
@@ -103,6 +107,7 @@ data class GameState(
             startingPlayerIndex = this.startingPlayerIndex,
             currentPlayerIndex = this.currentPlayerIndex,
             currentPlayerId = this.currentPlayerId,
+            multiplayerState = this.multiplayerState,
 
             currentCombinationOnMat = Combination(this.currentCombinationOnMat.cards.toMutableList()),
             discardPile = mutableStateListOf<Card>().apply { addAll(this@GameState.discardPile) },
