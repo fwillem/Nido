@@ -90,8 +90,8 @@ fun MainScreen(
         mapOf(
             stringResource(R.string.sort_mode, sortMode.name) to { toggleSortMode() },
             stringResource(R.string.quit) to {
-                gameManager.setGameDialogEvent(GameDialogEvent.QuitGame)
-            },
+                gameManager.setGameDialogEvent(GameDialogEvent.QuitGame)},
+            stringResource(R.string.ping) to {gameManager.pingTestPeerIfPossible()},
         )
 
     Column(
@@ -232,11 +232,11 @@ fun MainScreen(
     /***
      * To Be REMOVED
     LaunchedEffect(gameState.turnId) {
-        if (currentPlayer.playerType == PlayerType.AI) {
-            TRACE(VERBOSE) { "AI will play in ${AI_THINKING_DURATION_MS / 1000} seconds..." }
-            kotlinx.coroutines.delay(AI_THINKING_DURATION_MS)
-            gameManager.processAIMove()
-        }
+    if (currentPlayer.playerType == PlayerType.AI) {
+    TRACE(VERBOSE) { "AI will play in ${AI_THINKING_DURATION_MS / 1000} seconds..." }
+    kotlinx.coroutines.delay(AI_THINKING_DURATION_MS)
+    gameManager.processAIMove()
+    }
     }
      */
 }
