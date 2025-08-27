@@ -115,6 +115,18 @@ object GameManager : IGameManager {
     private fun activeGameIdOrNull(): String? =
         gameState.value.multiplayerState?.currentGameId
 
+    // --- add inside GameManager object ---
+    private fun cleanupMyRoomsAfterConnect(myUid: String, keepGameId: String) {
+        RoomCoordinator.deleteOwnedRooms(
+            ownerUid = myUid,
+            excludeGameId = keepGameId,
+            onCompleted = { count ->
+                TRACE(WARNING) { "ROOM_CLEAN: done owner=$myUid kept=$keepGameId deleted=$count" }
+            }
+        )
+    }
+
+
     // -------------------------------------------------------------------------
     // Turn actions
     // -------------------------------------------------------------------------
@@ -400,55 +412,94 @@ object GameManager : IGameManager {
 
     // Symmetric: first try to join a waiting room; if none, host one.
 // Use this from MainActivity after Firebase sign-in.
+// --- replace the existing autoQuickConnect(myUid: String) ---
     override fun autoQuickConnect(myUid: String) {
-        RoomCoordinator.joinFirstWaitingGame(
-            myUid = myUid,
+        val windowMillis = 5 * 60 * 1000L  // 5 minutes
+        TRACE(WARNING) { "ROOM_BOOT: start uid=$myUid window=${windowMillis/1000}s" }
+
+        // 1) Scan recent rooms (≤ 5 min), then pick the first not owned by me.
+        RoomCoordinator.queryRecentRooms(
+            maxAgeMillis = windowMillis,
+            maxRooms = 8,
+            onResult = { rooms ->
+                val candidate = rooms.firstOrNull { it.ownerId != myUid }
+                if (candidate != null) {
+                    TRACE(WARNING) { "ROOM_PICK: join room=${candidate.id} owner=${candidate.ownerId ?: "?"}" }
+                    // 2a) Join that specific room
+                    RoomCoordinator.joinSpecificGame(
+                        gameId = candidate.id,
+                        myUid = myUid,
+                        onInboundMessage = ::handleInbound,
+                        onConnected = { res ->
+                            // Update multiplayer state (JOINER)
+                            setMultiplayerState(
+                                MultiplayerState(
+                                    mode = MultiplayerMode.JOINER,
+                                    myUid = myUid,
+                                    currentGameId = res.gameId,
+                                    knownRemoteUid = res.ownerId
+                                ))
+                                // après setMultiplayerState(...) + notice :
+                                res.ownerId?.let { owner ->
+                                    NetworkManager.sendPing(
+                                        gameId = res.gameId,
+                                        fromId = myUid,
+                                        toId = owner
+                                    )
+                                    TRACE(WARNING) { "Ping sent to $owner" }
+                                }
+                            updateGameState(
+                                pendingNotices = gameState.value.pendingNotices +
+                                        UiNotice(message = "Joined game ${res.gameId}", kind = NoticeKind.Success)
+                            )
+                            // 3) Cleanup: delete all my other rooms (simple v1)
+                            cleanupMyRoomsAfterConnect(myUid, keepGameId = res.gameId)
+                        },
+                        onError = { _ ->
+                            // Fallback: host if join failed
+                            TRACE(WARNING) { "ROOM_PICK: join failed → hosting new" }
+                            hostAfterScan(myUid)
+                        }
+                    )
+                } else {
+                    // 2b) No candidate → host
+                    TRACE(WARNING) { "ROOM_PICK: no candidate → hosting new" }
+                    hostAfterScan(myUid)
+                }
+            },
+            onError = { _ ->
+                // On scan error, host new room (keep it moving)
+                TRACE(WARNING) { "ROOM_SCAN: error → hosting new" }
+                hostAfterScan(myUid)
+            }
+        )
+    }
+
+    // Small helper to host then cleanup (kept local for readability).
+    private fun hostAfterScan(myUid: String) {
+        RoomCoordinator.hostWaitingGame(
+            ownerUid = myUid,
             onInboundMessage = ::handleInbound,
-            onConnected = { res ->
+            onConnected = { host ->
                 setMultiplayerState(
                     MultiplayerState(
-                        mode = MultiplayerMode.JOINER,
+                        mode = MultiplayerMode.HOST,
                         myUid = myUid,
-                        currentGameId = res.gameId,
-                        knownRemoteUid = res.ownerId // host uid learned from lobby
+                        currentGameId = host.gameId,
+                        knownRemoteUid = null
                     )
                 )
                 updateGameState(
                     pendingNotices = gameState.value.pendingNotices +
-                            UiNotice(message = "Joined game ${res.gameId}", kind = NoticeKind.Success)
+                            UiNotice(message = "Hosting game ${host.gameId}", kind = NoticeKind.Info)
                 )
-                // (Optional) Immediately ping the host so the host learns our uid too.
-                NetworkManager.sendPing(
-                    gameId = res.gameId,
-                    fromId = myUid,
-                    toId = res.ownerId ?: return@joinFirstWaitingGame
-                )
+                // Delete all my other rooms (duplicates/old) except the current one
+                cleanupMyRoomsAfterConnect(myUid, keepGameId = host.gameId)
             },
-            onError = { _ ->
-                // Could not join → host a room
-                RoomCoordinator.hostWaitingGame(
-                    ownerUid = myUid,
-                    onInboundMessage = ::handleInbound,
-                    onConnected = { host ->
-                        setMultiplayerState(
-                            MultiplayerState(
-                                mode = MultiplayerMode.HOST,
-                                myUid = myUid,
-                                currentGameId = host.gameId,
-                                knownRemoteUid = null // will be learned on first inbound message
-                            )
-                        )
-                        updateGameState(
-                            pendingNotices = gameState.value.pendingNotices +
-                                    UiNotice(message = "Hosting game ${host.gameId}", kind = NoticeKind.Info)
-                        )
-                    },
-                    onError = { msg ->
-                        updateGameState(
-                            pendingNotices = gameState.value.pendingNotices +
-                                    UiNotice(message = "Auto-connect failed: $msg", kind = NoticeKind.Error)
-                        )
-                    }
+            onError = { msg ->
+                updateGameState(
+                    pendingNotices = gameState.value.pendingNotices +
+                            UiNotice(message = "Auto-connect failed: $msg", kind = NoticeKind.Error)
                 )
             }
         )
