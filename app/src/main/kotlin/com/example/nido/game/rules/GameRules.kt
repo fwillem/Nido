@@ -10,6 +10,8 @@ import com.example.nido.utils.Constants
 import com.example.nido.data.model.Hand
 import com.example.nido.data.model.*
 import com.example.nido.game.*
+// 🆕
+import com.example.nido.game.multiplayer.MultiplayerMode
 
 
 object GameRules {
@@ -282,11 +284,14 @@ fun calculateTurnInfo(gameState: GameState): TurnInfo {
         }
     }
 
+    // 🟩 Host check for gating host-only controls
+    val isHost = gameState.multiplayerState?.mode == MultiplayerMode.HOST
+
     // SHow Manual AI Play button if manual mode selected
-    val displayManualAIPlay = isAI && gameState.doNotAutoPlayAI
+    val displayManualAIPlay = isAI && gameState.doNotAutoPlayAI && isHost   // 🟧 gated by host
 
     // Placeholder to remote player notification
-    val displayNotifyRemotePlayer = isRemote //
+    val displayNotifyRemotePlayer = isRemote && isHost                      // 🟧 gated by host
 
     TRACE(VERBOSE) {
         "!!!! displayManualAIPlay = $displayManualAIPlay,(currentPlayer.playerType = ${currentPlayer.playerType}), " +

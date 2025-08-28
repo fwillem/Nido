@@ -83,9 +83,12 @@ fun TurnActionButtons(
         }
 
         // Remote Ping Button
+        /*
         if (turnInfo.displayNotifyRemotePlayer) {
             NotifyRemotePlayerButton()
         }
+
+         */
     }
 }
 
