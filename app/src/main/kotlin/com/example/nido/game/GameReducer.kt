@@ -17,6 +17,7 @@ import com.example.nido.data.model.PlayerType
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.SoundEffect
 import com.example.nido.game.TurnHintMsg
+import com.example.nido.game.multiplayer.MultiplayerMode
 import com.example.nido.game.rules.calculateTurnInfo
 import com.example.nido.replay.GameRecorder
 
@@ -43,15 +44,29 @@ private fun GameState.withUpdatedCombination(
     )
 }
 
+
+
+
 // Centralized refresh
 private fun GameState.withUIRefresh(): GameState {
     val freshTurnInfo = calculateTurnInfo(this)
-    val currentPlayerType = this.players[this.currentPlayerIndex].playerType
-    val freshHintMsg = buildTurnHint(this.copy(turnInfo = freshTurnInfo), currentPlayerType)
-    return this.copy(
-        turnInfo = freshTurnInfo,
-        turnHintMsg = freshHintMsg
-    )
+    val mode = this.multiplayerState?.mode
+
+    return when (mode) {
+        MultiplayerMode.JOINER -> {
+            // Guest: UI refresh only; keep host-sent hint exactly as-is
+            this.copy(turnInfo = freshTurnInfo)
+        }
+        MultiplayerMode.HOST, null -> {
+            // Host or offline: hint is derived from state locally
+            val currentPlayerType = this.players[this.currentPlayerIndex].playerType
+            val freshHintMsg = buildTurnHint(this.copy(turnInfo = freshTurnInfo), currentPlayerType)
+            this.copy(
+                turnInfo = freshTurnInfo,
+                turnHintMsg = freshHintMsg
+            )
+        }
+    }
 }
 
 

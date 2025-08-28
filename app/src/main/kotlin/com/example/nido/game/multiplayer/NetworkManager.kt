@@ -1,5 +1,12 @@
 package com.example.nido.game.multiplayer
 
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_BANNER_MSG
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_CHAT
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_PING
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_STATE_SYNC
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_HINT
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_PLAY
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_SKIP
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,6 +16,7 @@ import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.*
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FieldPath
+
 
 /**
  * 🔗 NetworkManager — Firestore-based, symmetric message bus
@@ -33,6 +41,8 @@ object NetworkManager {
         val fromId: String,
         val text: String? = null
     )
+
+
 
     /**
      * 🎧 Connect to a game room and start receiving messages addressed to me.
@@ -137,30 +147,6 @@ object NetworkManager {
         activePlayerId = null
     }
 
-    /**
-     * 💬 Send a chat message to another player.
-     * Always targets the currently connected room to prevent cross-room writes.
-     */
-    fun sendChat(
-        gameId: String,   // kept for source-compat; ignored if it mismatches the active room
-        fromId: String,
-        toId: String,
-        text: String
-    ) {
-        send(type = "chat", gameId = gameId, fromId = fromId, toId = toId, text = text)
-    }
-
-    /**
-     * 📡 Send a ping (no text).
-     * Always targets the currently connected room to prevent cross-room writes.
-     */
-    fun sendPing(
-        gameId: String,   // kept for source-compat; ignored if it mismatches the active room
-        fromId: String,
-        toId: String
-    ) {
-        send(type = "ping", gameId = gameId, fromId = fromId, toId = toId, text = null)
-    }
 
     // ---- internals ---------------------------------------------------------
 
@@ -209,4 +195,69 @@ object NetworkManager {
                 TRACE(ERROR) { "❌ send($type) failed to=$toId error=${e.message}" }
             }
     }
+
+    // --- Add in NetworkManager.kt (near sendPing/sendChat) ---
+
+
+    /**
+     * 💬 Send a chat message to another player.
+     * Always targets the currently connected room to prevent cross-room writes.
+     */
+    fun sendChat(
+        gameId: String,   // kept for source-compat; ignored if it mismatches the active room
+        fromId: String,
+        toId: String,
+        text: String
+    ) {
+        send(type = MSG_TYPE_CHAT, gameId = gameId, fromId = fromId, toId = toId, text = text)
+    }
+
+    /**
+     * 📡 Send a ping (no text).
+     * Always targets the currently connected room to prevent cross-room writes.
+     */
+    fun sendPing(
+        gameId: String,   // kept for source-compat; ignored if it mismatches the active room
+        fromId: String,
+        toId: String
+    ) {
+        send(type = MSG_TYPE_PING, gameId = gameId, fromId = fromId, toId = toId, text = null)
+    }
+
+    /** Host receives guest's play intent. Payload lives in `text` as JSON. */
+    fun sendTurnPlay(
+        gameId: String,
+        fromId: String,
+        toId: String,
+        text: String
+    ) {
+        send(type = MSG_TYPE_TURN_PLAY, gameId = gameId, fromId = fromId, toId = toId, text = text)
+    }
+
+    /** Host receives guest's skip intent. No body needed. */
+    fun sendTurnSkip(
+        gameId: String,
+        fromId: String,
+        toId: String
+    ) {
+        send(type = MSG_TYPE_TURN_SKIP, gameId = gameId, fromId = fromId, toId = toId, text = null)
+    }
+
+    /** Host → guest authoritative snapshot after the play resolves. */
+    fun sendStateSync(
+        gameId: String,
+        fromId: String,
+        toId: String,
+        text: String
+    ) {
+        send(type = MSG_TYPE_STATE_SYNC, gameId = gameId, fromId = fromId, toId = toId, text = text)
+    }
+
+    // UI-only, light payloads
+    fun sendTurnHint(gameId: String, fromId: String, toId: String, text: String) =
+        send(type = MSG_TYPE_TURN_HINT, gameId = gameId, fromId = fromId, toId = toId, text = text)
+
+    fun sendBannerMsg(gameId: String, fromId: String, toId: String, text: String) =
+        send(type = MSG_TYPE_BANNER_MSG, gameId = gameId, fromId = fromId, toId = toId, text = text)
+
 }
