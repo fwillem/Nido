@@ -15,5 +15,6 @@ sealed class AppScreen(val route: String) {
         const val SETUP = "setup_screen"
         const val GAME = "game_screen"
         const val SCORE = "score_screen"
+        const val MULTI_WAIT = "multi_wait"
     }
 }

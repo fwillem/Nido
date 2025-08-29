@@ -49,5 +49,6 @@
     <string name="hint_you_kept">Has conservado %1$s.</string>
     <string name="hint_player_kept">El jugador %1$s conservó %2$s.</string>
     <string name="banner_play">%1$s juega</string>
+    <string name="play_online">Play Online</string>
 
 </resources>

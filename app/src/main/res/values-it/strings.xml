@@ -50,5 +50,6 @@
     <string name="hint_you_kept">Hai tenuto %1$s.</string>
     <string name="hint_player_kept">Il giocatore %1$s ha tenuto %2$s.</string>
     <string name="banner_play">%1$s gioca</string>
+    <string name="play_online">Play Online</string>
 
 </resources>

@@ -9,5 +9,8 @@ data class MultiplayerState(
     val myUid: String,
     val currentGameId: String? = null,
     val mode: MultiplayerMode? = null,
-    val knownRemoteUid: String? = null // last known peer (host for a joiner, or last sender for a host)
+    val knownRemoteUid: String? = null, // last known peer (host for a joiner, or last sender for a host)
+    val localReady: Boolean = false,
+    val remoteReady: Boolean = false,
+    val gameLaunched: Boolean = false,
 )

@@ -1,10 +1,12 @@
 package com.example.nido
 
+import WaitingRoomScreen
 import android.app.Activity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,7 +15,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.nido.data.SavedPlayer
+import com.example.nido.data.model.PlayerType
 import com.example.nido.events.AppDialogEvent
+import com.example.nido.game.GameManager
 import com.example.nido.game.GameViewModel
 import com.example.nido.game.SoundEffect
 import com.example.nido.ui.AppScreen
@@ -34,6 +38,8 @@ import com.example.nido.utils.copyDebugReport
 import com.example.nido.utils.hardRestartApp
 import java.util.UUID
 import com.example.nido.ui.components.NoticeHost
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 
 /**
@@ -75,10 +81,32 @@ fun NidoApp(
                     }
                     val pointLimit = viewModel.savedPointLimit.value
                     val doNotAutoPlayAI = viewModel.savedDebug.value.doNotAutoPlayerAI
-                    val AITimerDuration = viewModel.savedDebug.value.aiTimerDuration
+                    val aiTimerDuration = viewModel.savedDebug.value.aiTimerDuration
 
-                    gameManager.startNewGame(players, pointLimit, doNotAutoPlayAI,AITimerDuration)
+                    gameManager.startNewGame(players, pointLimit, doNotAutoPlayAI,aiTimerDuration)
                     currentRoute.value = AppScreen.Routes.GAME
+                },
+                onMultiplayerGame = {
+                    // Récupère la config locale (nom local, nombre d’IA, options) et lance le handshake symétrique
+                    val players = viewModel.savedPlayers.value.map { it.toPlayer(UUID.randomUUID().toString()) }
+                    val localName = players.firstOrNull { it.playerType == PlayerType.LOCAL }?.name ?: "You"
+                    val aiCount = players.count { it.playerType == PlayerType.AI }
+                    val pointLimit = viewModel.savedPointLimit.value
+                    val doNotAutoPlayAI = viewModel.savedDebug.value.doNotAutoPlayerAI
+                    val aiTimerDuration = viewModel.savedDebug.value.aiTimerDuration
+                    val myUid = Firebase.auth.currentUser?.uid ?: "local"
+
+                    GameManager.onStartMultiplayerPressed(
+                        localName       = localName,
+                        aiCount         = aiCount,
+                        pointLimit      = pointLimit,
+                        doNotAutoPlayAI = doNotAutoPlayAI,
+                        aiTimerMs       = aiTimerDuration,
+                        myUid           = myUid
+                    )
+
+                    currentRoute.value = AppScreen.Routes.MULTI_WAIT
+
                 },
                 onQuit = {
                     gameManager.setAppDialogEvent(AppDialogEvent.QuitApp)
@@ -121,6 +149,21 @@ fun NidoApp(
                 viewModel = viewModel,
                 debug = viewModel.savedDebug.value
             )
+
+            AppScreen.Routes.MULTI_WAIT -> {
+                WaitingRoomScreen(
+                    onCancel = { currentRoute.value = AppScreen.Routes.LANDING },
+                    modifier = modifier.padding(innerPadding)
+                )
+
+                // Navigation propre déclenchée par un signal explicite
+                val ms = gameState.multiplayerState
+                LaunchedEffect(ms?.gameLaunched) {
+                    if (ms?.gameLaunched == true) {
+                        currentRoute.value = AppScreen.Routes.GAME
+                    }
+                }
+            }
 
             AppScreen.Routes.SCORE -> ScoreScreen(
                 onContinue = { currentRoute.value = AppScreen.Routes.LANDING },

@@ -1,0 +1,1932 @@
+Structure du dossier pour le volume OneDrive
+Le numéro de série du volume est D4DF-CD93
+D:.
+|   .gitignore
+|   build.gradle.kts
+|   CHANGELOG.md
+|   GitCmd.md
+|   GitCmd.txt
+|   gradle.properties
+|   gradlew
+|   gradlew.bat
+|   LICENSE
+|   local.properties
+|   project_tree.txt
+|   README.md
+|   settings.gradle.kts
+|   Streamlined_Git_Workflow.docx
+|   version.txt
+|   
++---.gradle
+|   |   config.properties
+|   |   file-system.probe
+|   |   
+|   +---8.10.2
+|   |   |   gc.properties
+|   |   |   
+|   |   +---checksums
+|   |   +---dependencies-accessors
+|   |   |   \---b85509cc8f0a892b61d25ab1bc3a3f83cda4e513
+|   |   |       +---classes
+|   |   |       |   \---org
+|   |   |       |       \---gradle
+|   |   |       |           \---accessors
+|   |   |       |               \---dm
+|   |   |       \---sources
+|   |   |           \---org
+|   |   |               \---gradle
+|   |   |                   \---accessors
+|   |   |                       \---dm
+|   |   +---executionHistory
+|   |   +---expanded
+|   |   +---fileChanges
+|   |   +---fileHashes
+|   |   |       fileHashes.bin
+|   |   |       fileHashes.lock
+|   |   |       resourceHashesCache.bin
+|   |   |       
+|   |   \---vcsMetadata
+|   +---8.13
+|   |   |   gc.properties
+|   |   |   
+|   |   +---checksums
+|   |   |       checksums.lock
+|   |   |       md5-checksums.bin
+|   |   |       sha1-checksums.bin
+|   |   |       
+|   |   +---executionHistory
+|   |   |       executionHistory.bin
+|   |   |       executionHistory.lock
+|   |   |       
+|   |   +---expanded
+|   |   +---fileChanges
+|   |   |       last-build.bin
+|   |   |       
+|   |   +---fileHashes
+|   |   |       fileHashes.bin
+|   |   |       fileHashes.lock
+|   |   |       resourceHashesCache.bin
+|   |   |       
+|   |   \---vcsMetadata
+|   +---buildOutputCleanup
+|   |       buildOutputCleanup.lock
+|   |       cache.properties
+|   |       outputFiles.bin
+|   |       
+|   \---vcs-1
+|           gc.properties
+|           
++---.idea
+|   |   AndroidProjectSystem.xml
+|   |   compiler.xml
+|   |   copilotDiffState.xml
+|   |   deploymentTargetSelector.xml
+|   |   deviceManager.xml
+|   |   gradle.xml
+|   |   kotlinc.xml
+|   |   migrations.xml
+|   |   misc.xml
+|   |   runConfigurations.xml
+|   |   vcs.xml
+|   |   workspace.xml
+|   |   
+|   +---caches
+|   |       deviceStreaming.xml
+|   |       
+|   +---inspectionProfiles
+|   |       Project_Default.xml
+|   |       
+|   +---modules
+|   |   \---app
+|   |           Nido.app.iml
+|   |           
+|   \---shelf
+|       |   Uncommitted_changes_before_Checkout_at_19_08_2025_18_27__Changes_.xml
+|       |   
+|       +---Uncommitted_changes_before_Checkout_at_19_08_2025_18_27_[Changes]
+|       |       shelved.patch
+|       |       
+|       \---Uncommitted_changes_before_Checkout_at_19_08_2025_18_27_[Changes]1
+|               shelved.patch
+|               
++---.kotlin
+|   +---errors
+|   |       errors-1741414222322.log
+|   |       
+|   \---sessions
++---app
+|   |   .gitignore
+|   |   build.gradle.kts
+|   |   google-services.json
+|   |   proguard-rules.pro
+|   |   
+|   +---.gradle
+|   +---build
+|   |   +---generated
+|   |   |   \---res
+|   |   |       +---pngs
+|   |   |       |   \---debug
+|   |   |       +---processDebugGoogleServices
+|   |   |       |   \---values
+|   |   |       |           values.xml
+|   |   |       |           
+|   |   |       \---resValues
+|   |   |           \---debug
+|   |   |               \---values
+|   |   |                       gradleResValues.xml
+|   |   |                       
+|   |   +---gmpAppId
+|   |   |       debug.txt
+|   |   |       
+|   |   +---intermediates
+|   |   |   +---aar_metadata_check
+|   |   |   |   \---debug
+|   |   |   |       \---checkDebugAarMetadata
+|   |   |   +---annotation_processor_list
+|   |   |   |   \---debug
+|   |   |   |       \---javaPreCompileDebug
+|   |   |   |               annotationProcessors.json
+|   |   |   |               
+|   |   |   +---app_metadata
+|   |   |   |   \---debug
+|   |   |   |       \---writeDebugAppMetadata
+|   |   |   |               app-metadata.properties
+|   |   |   |               
+|   |   |   +---assets
+|   |   |   |   \---debug
+|   |   |   |       \---mergeDebugAssets
+|   |   |   |               version.txt
+|   |   |   |               
+|   |   |   +---compatible_screen_manifest
+|   |   |   |   \---debug
+|   |   |   |       \---createDebugCompatibleScreenManifests
+|   |   |   |               output-metadata.json
+|   |   |   |               
+|   |   |   +---compile_and_runtime_not_namespaced_r_class_jar
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugResources
+|   |   |   |               R.jar
+|   |   |   |               
+|   |   |   +---compressed_assets
+|   |   |   |   \---debug
+|   |   |   |       \---compressDebugAssets
+|   |   |   |           \---out
+|   |   |   |               \---assets
+|   |   |   |                       version.txt.jar
+|   |   |   |                       
+|   |   |   +---data_binding_layout_info_type_merge
+|   |   |   |   \---debug
+|   |   |   |       \---mergeDebugResources
+|   |   |   |           \---out
+|   |   |   +---data_binding_layout_info_type_package
+|   |   |   |   \---debug
+|   |   |   |       \---packageDebugResources
+|   |   |   |           \---out
+|   |   |   +---dex
+|   |   |   |   \---debug
+|   |   |   |       +---mergeExtDexDebug
+|   |   |   |       |       classes.dex
+|   |   |   |       |       classes2.dex
+|   |   |   |       |       classes3.dex
+|   |   |   |       |       classes4.dex
+|   |   |   |       |       
+|   |   |   |       \---mergeLibDexDebug
+|   |   |   |           +---0
+|   |   |   |           +---1
+|   |   |   |           +---10
+|   |   |   |           +---11
+|   |   |   |           +---12
+|   |   |   |           +---13
+|   |   |   |           +---14
+|   |   |   |           +---15
+|   |   |   |           +---2
+|   |   |   |           +---3
+|   |   |   |           +---4
+|   |   |   |           +---5
+|   |   |   |           +---6
+|   |   |   |           +---7
+|   |   |   |           +---8
+|   |   |   |           \---9
+|   |   |   +---duplicate_classes_check
+|   |   |   |   \---debug
+|   |   |   |       \---checkDebugDuplicateClasses
+|   |   |   +---external_file_lib_dex_archives
+|   |   |   |   \---debug
+|   |   |   |       \---desugarDebugFileDependencies
+|   |   |   +---incremental
+|   |   |   |   +---debug
+|   |   |   |   |   +---mergeDebugResources
+|   |   |   |   |   |   |   compile-file-map.properties
+|   |   |   |   |   |   |   merger.xml
+|   |   |   |   |   |   |   
+|   |   |   |   |   |   +---merged.dir
+|   |   |   |   |   |   |   +---values
+|   |   |   |   |   |   |   |       values.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-af
+|   |   |   |   |   |   |   |       values-af.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-am
+|   |   |   |   |   |   |   |       values-am.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ar
+|   |   |   |   |   |   |   |       values-ar.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-as
+|   |   |   |   |   |   |   |       values-as.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-az
+|   |   |   |   |   |   |   |       values-az.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-b+sr+Latn
+|   |   |   |   |   |   |   |       values-b+sr+Latn.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-be
+|   |   |   |   |   |   |   |       values-be.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-bg
+|   |   |   |   |   |   |   |       values-bg.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-bn
+|   |   |   |   |   |   |   |       values-bn.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-bs
+|   |   |   |   |   |   |   |       values-bs.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ca
+|   |   |   |   |   |   |   |       values-ca.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-cs
+|   |   |   |   |   |   |   |       values-cs.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-da
+|   |   |   |   |   |   |   |       values-da.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-de
+|   |   |   |   |   |   |   |       values-de.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-el
+|   |   |   |   |   |   |   |       values-el.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-en-rAU
+|   |   |   |   |   |   |   |       values-en-rAU.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-en-rCA
+|   |   |   |   |   |   |   |       values-en-rCA.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-en-rGB
+|   |   |   |   |   |   |   |       values-en-rGB.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-en-rIN
+|   |   |   |   |   |   |   |       values-en-rIN.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-en-rXC
+|   |   |   |   |   |   |   |       values-en-rXC.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-es
+|   |   |   |   |   |   |   |       values-es.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-es-rUS
+|   |   |   |   |   |   |   |       values-es-rUS.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-et
+|   |   |   |   |   |   |   |       values-et.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-eu
+|   |   |   |   |   |   |   |       values-eu.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-fa
+|   |   |   |   |   |   |   |       values-fa.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-fi
+|   |   |   |   |   |   |   |       values-fi.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-fr
+|   |   |   |   |   |   |   |       values-fr.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-fr-rCA
+|   |   |   |   |   |   |   |       values-fr-rCA.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-gl
+|   |   |   |   |   |   |   |       values-gl.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-gu
+|   |   |   |   |   |   |   |       values-gu.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-hi
+|   |   |   |   |   |   |   |       values-hi.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-hr
+|   |   |   |   |   |   |   |       values-hr.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-hu
+|   |   |   |   |   |   |   |       values-hu.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-hy
+|   |   |   |   |   |   |   |       values-hy.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-in
+|   |   |   |   |   |   |   |       values-in.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-is
+|   |   |   |   |   |   |   |       values-is.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-it
+|   |   |   |   |   |   |   |       values-it.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-iw
+|   |   |   |   |   |   |   |       values-iw.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ja
+|   |   |   |   |   |   |   |       values-ja.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ka
+|   |   |   |   |   |   |   |       values-ka.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-kk
+|   |   |   |   |   |   |   |       values-kk.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-km
+|   |   |   |   |   |   |   |       values-km.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-kn
+|   |   |   |   |   |   |   |       values-kn.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ko
+|   |   |   |   |   |   |   |       values-ko.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ky
+|   |   |   |   |   |   |   |       values-ky.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-lo
+|   |   |   |   |   |   |   |       values-lo.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-lt
+|   |   |   |   |   |   |   |       values-lt.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-lv
+|   |   |   |   |   |   |   |       values-lv.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-mk
+|   |   |   |   |   |   |   |       values-mk.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ml
+|   |   |   |   |   |   |   |       values-ml.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-mn
+|   |   |   |   |   |   |   |       values-mn.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-mr
+|   |   |   |   |   |   |   |       values-mr.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ms
+|   |   |   |   |   |   |   |       values-ms.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-my
+|   |   |   |   |   |   |   |       values-my.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-nb
+|   |   |   |   |   |   |   |       values-nb.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ne
+|   |   |   |   |   |   |   |       values-ne.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-nl
+|   |   |   |   |   |   |   |       values-nl.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-or
+|   |   |   |   |   |   |   |       values-or.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-pa
+|   |   |   |   |   |   |   |       values-pa.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-pl
+|   |   |   |   |   |   |   |       values-pl.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-pt
+|   |   |   |   |   |   |   |       values-pt.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-pt-rBR
+|   |   |   |   |   |   |   |       values-pt-rBR.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-pt-rPT
+|   |   |   |   |   |   |   |       values-pt-rPT.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ro
+|   |   |   |   |   |   |   |       values-ro.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ru
+|   |   |   |   |   |   |   |       values-ru.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-si
+|   |   |   |   |   |   |   |       values-si.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-sk
+|   |   |   |   |   |   |   |       values-sk.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-sl
+|   |   |   |   |   |   |   |       values-sl.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-sq
+|   |   |   |   |   |   |   |       values-sq.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-sr
+|   |   |   |   |   |   |   |       values-sr.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-sv
+|   |   |   |   |   |   |   |       values-sv.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-sw
+|   |   |   |   |   |   |   |       values-sw.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ta
+|   |   |   |   |   |   |   |       values-ta.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-te
+|   |   |   |   |   |   |   |       values-te.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-th
+|   |   |   |   |   |   |   |       values-th.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-tl
+|   |   |   |   |   |   |   |       values-tl.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-tr
+|   |   |   |   |   |   |   |       values-tr.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-uk
+|   |   |   |   |   |   |   |       values-uk.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-ur
+|   |   |   |   |   |   |   |       values-ur.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-uz
+|   |   |   |   |   |   |   |       values-uz.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-v21
+|   |   |   |   |   |   |   |       values-v21.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-vi
+|   |   |   |   |   |   |   |       values-vi.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-watch-v20
+|   |   |   |   |   |   |   |       values-watch-v20.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-zh-rCN
+|   |   |   |   |   |   |   |       values-zh-rCN.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-zh-rHK
+|   |   |   |   |   |   |   |       values-zh-rHK.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   +---values-zh-rTW
+|   |   |   |   |   |   |   |       values-zh-rTW.xml
+|   |   |   |   |   |   |   |       
+|   |   |   |   |   |   |   \---values-zu
+|   |   |   |   |   |   |           values-zu.xml
+|   |   |   |   |   |   |           
+|   |   |   |   |   |   \---stripped.dir
+|   |   |   |   |   \---packageDebugResources
+|   |   |   |   |       |   compile-file-map.properties
+|   |   |   |   |       |   merger.xml
+|   |   |   |   |       |   
+|   |   |   |   |       +---merged.dir
+|   |   |   |   |       |   +---values
+|   |   |   |   |       |   |       values.xml
+|   |   |   |   |       |   |       
+|   |   |   |   |       |   +---values-de
+|   |   |   |   |       |   |       values-de.xml
+|   |   |   |   |       |   |       
+|   |   |   |   |       |   +---values-es
+|   |   |   |   |       |   |       values-es.xml
+|   |   |   |   |       |   |       
+|   |   |   |   |       |   +---values-fr
+|   |   |   |   |       |   |       values-fr.xml
+|   |   |   |   |       |   |       
+|   |   |   |   |       |   \---values-it
+|   |   |   |   |       |           values-it.xml
+|   |   |   |   |       |           
+|   |   |   |   |       \---stripped.dir
+|   |   |   |   +---mergeDebugAssets
+|   |   |   |   |       merger.xml
+|   |   |   |   |       
+|   |   |   |   +---mergeDebugJniLibFolders
+|   |   |   |   |       merger.xml
+|   |   |   |   |       
+|   |   |   |   \---mergeDebugShaders
+|   |   |   |           merger.xml
+|   |   |   |           
+|   |   |   +---linked_resources_binary_format
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugResources
+|   |   |   |               linked-resources-binary-format-debug.ap_
+|   |   |   |               output-metadata.json
+|   |   |   |               
+|   |   |   +---local_only_symbol_list
+|   |   |   |   \---debug
+|   |   |   |       \---parseDebugLocalResources
+|   |   |   |               R-def.txt
+|   |   |   |               
+|   |   |   +---manifest_merge_blame_file
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugMainManifest
+|   |   |   |               manifest-merger-blame-debug-report.txt
+|   |   |   |               
+|   |   |   +---merged_jni_libs
+|   |   |   |   \---debug
+|   |   |   |       \---mergeDebugJniLibFolders
+|   |   |   |           \---out
+|   |   |   +---merged_manifest
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugMainManifest
+|   |   |   |               AndroidManifest.xml
+|   |   |   |               
+|   |   |   +---merged_manifests
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugManifest
+|   |   |   |               AndroidManifest.xml
+|   |   |   |               output-metadata.json
+|   |   |   |               
+|   |   |   +---merged_res
+|   |   |   |   \---debug
+|   |   |   |       \---mergeDebugResources
+|   |   |   |               drawable-hdpi_splash.png.flat
+|   |   |   |               drawable-mdpi_splash.png.flat
+|   |   |   |               drawable-nodpi_back_cover.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_1.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_2.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_3.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_4.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_5.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_6.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_7.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_8.png.flat
+|   |   |   |               drawable-nodpi_nido_card_b_9.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_1.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_2.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_3.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_4.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_5.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_6.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_7.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_8.png.flat
+|   |   |   |               drawable-nodpi_nido_card_g_9.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_1.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_2.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_3.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_4.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_5.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_6.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_7.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_8.png.flat
+|   |   |   |               drawable-nodpi_nido_card_m_9.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_1.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_2.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_3.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_4.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_5.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_6.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_7.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_8.png.flat
+|   |   |   |               drawable-nodpi_nido_card_o_9.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_1.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_2.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_3.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_4.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_5.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_6.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_7.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_8.png.flat
+|   |   |   |               drawable-nodpi_nido_card_p_9.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_1.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_2.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_3.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_4.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_5.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_6.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_7.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_8.png.flat
+|   |   |   |               drawable-nodpi_nido_card_r_9.png.flat
+|   |   |   |               drawable-xhdpi_splash.png.flat
+|   |   |   |               drawable-xxhdpi_splash.png.flat
+|   |   |   |               drawable-xxxhdpi_splash.png.flat
+|   |   |   |               drawable_ic_launcher_background.xml.flat
+|   |   |   |               drawable_ic_launcher_foreground.xml.flat
+|   |   |   |               drawable_nido_logo.webp.flat
+|   |   |   |               mipmap-anydpi-v26_ic_launcher.xml.flat
+|   |   |   |               mipmap-anydpi-v26_ic_launcher_round.xml.flat
+|   |   |   |               mipmap-hdpi_ic_launcher.webp.flat
+|   |   |   |               mipmap-hdpi_ic_launcher_background.webp.flat
+|   |   |   |               mipmap-hdpi_ic_launcher_foreground.webp.flat
+|   |   |   |               mipmap-hdpi_ic_launcher_round.webp.flat
+|   |   |   |               mipmap-hdpi_splash.png.flat
+|   |   |   |               mipmap-mdpi_ic_launcher.webp.flat
+|   |   |   |               mipmap-mdpi_ic_launcher_background.webp.flat
+|   |   |   |               mipmap-mdpi_ic_launcher_foreground.webp.flat
+|   |   |   |               mipmap-mdpi_ic_launcher_round.webp.flat
+|   |   |   |               mipmap-mdpi_splash.png.flat
+|   |   |   |               mipmap-xhdpi_ic_launcher.webp.flat
+|   |   |   |               mipmap-xhdpi_ic_launcher_background.webp.flat
+|   |   |   |               mipmap-xhdpi_ic_launcher_foreground.webp.flat
+|   |   |   |               mipmap-xhdpi_ic_launcher_round.webp.flat
+|   |   |   |               mipmap-xhdpi_splash.png.flat
+|   |   |   |               mipmap-xxhdpi_ic_launcher.webp.flat
+|   |   |   |               mipmap-xxhdpi_ic_launcher_background.webp.flat
+|   |   |   |               mipmap-xxhdpi_ic_launcher_foreground.webp.flat
+|   |   |   |               mipmap-xxhdpi_ic_launcher_round.webp.flat
+|   |   |   |               mipmap-xxhdpi_splash.png.flat
+|   |   |   |               mipmap-xxxhdpi_ic_launcher.webp.flat
+|   |   |   |               mipmap-xxxhdpi_ic_launcher_background.webp.flat
+|   |   |   |               mipmap-xxxhdpi_ic_launcher_foreground.webp.flat
+|   |   |   |               mipmap-xxxhdpi_ic_launcher_round.webp.flat
+|   |   |   |               mipmap-xxxhdpi_splash.png.flat
+|   |   |   |               raw_bgm_deep_house.mp3.flat
+|   |   |   |               raw_discard.mp3.flat
+|   |   |   |               raw_discard1.mp3.flat
+|   |   |   |               raw_error.mp3.flat
+|   |   |   |               raw_game_over.mp3.flat
+|   |   |   |               raw_game_over_lose.mp3.flat
+|   |   |   |               raw_gloop.mp3.flat
+|   |   |   |               raw_gloop2.mp3.flat
+|   |   |   |               raw_hum1.mp3.flat
+|   |   |   |               raw_hum2.mp3.flat
+|   |   |   |               raw_play.mp3.flat
+|   |   |   |               raw_round_over_lose.mp3.flat
+|   |   |   |               raw_round_over_win.mp3.flat
+|   |   |   |               raw_siren.wav.flat
+|   |   |   |               raw_skip.mp3.flat
+|   |   |   |               raw_start_game.mp3.flat
+|   |   |   |               values-af_values-af.arsc.flat
+|   |   |   |               values-am_values-am.arsc.flat
+|   |   |   |               values-ar_values-ar.arsc.flat
+|   |   |   |               values-as_values-as.arsc.flat
+|   |   |   |               values-az_values-az.arsc.flat
+|   |   |   |               values-b+sr+Latn_values-b+sr+Latn.arsc.flat
+|   |   |   |               values-be_values-be.arsc.flat
+|   |   |   |               values-bg_values-bg.arsc.flat
+|   |   |   |               values-bn_values-bn.arsc.flat
+|   |   |   |               values-bs_values-bs.arsc.flat
+|   |   |   |               values-ca_values-ca.arsc.flat
+|   |   |   |               values-cs_values-cs.arsc.flat
+|   |   |   |               values-da_values-da.arsc.flat
+|   |   |   |               values-de_values-de.arsc.flat
+|   |   |   |               values-el_values-el.arsc.flat
+|   |   |   |               values-en-rAU_values-en-rAU.arsc.flat
+|   |   |   |               values-en-rCA_values-en-rCA.arsc.flat
+|   |   |   |               values-en-rGB_values-en-rGB.arsc.flat
+|   |   |   |               values-en-rIN_values-en-rIN.arsc.flat
+|   |   |   |               values-en-rXC_values-en-rXC.arsc.flat
+|   |   |   |               values-es-rUS_values-es-rUS.arsc.flat
+|   |   |   |               values-es_values-es.arsc.flat
+|   |   |   |               values-et_values-et.arsc.flat
+|   |   |   |               values-eu_values-eu.arsc.flat
+|   |   |   |               values-fa_values-fa.arsc.flat
+|   |   |   |               values-fi_values-fi.arsc.flat
+|   |   |   |               values-fr-rCA_values-fr-rCA.arsc.flat
+|   |   |   |               values-fr_values-fr.arsc.flat
+|   |   |   |               values-gl_values-gl.arsc.flat
+|   |   |   |               values-gu_values-gu.arsc.flat
+|   |   |   |               values-hi_values-hi.arsc.flat
+|   |   |   |               values-hr_values-hr.arsc.flat
+|   |   |   |               values-hu_values-hu.arsc.flat
+|   |   |   |               values-hy_values-hy.arsc.flat
+|   |   |   |               values-in_values-in.arsc.flat
+|   |   |   |               values-is_values-is.arsc.flat
+|   |   |   |               values-it_values-it.arsc.flat
+|   |   |   |               values-iw_values-iw.arsc.flat
+|   |   |   |               values-ja_values-ja.arsc.flat
+|   |   |   |               values-ka_values-ka.arsc.flat
+|   |   |   |               values-kk_values-kk.arsc.flat
+|   |   |   |               values-km_values-km.arsc.flat
+|   |   |   |               values-kn_values-kn.arsc.flat
+|   |   |   |               values-ko_values-ko.arsc.flat
+|   |   |   |               values-ky_values-ky.arsc.flat
+|   |   |   |               values-lo_values-lo.arsc.flat
+|   |   |   |               values-lt_values-lt.arsc.flat
+|   |   |   |               values-lv_values-lv.arsc.flat
+|   |   |   |               values-mk_values-mk.arsc.flat
+|   |   |   |               values-ml_values-ml.arsc.flat
+|   |   |   |               values-mn_values-mn.arsc.flat
+|   |   |   |               values-mr_values-mr.arsc.flat
+|   |   |   |               values-ms_values-ms.arsc.flat
+|   |   |   |               values-my_values-my.arsc.flat
+|   |   |   |               values-nb_values-nb.arsc.flat
+|   |   |   |               values-ne_values-ne.arsc.flat
+|   |   |   |               values-nl_values-nl.arsc.flat
+|   |   |   |               values-or_values-or.arsc.flat
+|   |   |   |               values-pa_values-pa.arsc.flat
+|   |   |   |               values-pl_values-pl.arsc.flat
+|   |   |   |               values-pt-rBR_values-pt-rBR.arsc.flat
+|   |   |   |               values-pt-rPT_values-pt-rPT.arsc.flat
+|   |   |   |               values-pt_values-pt.arsc.flat
+|   |   |   |               values-ro_values-ro.arsc.flat
+|   |   |   |               values-ru_values-ru.arsc.flat
+|   |   |   |               values-si_values-si.arsc.flat
+|   |   |   |               values-sk_values-sk.arsc.flat
+|   |   |   |               values-sl_values-sl.arsc.flat
+|   |   |   |               values-sq_values-sq.arsc.flat
+|   |   |   |               values-sr_values-sr.arsc.flat
+|   |   |   |               values-sv_values-sv.arsc.flat
+|   |   |   |               values-sw_values-sw.arsc.flat
+|   |   |   |               values-ta_values-ta.arsc.flat
+|   |   |   |               values-te_values-te.arsc.flat
+|   |   |   |               values-th_values-th.arsc.flat
+|   |   |   |               values-tl_values-tl.arsc.flat
+|   |   |   |               values-tr_values-tr.arsc.flat
+|   |   |   |               values-uk_values-uk.arsc.flat
+|   |   |   |               values-ur_values-ur.arsc.flat
+|   |   |   |               values-uz_values-uz.arsc.flat
+|   |   |   |               values-v21_values-v21.arsc.flat
+|   |   |   |               values-vi_values-vi.arsc.flat
+|   |   |   |               values-watch-v20_values-watch-v20.arsc.flat
+|   |   |   |               values-zh-rCN_values-zh-rCN.arsc.flat
+|   |   |   |               values-zh-rHK_values-zh-rHK.arsc.flat
+|   |   |   |               values-zh-rTW_values-zh-rTW.arsc.flat
+|   |   |   |               values-zu_values-zu.arsc.flat
+|   |   |   |               values_values.arsc.flat
+|   |   |   |               xml_backup_rules.xml.flat
+|   |   |   |               xml_data_extraction_rules.xml.flat
+|   |   |   |               
+|   |   |   +---merged_res_blame_folder
+|   |   |   |   \---debug
+|   |   |   |       \---mergeDebugResources
+|   |   |   |           \---out
+|   |   |   |               +---multi-v2
+|   |   |   |               |       mergeDebugResources.json
+|   |   |   |               |       values-af.json
+|   |   |   |               |       values-am.json
+|   |   |   |               |       values-ar.json
+|   |   |   |               |       values-as.json
+|   |   |   |               |       values-az.json
+|   |   |   |               |       values-b+sr+Latn.json
+|   |   |   |               |       values-be.json
+|   |   |   |               |       values-bg.json
+|   |   |   |               |       values-bn.json
+|   |   |   |               |       values-bs.json
+|   |   |   |               |       values-ca.json
+|   |   |   |               |       values-cs.json
+|   |   |   |               |       values-da.json
+|   |   |   |               |       values-de.json
+|   |   |   |               |       values-el.json
+|   |   |   |               |       values-en-rAU.json
+|   |   |   |               |       values-en-rCA.json
+|   |   |   |               |       values-en-rGB.json
+|   |   |   |               |       values-en-rIN.json
+|   |   |   |               |       values-en-rXC.json
+|   |   |   |               |       values-es-rUS.json
+|   |   |   |               |       values-es.json
+|   |   |   |               |       values-et.json
+|   |   |   |               |       values-eu.json
+|   |   |   |               |       values-fa.json
+|   |   |   |               |       values-fi.json
+|   |   |   |               |       values-fr-rCA.json
+|   |   |   |               |       values-fr.json
+|   |   |   |               |       values-gl.json
+|   |   |   |               |       values-gu.json
+|   |   |   |               |       values-hi.json
+|   |   |   |               |       values-hr.json
+|   |   |   |               |       values-hu.json
+|   |   |   |               |       values-hy.json
+|   |   |   |               |       values-in.json
+|   |   |   |               |       values-is.json
+|   |   |   |               |       values-it.json
+|   |   |   |               |       values-iw.json
+|   |   |   |               |       values-ja.json
+|   |   |   |               |       values-ka.json
+|   |   |   |               |       values-kk.json
+|   |   |   |               |       values-km.json
+|   |   |   |               |       values-kn.json
+|   |   |   |               |       values-ko.json
+|   |   |   |               |       values-ky.json
+|   |   |   |               |       values-lo.json
+|   |   |   |               |       values-lt.json
+|   |   |   |               |       values-lv.json
+|   |   |   |               |       values-mk.json
+|   |   |   |               |       values-ml.json
+|   |   |   |               |       values-mn.json
+|   |   |   |               |       values-mr.json
+|   |   |   |               |       values-ms.json
+|   |   |   |               |       values-my.json
+|   |   |   |               |       values-nb.json
+|   |   |   |               |       values-ne.json
+|   |   |   |               |       values-nl.json
+|   |   |   |               |       values-or.json
+|   |   |   |               |       values-pa.json
+|   |   |   |               |       values-pl.json
+|   |   |   |               |       values-pt-rBR.json
+|   |   |   |               |       values-pt-rPT.json
+|   |   |   |               |       values-pt.json
+|   |   |   |               |       values-ro.json
+|   |   |   |               |       values-ru.json
+|   |   |   |               |       values-si.json
+|   |   |   |               |       values-sk.json
+|   |   |   |               |       values-sl.json
+|   |   |   |               |       values-sq.json
+|   |   |   |               |       values-sr.json
+|   |   |   |               |       values-sv.json
+|   |   |   |               |       values-sw.json
+|   |   |   |               |       values-ta.json
+|   |   |   |               |       values-te.json
+|   |   |   |               |       values-th.json
+|   |   |   |               |       values-tl.json
+|   |   |   |               |       values-tr.json
+|   |   |   |               |       values-uk.json
+|   |   |   |               |       values-ur.json
+|   |   |   |               |       values-uz.json
+|   |   |   |               |       values-v21.json
+|   |   |   |               |       values-vi.json
+|   |   |   |               |       values-watch-v20.json
+|   |   |   |               |       values-zh-rCN.json
+|   |   |   |               |       values-zh-rHK.json
+|   |   |   |               |       values-zh-rTW.json
+|   |   |   |               |       values-zu.json
+|   |   |   |               |       values.json
+|   |   |   |               |       
+|   |   |   |               \---single
+|   |   |   |                       mergeDebugResources.json
+|   |   |   |                       
+|   |   |   +---merged_shaders
+|   |   |   |   \---debug
+|   |   |   |       \---mergeDebugShaders
+|   |   |   |           \---out
+|   |   |   +---navigation_json
+|   |   |   |   \---debug
+|   |   |   |       \---extractDeepLinksDebug
+|   |   |   |               navigation.json
+|   |   |   |               
+|   |   |   +---nested_resources_validation_report
+|   |   |   |   \---debug
+|   |   |   |       \---generateDebugResources
+|   |   |   |               nestedResourcesValidationReport.txt
+|   |   |   |               
+|   |   |   +---packaged_manifests
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugManifestForPackage
+|   |   |   |               AndroidManifest.xml
+|   |   |   |               output-metadata.json
+|   |   |   |               
+|   |   |   +---packaged_res
+|   |   |   |   \---debug
+|   |   |   |       \---packageDebugResources
+|   |   |   |           +---drawable
+|   |   |   |           |       ic_launcher_background.xml
+|   |   |   |           |       ic_launcher_foreground.xml
+|   |   |   |           |       nido_logo.webp
+|   |   |   |           |       
+|   |   |   |           +---drawable-hdpi-v4
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---drawable-mdpi-v4
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---drawable-nodpi-v4
+|   |   |   |           |       back_cover.png
+|   |   |   |           |       nido_card_b_1.png
+|   |   |   |           |       nido_card_b_2.png
+|   |   |   |           |       nido_card_b_3.png
+|   |   |   |           |       nido_card_b_4.png
+|   |   |   |           |       nido_card_b_5.png
+|   |   |   |           |       nido_card_b_6.png
+|   |   |   |           |       nido_card_b_7.png
+|   |   |   |           |       nido_card_b_8.png
+|   |   |   |           |       nido_card_b_9.png
+|   |   |   |           |       nido_card_g_1.png
+|   |   |   |           |       nido_card_g_2.png
+|   |   |   |           |       nido_card_g_3.png
+|   |   |   |           |       nido_card_g_4.png
+|   |   |   |           |       nido_card_g_5.png
+|   |   |   |           |       nido_card_g_6.png
+|   |   |   |           |       nido_card_g_7.png
+|   |   |   |           |       nido_card_g_8.png
+|   |   |   |           |       nido_card_g_9.png
+|   |   |   |           |       nido_card_m_1.png
+|   |   |   |           |       nido_card_m_2.png
+|   |   |   |           |       nido_card_m_3.png
+|   |   |   |           |       nido_card_m_4.png
+|   |   |   |           |       nido_card_m_5.png
+|   |   |   |           |       nido_card_m_6.png
+|   |   |   |           |       nido_card_m_7.png
+|   |   |   |           |       nido_card_m_8.png
+|   |   |   |           |       nido_card_m_9.png
+|   |   |   |           |       nido_card_o_1.png
+|   |   |   |           |       nido_card_o_2.png
+|   |   |   |           |       nido_card_o_3.png
+|   |   |   |           |       nido_card_o_4.png
+|   |   |   |           |       nido_card_o_5.png
+|   |   |   |           |       nido_card_o_6.png
+|   |   |   |           |       nido_card_o_7.png
+|   |   |   |           |       nido_card_o_8.png
+|   |   |   |           |       nido_card_o_9.png
+|   |   |   |           |       nido_card_p_1.png
+|   |   |   |           |       nido_card_p_2.png
+|   |   |   |           |       nido_card_p_3.png
+|   |   |   |           |       nido_card_p_4.png
+|   |   |   |           |       nido_card_p_5.png
+|   |   |   |           |       nido_card_p_6.png
+|   |   |   |           |       nido_card_p_7.png
+|   |   |   |           |       nido_card_p_8.png
+|   |   |   |           |       nido_card_p_9.png
+|   |   |   |           |       nido_card_r_1.png
+|   |   |   |           |       nido_card_r_2.png
+|   |   |   |           |       nido_card_r_3.png
+|   |   |   |           |       nido_card_r_4.png
+|   |   |   |           |       nido_card_r_5.png
+|   |   |   |           |       nido_card_r_6.png
+|   |   |   |           |       nido_card_r_7.png
+|   |   |   |           |       nido_card_r_8.png
+|   |   |   |           |       nido_card_r_9.png
+|   |   |   |           |       
+|   |   |   |           +---drawable-xhdpi-v4
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---drawable-xxhdpi-v4
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---drawable-xxxhdpi-v4
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---mipmap-anydpi-v26
+|   |   |   |           |       ic_launcher.xml
+|   |   |   |           |       ic_launcher_round.xml
+|   |   |   |           |       
+|   |   |   |           +---mipmap-hdpi-v4
+|   |   |   |           |       ic_launcher.webp
+|   |   |   |           |       ic_launcher_background.webp
+|   |   |   |           |       ic_launcher_foreground.webp
+|   |   |   |           |       ic_launcher_round.webp
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---mipmap-mdpi-v4
+|   |   |   |           |       ic_launcher.webp
+|   |   |   |           |       ic_launcher_background.webp
+|   |   |   |           |       ic_launcher_foreground.webp
+|   |   |   |           |       ic_launcher_round.webp
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---mipmap-xhdpi-v4
+|   |   |   |           |       ic_launcher.webp
+|   |   |   |           |       ic_launcher_background.webp
+|   |   |   |           |       ic_launcher_foreground.webp
+|   |   |   |           |       ic_launcher_round.webp
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---mipmap-xxhdpi-v4
+|   |   |   |           |       ic_launcher.webp
+|   |   |   |           |       ic_launcher_background.webp
+|   |   |   |           |       ic_launcher_foreground.webp
+|   |   |   |           |       ic_launcher_round.webp
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---mipmap-xxxhdpi-v4
+|   |   |   |           |       ic_launcher.webp
+|   |   |   |           |       ic_launcher_background.webp
+|   |   |   |           |       ic_launcher_foreground.webp
+|   |   |   |           |       ic_launcher_round.webp
+|   |   |   |           |       splash.png
+|   |   |   |           |       
+|   |   |   |           +---raw
+|   |   |   |           |       bgm_deep_house.mp3
+|   |   |   |           |       discard.mp3
+|   |   |   |           |       discard1.mp3
+|   |   |   |           |       error.mp3
+|   |   |   |           |       game_over.mp3
+|   |   |   |           |       game_over_lose.mp3
+|   |   |   |           |       gloop.mp3
+|   |   |   |           |       gloop2.mp3
+|   |   |   |           |       hum1.mp3
+|   |   |   |           |       hum2.mp3
+|   |   |   |           |       play.mp3
+|   |   |   |           |       round_over_lose.mp3
+|   |   |   |           |       round_over_win.mp3
+|   |   |   |           |       siren.wav
+|   |   |   |           |       skip.mp3
+|   |   |   |           |       start_game.mp3
+|   |   |   |           |       
+|   |   |   |           +---values
+|   |   |   |           |       values.xml
+|   |   |   |           |       
+|   |   |   |           +---values-de
+|   |   |   |           |       values-de.xml
+|   |   |   |           |       
+|   |   |   |           +---values-es
+|   |   |   |           |       values-es.xml
+|   |   |   |           |       
+|   |   |   |           +---values-fr
+|   |   |   |           |       values-fr.xml
+|   |   |   |           |       
+|   |   |   |           +---values-it
+|   |   |   |           |       values-it.xml
+|   |   |   |           |       
+|   |   |   |           \---xml
+|   |   |   |                   backup_rules.xml
+|   |   |   |                   data_extraction_rules.xml
+|   |   |   |                   
+|   |   |   +---runtime_symbol_list
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugResources
+|   |   |   |               R.txt
+|   |   |   |               
+|   |   |   +---signing_config_versions
+|   |   |   |   \---debug
+|   |   |   |       \---writeDebugSigningConfigVersions
+|   |   |   |               signing-config-versions.json
+|   |   |   |               
+|   |   |   +---source_set_path_map
+|   |   |   |   \---debug
+|   |   |   |       \---mapDebugSourceSetPaths
+|   |   |   |               file-map.txt
+|   |   |   |               
+|   |   |   +---stable_resource_ids_file
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugResources
+|   |   |   |               stableIds.txt
+|   |   |   |               
+|   |   |   +---symbol_list_with_package_name
+|   |   |   |   \---debug
+|   |   |   |       \---processDebugResources
+|   |   |   |               package-aware-r.txt
+|   |   |   |               
+|   |   |   \---validate_signing_config
+|   |   |       \---debug
+|   |   |           \---validateSigningDebug
+|   |   +---kotlin
+|   |   |   \---compileDebugKotlin
+|   |   |       +---cacheable
+|   |   |       |   |   dirty-sources.txt
+|   |   |       |   |   
+|   |   |       |   \---caches-jvm
+|   |   |       |       +---inputs
+|   |   |       |       +---jvm
+|   |   |       |       \---lookups
+|   |   |       +---classpath-snapshot
+|   |   |       \---local-state
+|   |   +---outputs
+|   |   |   \---logs
+|   |   |           manifest-merger-debug-report.txt
+|   |   |           
+|   |   \---tmp
+|   |       \---kotlin-classes
+|   |           \---debug
+|   \---src
+|       |   link_to_github.txt
+|       |   Nido_Project_Instructions.docx
+|       |   project_overview.docx
+|       |   project_tree.txt
+|       |   
+|       +---androidTest
+|       |   \---java
+|       |       \---com
+|       |           \---example
+|       |               \---nido
+|       |                       ExampleInstrumentedTest.kt
+|       |                       
+|       +---main
+|       |   |   AndroidManifest.xml
+|       |   |   ic_launcher-playstore.png
+|       |   |   
+|       |   +---assets
+|       |   |       version.txt
+|       |   |       
+|       |   +---kotlin
+|       |   |   \---com
+|       |   |       \---example
+|       |   |           \---nido
+|       |   |               |   MainActivity.kt
+|       |   |               |   NidoApp.kt
+|       |   |               |   Spare
+|       |   |               |   
+|       |   |               +---data
+|       |   |               |   |   NidoPreferences.kt
+|       |   |               |   |   SavedPlayer.kt
+|       |   |               |   |   
+|       |   |               |   +---model
+|       |   |               |   |       Card.kt
+|       |   |               |   |       CardColor.kt
+|       |   |               |   |       CardResources.kt
+|       |   |               |   |       Combination.kt
+|       |   |               |   |       Hand.kt
+|       |   |               |   |       Player.kt
+|       |   |               |   |       PlayerType.kt
+|       |   |               |   |       
+|       |   |               |   \---repository
+|       |   |               |           CardRepository.kt
+|       |   |               |           DeckRepository.kt
+|       |   |               |           
+|       |   |               +---events
+|       |   |               |       AppDialogEvent.kt
+|       |   |               |       GameDialogEvent.kt
+|       |   |               |       UiEventBridge.kt
+|       |   |               |       
+|       |   |               +---game
+|       |   |               |   |   BannerMsg.kt
+|       |   |               |   |   FakeGameManager.kt
+|       |   |               |   |   GameEvents.kt
+|       |   |               |   |   GameManager.kt
+|       |   |               |   |   GameReducer.kt
+|       |   |               |   |   GameSideEffect.kt
+|       |   |               |   |   GameState.kt
+|       |   |               |   |   IGameActions.kt
+|       |   |               |   |   IGameManager.kt
+|       |   |               |   |   IGameStateProvider.kt
+|       |   |               |   |   LocalPlayer.kt
+|       |   |               |   |   MusicTrack.kt
+|       |   |               |   |   SoundEffect.kt
+|       |   |               |   |   TurnHintMsg.kt
+|       |   |               |   |   TurnInfo.kt
+|       |   |               |   |   
+|       |   |               |   +---ai
+|       |   |               |   |       AIPlayer.kt
+|       |   |               |   |       Heuristics.kt
+|       |   |               |   |       
+|       |   |               |   +---engine
+|       |   |               |   |       GameEventDispatcher.kt
+|       |   |               |   |       
+|       |   |               |   +---multiplayer
+|       |   |               |   |       MessageTypes.kt
+|       |   |               |   |       MultiPlayerSession.kt
+|       |   |               |   |       MultiplayerState.kt
+|       |   |               |   |       NetworkManager.kt
+|       |   |               |   |       RemotePlayer.kt
+|       |   |               |   |       RoomCoordinator.kt
+|       |   |               |   |       
+|       |   |               |   \---rules
+|       |   |               |           GameRules.kt
+|       |   |               |           MusicCommand.kt
+|       |   |               |           ScoringSystem.kt
+|       |   |               |           
+|       |   |               +---replay
+|       |   |               |       GameAction.kt
+|       |   |               |       GameRecorder.kt
+|       |   |               |       GameSession.kt
+|       |   |               |       
+|       |   |               +---ui
+|       |   |               |   |   LocalGameManager.kt
+|       |   |               |   |   Screen.kt
+|       |   |               |   |   
+|       |   |               |   +---components
+|       |   |               |   |       AITimerSelector.kt
+|       |   |               |   |       IconGallery.kt
+|       |   |               |   |       MusicSideEffectHandler.kt
+|       |   |               |   |       NidoScreenScaffold.kt
+|       |   |               |   |       NoticeHost.kt
+|       |   |               |   |       NumberStepper.kt
+|       |   |               |   |       NumberStepperPill.kt
+|       |   |               |   |       NumberWheelPicker.kt
+|       |   |               |   |       SoundSideEffectHandler.kt
+|       |   |               |   |       VersionLabel.kt
+|       |   |               |   |       
+|       |   |               |   +---dialogs
+|       |   |               |   |       BlueScreenOfDeath.kt
+|       |   |               |   |       CardSelectionDialog.kt
+|       |   |               |   |       GameEventDialogs.kt
+|       |   |               |   |       GameOverDialog.kt
+|       |   |               |   |       QuitGameDialog.kt
+|       |   |               |   |       RoundOverDialog.kt
+|       |   |               |   |       
+|       |   |               |   +---preview
+|       |   |               |   |       NidoPreview.kt
+|       |   |               |   |       
+|       |   |               |   +---screens
+|       |   |               |   |       LandingScreen.kt
+|       |   |               |   |       MainScreen.kt
+|       |   |               |   |       ScoreScreen.kt
+|       |   |               |   |       SetupScreen.kt
+|       |   |               |   |       SplashScreen.kt
+|       |   |               |   |       WaitingRoomScreen.kt
+|       |   |               |   |       
+|       |   |               |   +---theme
+|       |   |               |   |       Color.kt
+|       |   |               |   |       Theme.kt
+|       |   |               |   |       Type.kt
+|       |   |               |   |       
+|       |   |               |   \---views
+|       |   |               |           ActionButtonsView.kt
+|       |   |               |           CardDeckView.kt
+|       |   |               |           CardView.kt
+|       |   |               |           CombinationsView.kt
+|       |   |               |           CommentsView.kt
+|       |   |               |           DiscardPileView.kt
+|       |   |               |           HandView.kt
+|       |   |               |           HandViewDebugView.kt
+|       |   |               |           MatView.kt
+|       |   |               |           PlayerScoreView.kt
+|       |   |               |           PlayersRowView.kt
+|       |   |               |           TurnActionButtonView.kt
+|       |   |               |           
+|       |   |               +---utils
+|       |   |               |       Constants.kt
+|       |   |               |       Debug.kt
+|       |   |               |       LanguagePicker.kt
+|       |   |               |       LocaleUtils.kt
+|       |   |               |       RestartUtils.kt
+|       |   |               |       SortingUtils.kt
+|       |   |               |       TestData.kt
+|       |   |               |       TestIDE.kt
+|       |   |               |       Trace.kt
+|       |   |               |       
+|       |   |               \---viewmodel
+|       |   |                       FakeGameViewModelForPreview.kt
+|       |   |                       GameViewModel.kt
+|       |   |                       IGameViewModelPreview.kt
+|       |   |                       
+|       |   \---res
+|       |       +---drawable
+|       |       |       ic_launcher_background.xml
+|       |       |       ic_launcher_foreground.xml
+|       |       |       nido_logo.webp
+|       |       |       
+|       |       +---drawable-hdpi
+|       |       |       splash.png
+|       |       |       
+|       |       +---drawable-mdpi
+|       |       |       splash.png
+|       |       |       
+|       |       +---drawable-nodpi
+|       |       |   |   back_cover.png
+|       |       |   |   nido_card_b_1.png
+|       |       |   |   nido_card_b_2.png
+|       |       |   |   nido_card_b_3.png
+|       |       |   |   nido_card_b_4.png
+|       |       |   |   nido_card_b_5.png
+|       |       |   |   nido_card_b_6.png
+|       |       |   |   nido_card_b_7.png
+|       |       |   |   nido_card_b_8.png
+|       |       |   |   nido_card_b_9.png
+|       |       |   |   nido_card_g_1.png
+|       |       |   |   nido_card_g_2.png
+|       |       |   |   nido_card_g_3.png
+|       |       |   |   nido_card_g_4.png
+|       |       |   |   nido_card_g_5.png
+|       |       |   |   nido_card_g_6.png
+|       |       |   |   nido_card_g_7.png
+|       |       |   |   nido_card_g_8.png
+|       |       |   |   nido_card_g_9.png
+|       |       |   |   nido_card_m_1.png
+|       |       |   |   nido_card_m_2.png
+|       |       |   |   nido_card_m_3.png
+|       |       |   |   nido_card_m_4.png
+|       |       |   |   nido_card_m_5.png
+|       |       |   |   nido_card_m_6.png
+|       |       |   |   nido_card_m_7.png
+|       |       |   |   nido_card_m_8.png
+|       |       |   |   nido_card_m_9.png
+|       |       |   |   nido_card_o_1.png
+|       |       |   |   nido_card_o_2.png
+|       |       |   |   nido_card_o_3.png
+|       |       |   |   nido_card_o_4.png
+|       |       |   |   nido_card_o_5.png
+|       |       |   |   nido_card_o_6.png
+|       |       |   |   nido_card_o_7.png
+|       |       |   |   nido_card_o_8.png
+|       |       |   |   nido_card_o_9.png
+|       |       |   |   nido_card_p_1.png
+|       |       |   |   nido_card_p_2.png
+|       |       |   |   nido_card_p_3.png
+|       |       |   |   nido_card_p_4.png
+|       |       |   |   nido_card_p_5.png
+|       |       |   |   nido_card_p_6.png
+|       |       |   |   nido_card_p_7.png
+|       |       |   |   nido_card_p_8.png
+|       |       |   |   nido_card_p_9.png
+|       |       |   |   nido_card_r_1.png
+|       |       |   |   nido_card_r_2.png
+|       |       |   |   nido_card_r_3.png
+|       |       |   |   nido_card_r_4.png
+|       |       |   |   nido_card_r_5.png
+|       |       |   |   nido_card_r_6.png
+|       |       |   |   nido_card_r_7.png
+|       |       |   |   nido_card_r_8.png
+|       |       |   |   nido_card_r_9.png
+|       |       |   |   
+|       |       |   \---ResArchives
+|       |       +---drawable-xhdpi
+|       |       |       splash.png
+|       |       |       
+|       |       +---drawable-xxhdpi
+|       |       |       splash.png
+|       |       |       
+|       |       +---drawable-xxxhdpi
+|       |       |       splash.png
+|       |       |       
+|       |       +---mipmap-anydpi-v26
+|       |       |       ic_launcher.xml
+|       |       |       ic_launcher_round.xml
+|       |       |       
+|       |       +---mipmap-hdpi
+|       |       |       ic_launcher.webp
+|       |       |       ic_launcher_background.webp
+|       |       |       ic_launcher_foreground.webp
+|       |       |       ic_launcher_round.webp
+|       |       |       splash.png
+|       |       |       
+|       |       +---mipmap-mdpi
+|       |       |       ic_launcher.webp
+|       |       |       ic_launcher_background.webp
+|       |       |       ic_launcher_foreground.webp
+|       |       |       ic_launcher_round.webp
+|       |       |       splash.png
+|       |       |       
+|       |       +---mipmap-xhdpi
+|       |       |       ic_launcher.webp
+|       |       |       ic_launcher_background.webp
+|       |       |       ic_launcher_foreground.webp
+|       |       |       ic_launcher_round.webp
+|       |       |       splash.png
+|       |       |       
+|       |       +---mipmap-xxhdpi
+|       |       |       ic_launcher.webp
+|       |       |       ic_launcher_background.webp
+|       |       |       ic_launcher_foreground.webp
+|       |       |       ic_launcher_round.webp
+|       |       |       splash.png
+|       |       |       
+|       |       +---mipmap-xxxhdpi
+|       |       |       ic_launcher.webp
+|       |       |       ic_launcher_background.webp
+|       |       |       ic_launcher_foreground.webp
+|       |       |       ic_launcher_round.webp
+|       |       |       splash.png
+|       |       |       
+|       |       +---raw
+|       |       |       bgm_deep_house.mp3
+|       |       |       discard.mp3
+|       |       |       discard1.mp3
+|       |       |       error.mp3
+|       |       |       game_over.mp3
+|       |       |       game_over_lose.mp3
+|       |       |       gloop.mp3
+|       |       |       gloop2.mp3
+|       |       |       hum1.mp3
+|       |       |       hum2.mp3
+|       |       |       play.mp3
+|       |       |       round_over_lose.mp3
+|       |       |       round_over_win.mp3
+|       |       |       siren.wav
+|       |       |       skip.mp3
+|       |       |       start_game.mp3
+|       |       |       
+|       |       +---values
+|       |       |       colors.xml
+|       |       |       strings.xml
+|       |       |       themes.xml
+|       |       |       
+|       |       +---values-de
+|       |       |       strings.xml
+|       |       |       
+|       |       +---values-es
+|       |       |       strings.xml
+|       |       |       
+|       |       +---values-fr
+|       |       |       strings.xml
+|       |       |       
+|       |       +---values-it
+|       |       |       strings.xml
+|       |       |       
+|       |       \---xml
+|       |               backup_rules.xml
+|       |               data_extraction_rules.xml
+|       |               
+|       \---test
+|           \---java
+|               \---com
+|                   \---example
+|                       \---nido
+|                               ExampleUnitTest.kt
+|                               
++---build
+|   +---libs
+|   +---reports
+|   |   \---problems
+|   |           problems-report.html
+|   |           
+|   \---tmp
+|       \---jar
++---gradle
+|   |   libs.versions.toml
+|   |   
+|   \---wrapper
+|           gradle-wrapper.jar
+|           gradle-wrapper.properties
+|           
+\---Nido Project
+    |   Bug List.xlsx
+    |   How To Nido.docx
+    |   NIDO HEURISTIC.docx
+    |   NIDO RULES.docx
+    |   Nido Tree.docx
+    |   Project_Structure.docx
+    |   Test Vector 2-HP-Francois.docx
+    |   Test Vector.docx
+    |   
+    +---APKs
+    |       nido_v1_22.apk
+    |       nido_v1_29.apk
+    |       nido_v1_59.apk
+    |       nido_v_1_201.apk
+    |       output-metadata.json
+    |       versions.txt
+    |       
+    +---BUGs
+    |       Pixel-9-Pro-XL-API-34-Android-14_2025-03-05_071000.logcat
+    |       
+    +---Card-Game-Animation-main
+    |   +---app
+    |   |   \---src
+    |   |       +---androidTest
+    |   |       |   \---java
+    |   |       |       \---com
+    |   |       |           \---mohamedrejeb
+    |   |       |               \---cardsgame
+    |   |       +---main
+    |   |       |   +---java
+    |   |       |   |   \---com
+    |   |       |   |       \---mohamedrejeb
+    |   |       |   |           \---cardsgame
+    |   |       |   |               \---ui
+    |   |       |   |                   \---theme
+    |   |       |   \---res
+    |   |       |       +---drawable
+    |   |       |       +---mipmap-anydpi-v26
+    |   |       |       +---mipmap-hdpi
+    |   |       |       +---mipmap-mdpi
+    |   |       |       +---mipmap-xhdpi
+    |   |       |       +---mipmap-xxhdpi
+    |   |       |       +---mipmap-xxxhdpi
+    |   |       |       +---values
+    |   |       |       \---xml
+    |   |       \---test
+    |   |           \---java
+    |   |               \---com
+    |   |                   \---mohamedrejeb
+    |   |                       \---cardsgame
+    |   \---gradle
+    |       \---wrapper
+    +---Durak-master
+    |   +---app
+    |   |   +---release
+    |   |   \---src
+    |   |       +---androidTest
+    |   |       |   \---java
+    |   |       |       \---com
+    |   |       |           \---zaurh
+    |   |       |               \---durak
+    |   |       +---main
+    |   |       |   +---java
+    |   |       |   |   \---com
+    |   |       |   |       \---zaurh
+    |   |       |   |           \---durak
+    |   |       |   |               +---common
+    |   |       |   |               +---data
+    |   |       |   |               |   +---remote
+    |   |       |   |               |   |   \---durak
+    |   |       |   |               |   \---repository
+    |   |       |   |               +---data_store
+    |   |       |   |               +---di
+    |   |       |   |               +---presentation
+    |   |       |   |               |   +---screen
+    |   |       |   |               |   |   +---auth
+    |   |       |   |               |   |   |   \---components
+    |   |       |   |               |   |   \---components
+    |   |       |   |               |   |       \---durak
+    |   |       |   |               |   \---viewmodel
+    |   |       |   |               \---ui
+    |   |       |   |                   \---theme
+    |   |       |   \---res
+    |   |       |       +---drawable
+    |   |       |       +---drawable-v24
+    |   |       |       +---mipmap-anydpi-v26
+    |   |       |       +---mipmap-hdpi
+    |   |       |       +---mipmap-mdpi
+    |   |       |       +---mipmap-xhdpi
+    |   |       |       +---mipmap-xxhdpi
+    |   |       |       +---mipmap-xxxhdpi
+    |   |       |       +---values
+    |   |       |       +---values-az
+    |   |       |       +---values-en
+    |   |       |       +---values-ru
+    |   |       |       +---values-tr
+    |   |       |       \---xml
+    |   |       \---test
+    |   |           \---java
+    |   |               \---com
+    |   |                   \---zaurh
+    |   |                       \---durak
+    |   \---gradle
+    |       \---wrapper
+    \---Ressources
+        |   Playmat drawing.jpg
+        |   Test Vector 1.txt
+        |   
+        +---CardDeck
+        |   |   Back.jpg
+        |   |   Front Cover.jpg
+        |   |   NidoSet Bis 1.jpg
+        |   |   NidoSet Bis 2.jpg
+        |   |   NidoSet Bis 3.jpg
+        |   |   NidoSet Bis 4.jpg
+        |   |   NidoSet Bis 5.jpg
+        |   |   NidoSet Qua 2.jpg
+        |   |   NidoSet Qua 3.jpg
+        |   |   NidoSet Ter 1.jpg
+        |   |   NidoSet Ter 2.jpg
+        |   |   NidoSet1.jpg
+        |   |   NidoSet2.jpg
+        |   |   NidoSet3.jpg
+        |   |   NidoSet4.jpg
+        |   |   NidoSet5.jpg
+        |   |   PhotoScan.jpg
+        |   |   Rules English.jpg
+        |   |   Rules English.pdf
+        |   |   Rules French.jpg
+        |   |   Rules French.pdf
+        |   |   Side 1.jpg
+        |   |   Side 2.jpg
+        |   |   Side 3.jpg
+        |   |   Side 4.jpg
+        |   |   
+        |   +---ResArchives
+        |   |       back_cover.jpg
+        |   |       nido_card_b_1.jpg
+        |   |       nido_card_b_2.jpg
+        |   |       nido_card_b_3.jpg
+        |   |       nido_card_b_3_origin.jpg
+        |   |       nido_card_b_4.jpg
+        |   |       nido_card_b_5.jpg
+        |   |       nido_card_b_6.jpg
+        |   |       nido_card_b_7.jpg
+        |   |       nido_card_b_8.jpg
+        |   |       nido_card_b_9.jpg
+        |   |       nido_card_g_1.jpg
+        |   |       nido_card_g_2.jpg
+        |   |       nido_card_g_3.jpg
+        |   |       nido_card_g_4.jpg
+        |   |       nido_card_g_5.jpg
+        |   |       nido_card_g_6.jpg
+        |   |       nido_card_g_7.jpg
+        |   |       nido_card_g_8.jpg
+        |   |       nido_card_g_9.jpg
+        |   |       nido_card_m_1.jpg
+        |   |       nido_card_m_2.jpg
+        |   |       nido_card_m_3.jpg
+        |   |       nido_card_m_4.jpg
+        |   |       nido_card_m_5.jpg
+        |   |       nido_card_m_6.jpg
+        |   |       nido_card_m_7.jpg
+        |   |       nido_card_m_8.jpg
+        |   |       nido_card_m_9.jpg
+        |   |       nido_card_o_1.jpg
+        |   |       nido_card_o_2.jpg
+        |   |       nido_card_o_3.jpg
+        |   |       nido_card_o_4.jpg
+        |   |       nido_card_o_5.jpg
+        |   |       nido_card_o_6.jpg
+        |   |       nido_card_o_7.jpg
+        |   |       nido_card_o_8.jpg
+        |   |       nido_card_o_9.jpg
+        |   |       nido_card_p_1.jpg
+        |   |       nido_card_p_2.jpg
+        |   |       nido_card_p_3.jpg
+        |   |       nido_card_p_4.jpg
+        |   |       nido_card_p_5.jpg
+        |   |       nido_card_p_6.jpg
+        |   |       nido_card_p_7.jpg
+        |   |       nido_card_p_8.jpg
+        |   |       nido_card_p_9.jpg
+        |   |       nido_card_r_1.jpg
+        |   |       nido_card_r_2.jpg
+        |   |       nido_card_r_3.jpg
+        |   |       nido_card_r_4.jpg
+        |   |       nido_card_r_5.jpg
+        |   |       nido_card_r_6.jpg
+        |   |       nido_card_r_7.jpg
+        |   |       nido_card_r_8.jpg
+        |   |       nido_card_r_9.jpg
+        |   |       
+        |   +---Treated
+        |   |   |   back_cover.jpg
+        |   |   |   nido_card_b_1.jpg
+        |   |   |   nido_card_b_2.jpg
+        |   |   |   nido_card_b_3.jpg
+        |   |   |   nido_card_b_4.jpg
+        |   |   |   nido_card_b_5.jpg
+        |   |   |   nido_card_b_6.jpg
+        |   |   |   nido_card_b_7.jpg
+        |   |   |   nido_card_b_8.jpg
+        |   |   |   nido_card_b_9.jpg
+        |   |   |   nido_card_g_1.jpg
+        |   |   |   nido_card_g_2.jpg
+        |   |   |   nido_card_g_3.jpg
+        |   |   |   nido_card_g_4.jpg
+        |   |   |   nido_card_g_5.jpg
+        |   |   |   nido_card_g_6.jpg
+        |   |   |   nido_card_g_7.jpg
+        |   |   |   nido_card_g_8.jpg
+        |   |   |   nido_card_g_9.jpg
+        |   |   |   nido_card_m_1.jpg
+        |   |   |   nido_card_m_2.jpg
+        |   |   |   nido_card_m_3.jpg
+        |   |   |   nido_card_m_4.jpg
+        |   |   |   nido_card_m_5.jpg
+        |   |   |   nido_card_m_6.jpg
+        |   |   |   nido_card_m_7.jpg
+        |   |   |   nido_card_m_8.jpg
+        |   |   |   nido_card_m_9.jpg
+        |   |   |   nido_card_o_1.jpg
+        |   |   |   nido_card_o_2.jpg
+        |   |   |   nido_card_o_3.jpg
+        |   |   |   nido_card_o_4.jpg
+        |   |   |   nido_card_o_5.jpg
+        |   |   |   nido_card_o_6.jpg
+        |   |   |   nido_card_o_7.jpg
+        |   |   |   nido_card_o_8.jpg
+        |   |   |   nido_card_o_9.jpg
+        |   |   |   nido_card_p_1.jpg
+        |   |   |   nido_card_p_2.jpg
+        |   |   |   nido_card_p_3.jpg
+        |   |   |   nido_card_p_4.jpg
+        |   |   |   nido_card_p_5.jpg
+        |   |   |   nido_card_p_6.jpg
+        |   |   |   nido_card_p_7.jpg
+        |   |   |   nido_card_p_8.jpg
+        |   |   |   nido_card_p_9.jpg
+        |   |   |   nido_card_r_1.jpg
+        |   |   |   nido_card_r_2.jpg
+        |   |   |   nido_card_r_3.jpg
+        |   |   |   nido_card_r_4.jpg
+        |   |   |   nido_card_r_5.jpg
+        |   |   |   nido_card_r_6.jpg
+        |   |   |   nido_card_r_7.jpg
+        |   |   |   nido_card_r_8.jpg
+        |   |   |   nido_card_r_9.jpg
+        |   |   |   
+        |   |   \---ResArchives
+        |   |           back_cover.jpg
+        |   |           nido_card_b_1.jpg
+        |   |           nido_card_b_2.jpg
+        |   |           nido_card_b_3.jpg
+        |   |           nido_card_b_3_origin.jpg
+        |   |           nido_card_b_4.jpg
+        |   |           nido_card_b_5.jpg
+        |   |           nido_card_b_6.jpg
+        |   |           nido_card_b_7.jpg
+        |   |           nido_card_b_8.jpg
+        |   |           nido_card_b_9.jpg
+        |   |           nido_card_g_1.jpg
+        |   |           nido_card_g_2.jpg
+        |   |           nido_card_g_3.jpg
+        |   |           nido_card_g_4.jpg
+        |   |           nido_card_g_5.jpg
+        |   |           nido_card_g_6.jpg
+        |   |           nido_card_g_7.jpg
+        |   |           nido_card_g_8.jpg
+        |   |           nido_card_g_9.jpg
+        |   |           nido_card_m_1.jpg
+        |   |           nido_card_m_2.jpg
+        |   |           nido_card_m_3.jpg
+        |   |           nido_card_m_4.jpg
+        |   |           nido_card_m_5.jpg
+        |   |           nido_card_m_6.jpg
+        |   |           nido_card_m_7.jpg
+        |   |           nido_card_m_8.jpg
+        |   |           nido_card_m_9.jpg
+        |   |           nido_card_o_1.jpg
+        |   |           nido_card_o_2.jpg
+        |   |           nido_card_o_3.jpg
+        |   |           nido_card_o_4.jpg
+        |   |           nido_card_o_5.jpg
+        |   |           nido_card_o_6.jpg
+        |   |           nido_card_o_7.jpg
+        |   |           nido_card_o_8.jpg
+        |   |           nido_card_o_9.jpg
+        |   |           nido_card_p_1.jpg
+        |   |           nido_card_p_2.jpg
+        |   |           nido_card_p_3.jpg
+        |   |           nido_card_p_4.jpg
+        |   |           nido_card_p_5.jpg
+        |   |           nido_card_p_6.jpg
+        |   |           nido_card_p_7.jpg
+        |   |           nido_card_p_8.jpg
+        |   |           nido_card_p_9.jpg
+        |   |           nido_card_r_1.jpg
+        |   |           nido_card_r_2.jpg
+        |   |           nido_card_r_3.jpg
+        |   |           nido_card_r_4.jpg
+        |   |           nido_card_r_5.jpg
+        |   |           nido_card_r_6.jpg
+        |   |           nido_card_r_7.jpg
+        |   |           nido_card_r_8.jpg
+        |   |           nido_card_r_9.jpg
+        |   |           
+        |   +---Treated v2
+        |   |       back_cover.jpg
+        |   |       nido_card_b_1.jpg
+        |   |       nido_card_b_1.xcf
+        |   |       nido_card_b_2.jpg
+        |   |       nido_card_b_3.jpg
+        |   |       nido_card_b_4.jpg
+        |   |       nido_card_b_5.jpg
+        |   |       nido_card_b_6.jpg
+        |   |       nido_card_b_7.jpg
+        |   |       nido_card_b_8.jpg
+        |   |       nido_card_b_9.jpg
+        |   |       nido_card_g_1.jpg
+        |   |       nido_card_g_2.jpg
+        |   |       nido_card_g_3.jpg
+        |   |       nido_card_g_4.jpg
+        |   |       nido_card_g_5.jpg
+        |   |       nido_card_g_6.jpg
+        |   |       nido_card_g_7.jpg
+        |   |       nido_card_g_8.jpg
+        |   |       nido_card_g_9.jpg
+        |   |       nido_card_m_1.jpg
+        |   |       nido_card_m_2.jpg
+        |   |       nido_card_m_3.jpg
+        |   |       nido_card_m_4.jpg
+        |   |       nido_card_m_5.jpg
+        |   |       nido_card_m_6.jpg
+        |   |       nido_card_m_7.jpg
+        |   |       nido_card_m_8.jpg
+        |   |       nido_card_m_9.jpg
+        |   |       nido_card_o_1.jpg
+        |   |       nido_card_o_2.jpg
+        |   |       nido_card_o_3.jpg
+        |   |       nido_card_o_4.jpg
+        |   |       nido_card_o_5.jpg
+        |   |       nido_card_o_6.jpg
+        |   |       nido_card_o_7.jpg
+        |   |       nido_card_o_8.jpg
+        |   |       nido_card_o_9.jpg
+        |   |       nido_card_p_1.jpg
+        |   |       nido_card_p_2.jpg
+        |   |       nido_card_p_3.jpg
+        |   |       nido_card_p_4.jpg
+        |   |       nido_card_p_5.jpg
+        |   |       nido_card_p_6.jpg
+        |   |       nido_card_p_7.jpg
+        |   |       nido_card_p_8.jpg
+        |   |       nido_card_p_9.jpg
+        |   |       nido_card_r_1.jpg
+        |   |       nido_card_r_2.jpg
+        |   |       nido_card_r_3.jpg
+        |   |       nido_card_r_4.jpg
+        |   |       nido_card_r_5.jpg
+        |   |       nido_card_r_6.jpg
+        |   |       nido_card_r_7.jpg
+        |   |       nido_card_r_8.jpg
+        |   |       nido_card_r_9.jpg
+        |   |       
+        |   \---Treated v3
+        |       |   back_cover.jpg
+        |       |   back_cover.png
+        |       |   card_template.psd
+        |       |   convert_one.bat
+        |       |   nido_card_b_1.jpg
+        |       |   nido_card_b_1.png
+        |       |   nido_card_b_2.jpg
+        |       |   nido_card_b_2.png
+        |       |   nido_card_b_3.jpg
+        |       |   nido_card_b_3.png
+        |       |   nido_card_b_4.jpg
+        |       |   nido_card_b_4.png
+        |       |   nido_card_b_5.jpg
+        |       |   nido_card_b_5.png
+        |       |   nido_card_b_6.jpg
+        |       |   nido_card_b_6.png
+        |       |   nido_card_b_7.jpg
+        |       |   nido_card_b_7.png
+        |       |   nido_card_b_8.jpg
+        |       |   nido_card_b_8.png
+        |       |   nido_card_b_9.jpg
+        |       |   nido_card_b_9.png
+        |       |   nido_card_g_1.jpg
+        |       |   nido_card_g_1.png
+        |       |   nido_card_g_2.jpg
+        |       |   nido_card_g_2.png
+        |       |   nido_card_g_3.jpg
+        |       |   nido_card_g_3.png
+        |       |   nido_card_g_4.jpg
+        |       |   nido_card_g_4.png
+        |       |   nido_card_g_5.jpg
+        |       |   nido_card_g_5.png
+        |       |   nido_card_g_6.jpg
+        |       |   nido_card_g_6.png
+        |       |   nido_card_g_7.jpg
+        |       |   nido_card_g_7.png
+        |       |   nido_card_g_8.jpg
+        |       |   nido_card_g_8.png
+        |       |   nido_card_g_9.jpg
+        |       |   nido_card_g_9.png
+        |       |   nido_card_m_1.jpg
+        |       |   nido_card_m_1.png
+        |       |   nido_card_m_2.jpg
+        |       |   nido_card_m_2.png
+        |       |   nido_card_m_3.jpg
+        |       |   nido_card_m_3.png
+        |       |   nido_card_m_4.jpg
+        |       |   nido_card_m_4.png
+        |       |   nido_card_m_5.jpg
+        |       |   nido_card_m_5.png
+        |       |   nido_card_m_6.jpg
+        |       |   nido_card_m_6.png
+        |       |   nido_card_m_7.jpg
+        |       |   nido_card_m_7.png
+        |       |   nido_card_m_8.jpg
+        |       |   nido_card_m_8.png
+        |       |   nido_card_m_9.jpg
+        |       |   nido_card_m_9.png
+        |       |   nido_card_o_1.jpg
+        |       |   nido_card_o_1.png
+        |       |   nido_card_o_2.jpg
+        |       |   nido_card_o_2.png
+        |       |   nido_card_o_3.jpg
+        |       |   nido_card_o_3.png
+        |       |   nido_card_o_4.jpg
+        |       |   nido_card_o_4.png
+        |       |   nido_card_o_5.jpg
+        |       |   nido_card_o_5.png
+        |       |   nido_card_o_6.jpg
+        |       |   nido_card_o_6.png
+        |       |   nido_card_o_7.jpg
+        |       |   nido_card_o_7.png
+        |       |   nido_card_o_8.jpg
+        |       |   nido_card_o_8.png
+        |       |   nido_card_o_9.jpg
+        |       |   nido_card_o_9.png
+        |       |   nido_card_p_1.jpg
+        |       |   nido_card_p_1.png
+        |       |   nido_card_p_2.jpg
+        |       |   nido_card_p_2.png
+        |       |   nido_card_p_3.jpg
+        |       |   nido_card_p_3.png
+        |       |   nido_card_p_4.jpg
+        |       |   nido_card_p_4.png
+        |       |   nido_card_p_5.jpg
+        |       |   nido_card_p_5.png
+        |       |   nido_card_p_6.jpg
+        |       |   nido_card_p_6.png
+        |       |   nido_card_p_7.jpg
+        |       |   nido_card_p_7.png
+        |       |   nido_card_p_8.jpg
+        |       |   nido_card_p_8.png
+        |       |   nido_card_p_9.jpg
+        |       |   nido_card_p_9.png
+        |       |   nido_card_r_1.jpg
+        |       |   nido_card_r_1.png
+        |       |   nido_card_r_2.jpg
+        |       |   nido_card_r_2.png
+        |       |   nido_card_r_3.jpg
+        |       |   nido_card_r_3.png
+        |       |   nido_card_r_4.jpg
+        |       |   nido_card_r_4.png
+        |       |   nido_card_r_5.jpg
+        |       |   nido_card_r_5.png
+        |       |   nido_card_r_6.jpg
+        |       |   nido_card_r_6.png
+        |       |   nido_card_r_7.jpg
+        |       |   nido_card_r_7.png
+        |       |   nido_card_r_8.jpg
+        |       |   nido_card_r_8.png
+        |       |   nido_card_r_9.jpg
+        |       |   nido_card_r_9.png
+        |       |   photopea_template.jsx
+        |       |   rename_remove_cut.bat
+        |       |   round_crop_all_cards.bat
+        |       |   round_crop_all_cards.cmd
+        |       |   
+        |       \---NeedSpecialIntention
+        |               convert_one.bat
+        |               nido_card_b_4.jpg
+        |               nido_card_b_4.png
+        |               nido_card_o_4.jpg
+        |               nido_card_o_4.png
+        |               rename_remove_cut.bat
+        |               round_crop_all_cards.bat
+        |               
+        \---Images
+                A_digital_artwork_features_a_stylized_depiction_of.png
+                ChatGPT Image 2 avr. 2025, 19_47_42.png
+                druid.png
+                Finish with a single hand.png
+                Holding-Hand-Landscape-iPad-Tablet-Mockup With Nido.psd
+                Initial Deal.png
+                Nido Foreground.psd
+                NIDO Logo FWL Consulting.png
+                NIDO Logo FWL Consulting.psd
+                Nido Splash.psd
+                nido-splash-master.psd
+                Nido.png
+                Nido_launcher_background.png
+                nido_launcher_foreground.png
+                ODIN hqdefault_21_12.jpg
+                odin_gameplay.webp
+                odin_lifestyle_web detailed.webp
+                odin_lifestyle_web.webp
+                PlayMat_Initial.png
+                PlayMat_Played.png
+                splash-hdpi.png
+                splash-mdpi.png
+                splash-xhdpi.png
+                splash-xxhdpi.png
+                splash-xxxhdpi.png
+                Take card from the mat.png
+                two hands of twos.png
+                

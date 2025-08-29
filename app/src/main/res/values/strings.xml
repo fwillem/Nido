@@ -53,6 +53,7 @@
     <string name="hint_player_kept">Player %1$s kept %2$s</string>
     <string name="banner_play">%1$s Play</string>
     <string name="banner_play_short" translatable="false">%1$s</string>
+    <string name="play_online">Play Online</string>
 
 
 </resources>

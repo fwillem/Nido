@@ -189,7 +189,7 @@ fun SetupScreen(
                     },
                     enabled = selectedPlayers.size < Constants.GAME_MAX_PLAYERS
                 ) { Text(stringResource(R.string.add_AI_player)) }
-
+/*
                 Button(
                     modifier = Modifier.weight(1f),
                     onClick = {
@@ -202,7 +202,7 @@ fun SetupScreen(
                     enabled = selectedPlayers.none { it.playerType == PlayerType.REMOTE } &&
                             selectedPlayers.size < Constants.GAME_MAX_PLAYERS
                 ) { Text(stringResource(R.string.add_remote_player)) }
-
+*/
                 Button(
                     modifier = Modifier.weight(1f),
                     onClick = { if (selectedPlayers.size > 1) selectedPlayers = selectedPlayers.dropLast(1) },

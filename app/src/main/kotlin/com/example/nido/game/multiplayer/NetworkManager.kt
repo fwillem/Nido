@@ -260,4 +260,14 @@ object NetworkManager {
     fun sendBannerMsg(gameId: String, fromId: String, toId: String, text: String) =
         send(type = MSG_TYPE_BANNER_MSG, gameId = gameId, fromId = fromId, toId = toId, text = text)
 
+    fun sendReady(gameId: String, fromId: String, toId: String) {
+        send(gameId = gameId, fromId = fromId, toId = toId, type = MessageTypes.MSG_TYPE_READY, text = "")
+    }
+
+    fun sendStart(gameId: String, fromId: String, toId: String, text: String) {
+        send(gameId = gameId, fromId = fromId, toId = toId, type = MessageTypes.MSG_TYPE_START, text = text)
+    }
+
+
+
 }

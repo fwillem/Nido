@@ -35,11 +35,16 @@ import com.example.nido.ui.dialogs.QuitGameDialog
 import com.example.nido.ui.dialogs.RoundOverDialog
 import com.example.nido.utils.TRACE
 import com.example.nido.utils.TraceLogLevel.FATAL
+import com.example.nido.game.GameManager
+import com.example.nido.data.model.PlayerType
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.auth.ktx.auth
 
 @Composable
 fun LandingScreen(
     onSetup: () -> Unit,
     onGame: () -> Unit,
+    onMultiplayerGame: () -> Unit,
     onQuit : () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -102,6 +107,11 @@ fun LandingScreen(
                             onClick = onGame,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text(text = stringResource(R.string.play)) }
+                        // Multiplayer (symétrique : host/join auto, démarrage quand les 2 ont appuyé)
+                        Button(
+                            onClick = onMultiplayerGame,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text(text = stringResource(R.string.play_online)) }
                         Button(
                             onClick = onSetup,
                             modifier = Modifier.fillMaxWidth()
@@ -127,6 +137,7 @@ fun LandingScreenPreview() {
         LandingScreen(
             onSetup = {},
             onGame = {},
+            onMultiplayerGame = {},
             onQuit = {},
         )
     }

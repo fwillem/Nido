@@ -9,6 +9,7 @@ import com.example.nido.data.model.PlayerActionType
 import com.example.nido.data.model.Hand
 import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
+import com.example.nido.game.ai.AIPlayer
 import com.example.nido.game.engine.GameEventDispatcher
 import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_BANNER_MSG
 import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_CHAT
@@ -17,9 +18,12 @@ import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_STATE_SYNC
 import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_HINT
 import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_PLAY
 import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_SKIP
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_READY
+import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_START
 import com.example.nido.game.multiplayer.MultiplayerMode
 import com.example.nido.game.multiplayer.MultiplayerState
 import com.example.nido.game.multiplayer.NetworkManager
+import com.example.nido.game.multiplayer.RemotePlayer
 import com.example.nido.game.multiplayer.RoomCoordinator
 import com.example.nido.game.rules.GameRules
 import com.example.nido.replay.GameRecorder
@@ -56,11 +60,123 @@ object GameManager : IGameManager {
     private val _gameState = MutableStateFlow(GameState())
     override val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
-    override fun initialize(viewModel: GameViewModel) { /* no-op for now */ }
+    override fun initialize(viewModel: GameViewModel) { /* no-op for now */
+    }
 
     // -------------------------------------------------------------------------
-    // Game lifecycle
+    // Multiplayer Game Setup
     // -------------------------------------------------------------------------
+// --- Handshake “start pressed” ---
+
+
+    private data class MpSetup(
+        val localName: String,
+        val aiCount: Int,
+        val pointLimit: Int,
+        val doNotAutoPlayAI: Boolean,
+        val aiTimerMs: Int
+    )
+
+    private var localSetup: MpSetup? = null
+
+    private fun ensureRemoteSeatAdded(remoteUid: String, remoteName: String = "Guest"): Boolean {
+        val s = gameState.value
+        if (s.players.any { it.playerType == PlayerType.REMOTE }) return false
+        val remote = RemotePlayer(id = remoteUid, name = remoteName, avatar = "🌍")
+        updateGameState(players = s.players + remote)
+        TRACE(INFO) { "Remote seat added: $remoteUid" }
+        return true
+    }
+
+    private fun maybeSendReady() {
+        val ms = gameState.value.multiplayerState ?: return
+        val gameId = ms.currentGameId ?: return
+        val toId = ms.knownRemoteUid ?: return
+        if (!ms.localReady) return
+        NetworkManager.sendReady(gameId, ms.myUid, toId)
+    }
+
+
+    // Real start of the game when te two sides are ready
+    private fun maybeStartMultiplayerGame() {
+        if (!isHost()) return
+        val ms = gameState.value.multiplayerState ?: return
+        if (ms.gameLaunched) return
+        if (!(ms.localReady && ms.remoteReady)) return
+
+        val remoteUid = ms.knownRemoteUid ?: return
+        ensureRemoteSeatAdded(remoteUid, "Guest")
+
+        startNewGame(
+            selectedPlayers = gameState.value.players,
+            selectedPointLimit = gameState.value.pointLimit,
+            doNotAutoPlayAI = gameState.value.doNotAutoPlayAI,
+            AITimerDuration = gameState.value.aiTimerDuration
+        )
+
+        // … inside maybeStartMultiplayerGame()
+        startNewGame(
+            selectedPlayers = gameState.value.players,
+            selectedPointLimit = gameState.value.pointLimit,
+            doNotAutoPlayAI = gameState.value.doNotAutoPlayAI,
+            AITimerDuration = gameState.value.aiTimerDuration
+        )
+
+// 🟧 replace your single “setMultiplayerState(ms.copy(gameLaunched = true))” with:
+        val ms2 = gameState.value.multiplayerState ?: return
+        val gameId = ms2.currentGameId ?: return
+        val startPayload = StartPayload(
+            players = gameState.value.players.map { p ->
+                StartPlayer(id = p.id, name = p.name, type = p.playerType, score = p.score)
+            },
+            pointLimit = gameState.value.pointLimit,
+            startingPlayerIndex = gameState.value.startingPlayerIndex,
+            currentPlayerIndex = gameState.value.currentPlayerIndex,
+            turnId = gameState.value.turnId
+        )
+// 🟩 broadcast canonical players + indices to guest
+        NetworkManager.sendStart(
+            gameId = gameId,
+            fromId = ms2.myUid,
+            toId = remoteUid,
+            text = encodeStart(startPayload)
+        )
+
+// 🟧 now mark launched
+        setMultiplayerState(ms.copy(gameLaunched = true))
+
+
+    }
+
+
+    fun onStartMultiplayerPressed(
+        localName: String,
+        aiCount: Int,
+        pointLimit: Int,
+        doNotAutoPlayAI: Boolean,
+        aiTimerMs: Int,
+        myUid: String
+    ) {
+        localSetup = MpSetup(localName, aiCount, pointLimit, doNotAutoPlayAI, aiTimerMs)
+        val cur = gameState.value.multiplayerState
+        val msReady =
+            cur?.copy(localReady = true) ?: MultiplayerState(myUid = myUid, localReady = true)
+        setMultiplayerState(msReady)
+
+        val ms = gameState.value.multiplayerState
+
+        if (ms?.currentGameId == null) {
+            autoQuickConnect(myUid)        // symmetric host/join
+        }
+
+        maybeSendReady()                  // will no-op if not fully connected yet
+        maybeStartMultiplayerGame()       // host will start if both READY already
+
+    }
+
+// -------------------------------------------------------------------------
+// Game lifecycle
+// -------------------------------------------------------------------------
 
     /**
      * Initialize a new game session (local state). This does not touch networking.
@@ -83,7 +199,8 @@ object GameManager : IGameManager {
         val startingPlayerIndex = (0 until selectedPlayers.size).random()
 
         // Apply scores for the new game.
-        val initializedPlayers = GameRules.initializePlayerScores(selectedPlayers, selectedPointLimit)
+        val initializedPlayers =
+            GameRules.initializePlayerScores(selectedPlayers, selectedPointLimit)
 
         // Caution, we need to keep the value of multiplayerState if any.
         // Caution, we need to keep the value of multiplayerState if any.
@@ -110,9 +227,9 @@ object GameManager : IGameManager {
         dispatcher.enqueueEvent(GameEvent.NewRoundStarted)
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Helpers
+// -------------------------------------------------------------------------
 
     private fun getCurrentPlayer(): Player =
         gameState.value.players[gameState.value.currentPlayerIndex]
@@ -140,9 +257,9 @@ object GameManager : IGameManager {
     }
 
 
-    // -------------------------------------------------------------------------
-    // Turn actions
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Turn actions
+// -------------------------------------------------------------------------
 
     override fun skipTurn() {
         TRACE(DEBUG) { "skipTurn()" }
@@ -172,7 +289,12 @@ object GameManager : IGameManager {
             val gameId = multiplayerState.currentGameId ?: return
             val hostUid = multiplayerState.knownRemoteUid ?: return
 
-            val json = encodeTurnPlay(TurnPlayIntent(selectedCards = selectedCards, cardToKeep = cardToKeep))
+            val json = encodeTurnPlay(
+                TurnPlayIntent(
+                    selectedCards = selectedCards,
+                    cardToKeep = cardToKeep
+                )
+            )
             NetworkManager.sendTurnPlay(gameId, multiplayerState.myUid, hostUid, json)
             return
         }
@@ -186,7 +308,6 @@ object GameManager : IGameManager {
         dispatcher.enqueueEvent(event)
 
     }
-
 
 
     override fun getAIMove() {
@@ -222,9 +343,9 @@ object GameManager : IGameManager {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Queries
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Queries
+// -------------------------------------------------------------------------
 
     override fun isValidMove(selectedCards: List<Card>): Boolean {
         val currentCombination = gameState.value.currentCombinationOnMat
@@ -261,9 +382,9 @@ object GameManager : IGameManager {
         return possibleMoves.any { GameRules.isValidMove(playmatCombination, it, handCards) }
     }
 
-    // -------------------------------------------------------------------------
-    // Dialogs / notices / sfx
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Dialogs / notices / sfx
+// -------------------------------------------------------------------------
 
     override fun setAppDialogEvent(event: AppDialogEvent) {
         updateGameState(appDialogEvent = event)
@@ -319,9 +440,9 @@ object GameManager : IGameManager {
         updateGameState(pendingNotices = cur.pendingNotices - notice)
     }
 
-    // -------------------------------------------------------------------------
-    // Networking: inbound handling
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Networking: inbound handling
+// -------------------------------------------------------------------------
 
     private fun handleInbound(msg: NetworkManager.InboundMessage) {
         TRACE(WARNING) { "NET inbound: type=${msg.type} from=${msg.fromId} text=${msg.text}" }
@@ -331,7 +452,12 @@ object GameManager : IGameManager {
         // Learn peer uid if unknown (single block)
         gameState.value.multiplayerState?.let { ms ->
             if (ms.knownRemoteUid == null) {
-                setMultiplayerState(ms.copy(knownRemoteUid = msg.fromId))
+                val ms2 = ms.copy(knownRemoteUid = msg.fromId)
+                setMultiplayerState(ms2)
+                ensureRemoteSeatAdded(msg.fromId, "Guest")
+                if (ms2.localReady) {
+                    maybeSendReady()
+                }
             }
         }
 
@@ -345,8 +471,15 @@ object GameManager : IGameManager {
                 // TODO: after reducer commit → broadcastAfterHostCommit()
             }
 
+            // ⬇️ Consolidated single branch
             MSG_TYPE_STATE_SYNC -> if (isGuest()) {
-                // TODO: decode JSON → ClientSnapshot, then applyAuthoritativeSnapshot(snapshot)
+                val text = msg.text ?: return
+                try {
+                    val snapshot = decodeSnapshot(text)
+                    applyAuthoritativeSnapshot(snapshot)
+                } catch (e: Exception) {
+                    TRACE(ERROR) { "STATE_SYNC decode/apply failed: ${e.message}" }
+                }
             }
 
             MSG_TYPE_TURN_HINT -> if (isGuest()) {
@@ -363,23 +496,54 @@ object GameManager : IGameManager {
 
 
             MSG_TYPE_PING -> {
-                notice = UiNotice(message = "Ping received from ${msg.fromId}", kind = NoticeKind.Success)
+                notice = UiNotice(
+                    message = "Ping received from ${msg.fromId}",
+                    kind = NoticeKind.Success
+                )
             }
 
             MSG_TYPE_CHAT -> {
-                notice = UiNotice(message = "Chat from ${msg.fromId}: ${msg.text ?: ""}", kind = NoticeKind.Success)
+                notice = UiNotice(
+                    message = "Chat from ${msg.fromId}: ${msg.text ?: ""}",
+                    kind = NoticeKind.Success
+                )
+            }
+
+            MSG_TYPE_READY -> {
+                // Peer has pressed “multiplayer”
+                var ms = gameState.value.multiplayerState ?: return
+                if (ms.knownRemoteUid == null) {
+                    setMultiplayerState(ms.copy(knownRemoteUid = msg.fromId))
+                    ensureRemoteSeatAdded(msg.fromId, "Guest")
+                    ms = gameState.value.multiplayerState!! // refresh
+                }
+                setMultiplayerState(ms.copy(remoteReady = true))
+                maybeSendReady()
+                maybeStartMultiplayerGame()
+            }
+
+
+            MSG_TYPE_START -> if (isGuest()) {
+                val text = msg.text ?: return
+                try {
+                    val payload = decodeStart(text)
+                    applyStartFromHost(payload, msg.fromId)
+                } catch (e: Exception) {
+                    TRACE(ERROR) { "START decode/apply failed: ${e.message}" }
+                }
             }
         }
 
         notice?.let {
             updateGameState(pendingNotices = gameState.value.pendingNotices + it)
         }
+
     }
 
 
-    // -------------------------------------------------------------------------
-    // Multiplayer lobby state
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Multiplayer lobby state
+// -------------------------------------------------------------------------
 
     override fun setMultiplayerState(state: MultiplayerState?) {
         updateGameState(multiplayerState = state)
@@ -399,10 +563,19 @@ object GameManager : IGameManager {
                         mode = MultiplayerMode.HOST,
                         myUid = myUid,
                         currentGameId = res.gameId,
-                        knownRemoteUid = null
+                        knownRemoteUid = null,
+                        localReady = gameState.value.multiplayerState?.localReady == true
                     )
                 )
-                enqueueNotice(UiNotice(message = "Hosting game ${res.gameId}", kind = NoticeKind.Info))
+                maybeSendReady()
+                maybeStartMultiplayerGame()
+
+                enqueueNotice(
+                    UiNotice(
+                        message = "Hosting game ${res.gameId}",
+                        kind = NoticeKind.Info
+                    )
+                )
             },
             onError = { msg ->
                 enqueueNotice(UiNotice(message = "Host failed: $msg", kind = NoticeKind.Error))
@@ -421,10 +594,18 @@ object GameManager : IGameManager {
                         mode = MultiplayerMode.JOINER,
                         myUid = myUid,
                         currentGameId = res.gameId,
-                        knownRemoteUid = res.ownerId
+                        knownRemoteUid = res.ownerId,
+                        localReady = gameState.value.multiplayerState?.localReady == true
+
                     )
                 )
-                enqueueNotice(UiNotice(message = "Joined game ${res.gameId}", kind = NoticeKind.Success))
+                maybeSendReady()  // host will start when it sees remoteReady=true
+                enqueueNotice(
+                    UiNotice(
+                        message = "Joined game ${res.gameId}",
+                        kind = NoticeKind.Success
+                    )
+                )
             },
             onError = { msg ->
                 enqueueNotice(UiNotice(message = "Join failed: $msg", kind = NoticeKind.Warning))
@@ -432,9 +613,9 @@ object GameManager : IGameManager {
         )
     }
 
-    // -------------------------------------------------------------------------
-    // Outbound messages
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Outbound messages
+// -------------------------------------------------------------------------
 
     override fun chatWithRemotePlayer(remotePlayerId: String, text: String) {
         val gameId = activeGameIdOrNull() ?: return
@@ -464,12 +645,13 @@ object GameManager : IGameManager {
         return when (me) {
             Constants.RemoteTestIds.ANONYMOUS_UID_REMOTE_PLAYER_XIAOMI ->
                 Constants.RemoteTestIds.ANONYMOUS_UID_REMOTE_PLAYER_VD
+
             Constants.RemoteTestIds.ANONYMOUS_UID_REMOTE_PLAYER_VD ->
                 Constants.RemoteTestIds.ANONYMOUS_UID_REMOTE_PLAYER_XIAOMI
+
             else -> gameState.value.multiplayerState?.knownRemoteUid
         }
     }
-
 
 
     override fun pingTestPeerIfPossible() {
@@ -486,7 +668,7 @@ object GameManager : IGameManager {
 // --- replace the existing autoQuickConnect(myUid: String) ---
     override fun autoQuickConnect(myUid: String) {
         val windowMillis = 5 * 60 * 1000L  // 5 minutes
-        TRACE(WARNING) { "ROOM_BOOT: start uid=$myUid window=${windowMillis/1000}s" }
+        TRACE(WARNING) { "ROOM_BOOT: start uid=$myUid window=${windowMillis / 1000}s" }
 
         // 1) Scan recent rooms (≤ 5 min), then pick the first not owned by me.
         RoomCoordinator.queryRecentRooms(
@@ -509,7 +691,8 @@ object GameManager : IGameManager {
                                     myUid = myUid,
                                     currentGameId = res.gameId,
                                     knownRemoteUid = res.ownerId
-                                ))
+                                )
+                            )
                             // après setMultiplayerState(...) + notice :
                             res.ownerId?.let { owner ->
                                 NetworkManager.sendPing(
@@ -521,7 +704,10 @@ object GameManager : IGameManager {
                             }
                             updateGameState(
                                 pendingNotices = gameState.value.pendingNotices +
-                                        UiNotice(message = "Joined game ${res.gameId}", kind = NoticeKind.Success)
+                                        UiNotice(
+                                            message = "Joined game ${res.gameId}",
+                                            kind = NoticeKind.Success
+                                        )
                             )
                             // 3) Cleanup: delete all my other rooms (simple v1)
                             cleanupMyRoomsAfterConnect(myUid, keepGameId = res.gameId)
@@ -562,7 +748,10 @@ object GameManager : IGameManager {
                 )
                 updateGameState(
                     pendingNotices = gameState.value.pendingNotices +
-                            UiNotice(message = "Hosting game ${host.gameId}", kind = NoticeKind.Info)
+                            UiNotice(
+                                message = "Hosting game ${host.gameId}",
+                                kind = NoticeKind.Info
+                            )
                 )
                 // Delete all my other rooms (duplicates/old) except the current one
                 cleanupMyRoomsAfterConnect(myUid, keepGameId = host.gameId)
@@ -596,25 +785,31 @@ object GameManager : IGameManager {
                 o.put("kind", HintWireKind.PLAYER_SKIPPED)
                 o.put("name", hint.name)
             }
+
             is TurnHintMsg.MatDiscardedNext -> {
                 o.put("kind", HintWireKind.MAT_DISCARDED_NEXT)
                 o.put("name", hint.name)
             }
+
             is TurnHintMsg.YouCannotBeat -> {
                 o.put("kind", HintWireKind.YOU_CANNOT_BEAT)
             }
+
             is TurnHintMsg.YouMustPlayOne -> {
                 o.put("kind", HintWireKind.YOU_MUST_PLAY_ONE)
                 o.put("canAllIn", hint.canAllIn)
             }
+
             is TurnHintMsg.YouCanPlayNOrNPlusOne -> {
                 o.put("kind", HintWireKind.YOU_CAN_PLAY_N_OR_NPLUS1)
                 o.put("n", hint.n)
             }
+
             is TurnHintMsg.YouKept -> {
                 o.put("kind", HintWireKind.YOU_KEPT)
                 o.put("card", hint.card) // string form you already display in UI
             }
+
             is TurnHintMsg.PlayerKept -> {
                 o.put("kind", HintWireKind.PLAYER_KEPT)
                 o.put("name", hint.name)
@@ -634,16 +829,20 @@ object GameManager : IGameManager {
             HintWireKind.YOU_MUST_PLAY_ONE -> TurnHintMsg.YouMustPlayOne(
                 canAllIn = o.optBoolean("canAllIn", false)
             )
+
             HintWireKind.YOU_CAN_PLAY_N_OR_NPLUS1 -> TurnHintMsg.YouCanPlayNOrNPlusOne(
                 n = o.optInt("n", 1)
             )
+
             HintWireKind.YOU_KEPT -> TurnHintMsg.YouKept(
                 card = o.getString("card")
             )
+
             HintWireKind.PLAYER_KEPT -> TurnHintMsg.PlayerKept(
                 name = o.getString("name"),
                 card = o.getString("card")
             )
+
             else -> null
         }
     }
@@ -673,10 +872,129 @@ object GameManager : IGameManager {
         }
     }
 
+    // Minimal SnapshotDecoder for STATE_SYNC messages (Host → Guest).
+    private fun decodeSnapshot(json: String): ClientSnapshot {
+        val o = JSONObject(json)
 
-    // -------------------------------------------------------------------------
-    // IGameManager: remaining required methods
-    // -------------------------------------------------------------------------
+        // playersPublic
+        val ppArr = o.getJSONArray("playersPublic")
+        val pp = (0 until ppArr.length()).map { i ->
+            val p = ppArr.getJSONObject(i)
+            PublicPlayerView(
+                playerId = p.getString("playerId"),
+                name = p.getString("name"),
+                type = PlayerType.valueOf(p.getString("type")),
+                score = p.getInt("score"),
+                handCount = p.getInt("handCount")
+            )
+        }
+
+        return ClientSnapshot(
+            turnId = o.getInt("turnId"),
+            currentPlayerIndex = o.getInt("currentPlayerIndex"),
+            currentPlayerId = o.getString("currentPlayerId"),
+            // v1: do not override guest playmat yet (we’ll switch to structured cards later)
+            matCombination = gameState.value.currentCombinationOnMat,
+            playersPublic = pp,
+            skipCount = o.getInt("skipCount"),
+            pointLimit = o.getInt("pointLimit"),
+            lastMove = null,
+            myHand = null
+        )
+    }
+
+    // 🟩 add — Host → Guest: canonical start payload
+    private data class StartPlayer(
+        val id: String,
+        val name: String,
+        val type: PlayerType,
+        val score: Int
+    )
+
+    private data class StartPayload(
+        val players: List<StartPlayer>,
+        val pointLimit: Int,
+        val startingPlayerIndex: Int,
+        val currentPlayerIndex: Int,
+        val turnId: Int
+    )
+
+    private fun encodeStart(p: StartPayload): String {
+        val root = JSONObject().apply {
+            put("pointLimit", p.pointLimit)
+            put("startingPlayerIndex", p.startingPlayerIndex)
+            put("currentPlayerIndex", p.currentPlayerIndex)
+            put("turnId", p.turnId)
+
+            val arr = JSONArray()
+            p.players.forEach { sp ->
+                arr.put(JSONObject().apply {
+                    put("id", sp.id)
+                    put("name", sp.name)
+                    put("type", sp.type.name)
+                    put("score", sp.score)
+                })
+            }
+            put("players", arr)
+        }
+        return root.toString()
+    }
+
+    private fun decodeStart(json: String): StartPayload {
+        val o = JSONObject(json)
+        val arr = o.getJSONArray("players")
+        val players = (0 until arr.length()).map { i ->
+            val p = arr.getJSONObject(i)
+            StartPlayer(
+                id = p.getString("id"),
+                name = p.getString("name"),
+                type = PlayerType.valueOf(p.getString("type")),
+                score = p.getInt("score")
+            )
+        }
+        return StartPayload(
+            players = players,
+            pointLimit = o.getInt("pointLimit"),
+            startingPlayerIndex = o.getInt("startingPlayerIndex"),
+            currentPlayerIndex = o.getInt("currentPlayerIndex"),
+            turnId = o.getInt("turnId")
+        )
+    }
+
+    private fun applyStartFromHost(payload: StartPayload, hostUid: String) {
+        // Build canonical player list (concrete subclasses)
+        val players: List<Player> = payload.players.map { sp -> startPlayerToConcrete(sp) }
+
+        // Mark session launched & remember host uid
+        val ms0 = gameState.value.multiplayerState
+        val ms = (ms0 ?: MultiplayerState(myUid = myNetworkingUidOrNull() ?: ""))
+            .copy(knownRemoteUid = hostUid, gameLaunched = true)
+        setMultiplayerState(ms)
+
+        // Adopt host’s order & indexes
+        updateGameState(
+            players = players,
+            startingPlayerIndex = payload.startingPlayerIndex,
+            currentPlayerIndex  = payload.currentPlayerIndex,
+            currentPlayerId     = players.getOrNull(payload.currentPlayerIndex)?.id ?: "",
+            pointLimit          = payload.pointLimit,
+            turnId              = payload.turnId
+            // currentCombinationOnMat left as-is; subsequent STATE_SYNC will drive it
+        )
+    }
+
+
+    private fun startPlayerToConcrete(sp: StartPlayer): Player =
+        when (sp.type) {
+            PlayerType.LOCAL  -> LocalPlayer(id = sp.id, name = sp.name, avatar = "👤")
+            PlayerType.AI     -> AIPlayer(id = sp.id, name = sp.name, avatar = "🤖")
+            PlayerType.REMOTE -> RemotePlayer(id = sp.id, name = sp.name, avatar = "🌍")
+        }
+
+
+// -------------------------------------------------------------------------
+// IGameManager: remaining required methods
+// -------------------------------------------------------------------------
 
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
         val current = gameState.value
@@ -697,7 +1015,7 @@ object GameManager : IGameManager {
     }
 
     // Multiplayer part
-    // Guest → Host: human intent to play
+// Guest → Host: human intent to play
     private data class TurnPlayIntent(
         val selectedCards: List<Card>,
         val cardToKeep: Card? = null
@@ -737,19 +1055,22 @@ object GameManager : IGameManager {
 
     private fun authorityMode(): AuthorityMode =
         when (gameState.value.multiplayerState?.mode) {
-            MultiplayerMode.HOST   -> AuthorityMode.FULL
+            MultiplayerMode.HOST -> AuthorityMode.FULL
             MultiplayerMode.JOINER -> AuthorityMode.MIRROR
-            null                   -> AuthorityMode.FULL // single-player
+            null -> AuthorityMode.FULL // single-player
         }
 
-    private fun isHost()  = gameState.value.multiplayerState?.mode == MultiplayerMode.HOST
+    private fun isHost() = gameState.value.multiplayerState?.mode == MultiplayerMode.HOST
     private fun isGuest() = gameState.value.multiplayerState?.mode == MultiplayerMode.JOINER
 
 
     // --- TURN_PLAY encode/decode ------------------------------------------------
     private fun encodeTurnPlay(intent: TurnPlayIntent): String {
         val root = JSONObject()
-        root.put("selectedCards", JSONArray(intent.selectedCards.map { it.toString() })) // TODO: switch to structured JSON
+        root.put(
+            "selectedCards",
+            JSONArray(intent.selectedCards.map { it.toString() })
+        ) // TODO: switch to structured JSON
         root.put("cardToKeep", intent.cardToKeep?.toString())
         return root.toString()
     }
@@ -757,7 +1078,10 @@ object GameManager : IGameManager {
     private fun decodeTurnPlay(json: String): TurnPlayIntent {
         val obj = JSONObject(json)
         val selected = obj.optJSONArray("selectedCards")?.let { arr ->
-            (0 until arr.length()).map { /* TODO parseCard(arr.getString(it)) */ throw IllegalStateException("parseCard not implemented") }
+            (0 until arr.length()).map { /* TODO parseCard(arr.getString(it)) */ throw IllegalStateException(
+                "parseCard not implemented"
+            )
+            }
         } ?: emptyList()
         val keep = obj.optString("cardToKeep", null)?.let { /* TODO parseCard(it) */ null }
         return TurnPlayIntent(selectedCards = selected, cardToKeep = keep)
@@ -836,24 +1160,29 @@ object GameManager : IGameManager {
 
     private fun applyAuthoritativeSnapshot(snapshot: ClientSnapshot) {
         val state = gameState.value
-        if (snapshot.turnId <= state.turnId) return // de-duplication (at-least-once)
+        if (snapshot.turnId <= state.turnId) return // de-dupe
 
+        // Map the host's currentPlayerId to our local list to compute a safe index.
+        val mappedIndex = state.players.indexOfFirst { it.id == snapshot.currentPlayerId }
+        val safeIndex = if (mappedIndex >= 0) mappedIndex else snapshot.currentPlayerIndex
+
+        // Update public bits; keep local hands & mat in v1
         val remappedPlayers = state.players.map { player ->
-            val pub = snapshot.playersPublic.firstOrNull { it.playerId == player.id } ?: return@map player
-            val newHand = if (snapshot.myHand != null && player.playerType == PlayerType.REMOTE) snapshot.myHand else player.hand
-            player.copy(score = pub.score, hand = newHand)
+            val pub = snapshot.playersPublic.firstOrNull { it.playerId == player.id }
+            if (pub != null) player.copy(score = pub.score) else player
         }
 
         updateGameState(
-            players = remappedPlayers,
-            currentPlayerIndex = snapshot.currentPlayerIndex,
-            currentPlayerId = snapshot.currentPlayerId,
-            currentCombinationOnMat = snapshot.matCombination,
-            skipCount = snapshot.skipCount,
-            pointLimit = snapshot.pointLimit,
-            turnId = snapshot.turnId
+            players            = remappedPlayers,
+            currentPlayerIndex = safeIndex,
+            currentPlayerId    = snapshot.currentPlayerId,
+            // keep currentCombinationOnMat as-is in v1
+            skipCount          = snapshot.skipCount,
+            pointLimit         = snapshot.pointLimit,
+            turnId             = snapshot.turnId
         )
     }
+
 
     private fun broadcastAfterHostCommit() {
         if (!isHost()) return
@@ -864,7 +1193,12 @@ object GameManager : IGameManager {
 
         // 1) Authoritative snapshot
         val snapshot = buildClientSnapshotFor(remoteUid)
-        NetworkManager.sendStateSync(gameId, multiplayerState.myUid, remoteUid, encodeSnapshot(snapshot))
+        NetworkManager.sendStateSync(
+            gameId,
+            multiplayerState.myUid,
+            remoteUid,
+            encodeSnapshot(snapshot)
+        )
 
         // 2) TurnHint (tiny, UI-only)
         encodeTurnHint(state.turnHintMsg)?.let { json ->
@@ -878,13 +1212,12 @@ object GameManager : IGameManager {
         }
 
 
-
     }
 
 
-    // -------------------------------------------------------------------------
-    // State update helpers
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// State update helpers
+// -------------------------------------------------------------------------
 
     /** Replace whole state (used by reducer/event dispatcher). */
     fun updateGameState(newState: GameState) {
@@ -942,9 +1275,9 @@ object GameManager : IGameManager {
         )
     }
 
-    // -------------------------------------------------------------------------
-    // Event dispatcher wiring
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+// Event dispatcher wiring
+// -------------------------------------------------------------------------
 
     private val dispatcher = GameEventDispatcher(
         getState = { gameState.value },
@@ -996,15 +1329,26 @@ object GameManager : IGameManager {
 
     private fun handleSideEffect(effect: GameSideEffect) {
         when (effect) {
-            is GameSideEffect.StartAITimer -> launchAITimer(effect.turnId, this.gameState.value.aiTimerDuration)
+            is GameSideEffect.StartAITimer -> launchAITimer(
+                effect.turnId,
+                this.gameState.value.aiTimerDuration
+            )
+
             is GameSideEffect.ShowDialog -> setGameDialogEvent(effect.dialog)
             is GameSideEffect.GetAIMove -> getAIMove()
             is GameSideEffect.PlaySound -> enqueueSound(effect.effect)
-            is GameSideEffect.PlayMusic -> enqueueMusic(MusicCommand.Play(effect.track, effect.loop))
+            is GameSideEffect.PlayMusic -> enqueueMusic(
+                MusicCommand.Play(
+                    effect.track,
+                    effect.loop
+                )
+            )
+
             is GameSideEffect.StopMusic -> enqueueMusic(MusicCommand.Stop)
         }
     }
 }
+
 
 // Internal helper to expose GameManager as IGameManager.
 internal fun getGameManagerInstance(): IGameManager = GameManager
