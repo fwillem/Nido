@@ -14,7 +14,6 @@ class RemotePlayer(
     override val avatar: String,
     override var score: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     override val hand: Hand = Hand(),
-    override val isLocallyManaged: Boolean = true
 ) : Player {
     override val playerType: PlayerType = PlayerType.REMOTE
 
@@ -36,12 +35,11 @@ class RemotePlayer(
         avatar: String,
         score: Int,
         hand: Hand,
-        isLocallyManaged: Boolean
     ): Player {
-        return RemotePlayer(id, name, avatar, score, hand, isLocallyManaged)
+        return RemotePlayer(id, name, avatar, score, hand)
     }
 
     override fun toString(): String {
-        return "RemotePlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand, isLocallyManaged=$isLocallyManaged)"
+        return "RemotePlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand)"
     }
 }

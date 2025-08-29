@@ -75,6 +75,9 @@ D:.
 |   |               |   |       GameEventDispatcher.kt
 |   |               |   |       
 |   |               |   +---multiplayer
+|   |               |   |       MessageTypes.kt
+|   |               |   |       MultiPlayerSession.kt
+|   |               |   |       MultiplayerState.kt
 |   |               |   |       NetworkManager.kt
 |   |               |   |       RemotePlayer.kt
 |   |               |   |       RoomCoordinator.kt
@@ -122,6 +125,7 @@ D:.
 |   |               |   |       ScoreScreen.kt
 |   |               |   |       SetupScreen.kt
 |   |               |   |       SplashScreen.kt
+|   |               |   |       WaitingRoomScreen.kt
 |   |               |   |       
 |   |               |   +---theme
 |   |               |   |       Color.kt

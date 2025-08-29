@@ -25,7 +25,6 @@ class AIPlayer(
     override val avatar: String,
     override var score: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     override val hand: Hand = Hand(),
-    override val isLocallyManaged: Boolean = true,
     val level: AILevel = AILevel.ADVANCED
 ) : Player {
     override val playerType: PlayerType = PlayerType.AI
@@ -40,13 +39,12 @@ class AIPlayer(
         avatar: String,
         score: Int,
         hand: Hand,
-        isLocallyManaged: Boolean
     ): Player {
-        return AIPlayer(id, name, avatar, score, hand, isLocallyManaged, level)
+        return AIPlayer(id, name, avatar, score, hand, level)
     }
 
     override fun toString(): String {
-        return "AIPlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand, isLocallyManaged=$isLocallyManaged, level=$level)"
+        return "AIPlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand, level=$level)"
     }
 }
 

@@ -24,7 +24,6 @@ data class SavedPlayer(
                 avatar = avatar,
                 score = 0, // or your desired default
                 hand = com.example.nido.data.model.Hand(mutableStateListOf()),
-                isLocallyManaged = true
             )
             PlayerType.AI -> AIPlayer(
                 id = id,
@@ -32,7 +31,6 @@ data class SavedPlayer(
                 avatar = avatar,
                 score = 0, // or your desired default
                 hand = com.example.nido.data.model.Hand(mutableStateListOf()),
-                isLocallyManaged = true
             )
             PlayerType.REMOTE -> RemotePlayer(
                 id = id,
@@ -40,7 +38,6 @@ data class SavedPlayer(
                 avatar = avatar,
                 score = 0, // or your desired default
                 hand = com.example.nido.data.model.Hand(mutableStateListOf()),
-                isLocallyManaged = false
             )
         }
 

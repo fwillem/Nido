@@ -15,7 +15,6 @@ class LocalPlayer(
     override val avatar: String,
     override var score: Int = Constants.GAME_DEFAULT_POINT_LIMIT,
     override val hand: Hand = Hand(),
-    override val isLocallyManaged: Boolean = true
 ) : Player {
     override val playerType: PlayerType = PlayerType.LOCAL
 
@@ -36,12 +35,11 @@ class LocalPlayer(
         avatar: String,
         score: Int,
         hand: Hand,
-        isLocallyManaged: Boolean
     ): Player {
-        return LocalPlayer(id, name, avatar, score, hand, isLocallyManaged)
+        return LocalPlayer(id, name, avatar, score, hand)
     }
 
     override fun toString(): String {
-        return "LocalPlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand, isLocallyManaged=$isLocallyManaged)"
+        return "LocalPlayer(id='$id', name='$name', avatar='$avatar', playerType=$playerType, score=$score, hand=$hand)"
     }
 }
