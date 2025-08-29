@@ -37,6 +37,23 @@ val branchName: String = branchRaw.removePrefix("heads/")
 val buildTime: String = LocalDateTime.now()
     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
 
+// --- Derive release version from the Git tag ---
+// Extraits "1.62" ou "1.62.3" depuis un tag comme "v1.62", "1.62", "release/1.62", etc.
+val releaseVersionName: String = Regex("""\d+\.\d+(?:\.\d+)?""")
+    .find(gitTag)?.value ?: gitTag  // fallback = gitTag entier si pas de pattern
+
+// Mapping "1.62" -> 16200 ; "1.62.3" -> 16203
+fun versionCodeFromName(name: String): Int {
+    val p = name.split('.').mapNotNull { it.toIntOrNull() }
+    return when (p.size) {
+        3 -> p[0]*10000 + p[1]*100 + p[2]
+        2 -> p[0]*10000 + p[1]*100
+        else -> 1
+    }
+}
+val releaseVersionCode: Int = versionCodeFromName(releaseVersionName)
+
+
 android {
     namespace = "com.example.nido"
     compileSdk = 35
@@ -45,7 +62,7 @@ android {
         applicationId = "com.example.nido"
         minSdk = 25
         targetSdk = 35
-        versionCode = 1
+        versionCode = releaseVersionCode
         versionName = gitTag
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

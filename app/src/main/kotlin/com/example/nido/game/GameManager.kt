@@ -89,13 +89,19 @@ object GameManager : IGameManager {
     }
 
     private fun maybeSendReady() {
-        val ms = gameState.value.multiplayerState ?: return
-        val gameId = ms.currentGameId ?: return
-        val toId = ms.knownRemoteUid ?: return
-        if (!ms.localReady) return
-        if (ms.remoteReady) return // prevent echo storms once we know peer is ready
-
-        NetworkManager.sendReady(gameId, ms.myUid, toId)
+        val ms = gameState.value.multiplayerState ?: run {
+            TRACE(WARNING) { "READY -> not sending: multiplayerState=null" } // 🟠
+            return
+        }
+        if (ms.currentGameId == null || ms.knownRemoteUid == null) {
+            TRACE(WARNING) { "READY -> not sending: missing gameId/peer; state=$ms" } // 🟠
+            return
+        }
+        if (!ms.localReady) {
+            TRACE(INFO) { "READY -> not sending: localReady=false" } // 🟡
+            return
+        }
+        sendReadyNow("localReady=true") // 🟢
     }
 
 
@@ -194,6 +200,28 @@ object GameManager : IGameManager {
         maybeStartMultiplayerGame()       // host will start if both READY already
 
     }
+
+    private fun sendReadyNow(reason: String) {
+        val ms = gameState.value.multiplayerState ?: run {
+            TRACE(WARNING) { "READY -> skip ($reason): multiplayerState=null" } // 🟠
+            return
+        }
+        val gameId = ms.currentGameId ?: run {
+            TRACE(WARNING) { "READY -> skip ($reason): gameId=null" } // 🟠
+            return
+        }
+        val toId = ms.knownRemoteUid ?: run {
+            TRACE(WARNING) { "READY -> skip ($reason): knownRemoteUid=null" } // 🟠
+            return
+        }
+
+        TRACE(WARNING) {
+            "READY -> send ($reason) gameId=$gameId to=$toId myUid=${ms.myUid} localReady=${ms.localReady} remoteReady=${ms.remoteReady}"
+        } // 🟠
+
+        NetworkManager.sendReady(gameId, ms.myUid, toId)
+    }
+
 
 // -------------------------------------------------------------------------
 // Game lifecycle
@@ -530,14 +558,29 @@ object GameManager : IGameManager {
             }
 
             MSG_TYPE_READY -> {
-                // Peer has pressed “multiplayer”
                 var ms = gameState.value.multiplayerState ?: return
+
                 if (ms.knownRemoteUid == null) {
                     setMultiplayerState(ms.copy(knownRemoteUid = msg.fromId))
                     ensureRemoteSeatAdded(msg.fromId, "Guest")
                     ms = gameState.value.multiplayerState!! // refresh
                 }
-                if (!ms.remoteReady) setMultiplayerState(ms.copy(remoteReady = true))
+
+                // Mark that the peer is ready
+                setMultiplayerState(ms.copy(remoteReady = true))
+                TRACE(WARNING) { "READY <- recv from=${msg.fromId} localReady=${ms.localReady} remoteReady=true" } // 🟠
+
+                // 👉 Key bit:
+                // If we haven't sent READY yet (localReady=false), immediately echo a READY
+                // so the host won't block. This unblocks the "host pressed first" race.
+                if (!ms.localReady) {
+                    sendReadyNow("echo-ack (peer sent READY first)") // 🟢
+                } else {
+                    // Normal path: we had already pressed Play; make sure our READY is out.
+                    maybeSendReady() // 🟢
+                }
+
+                // Host will auto-start when it sees both ready.
                 maybeStartMultiplayerGame()
             }
 
