@@ -59,6 +59,7 @@ val LocalGameManager = staticCompositionLocalOf<IGameManager> {
         override fun hostQuickRoom(myUid: String) = getGameManagerInstance().hostQuickRoom(myUid)
         override fun joinQuickRoom(myUid: String) = getGameManagerInstance().joinQuickRoom(myUid)
         override fun autoQuickConnect(myUid: String) = getGameManagerInstance().autoQuickConnect(myUid)
+        override val lobbyState get() = getGameManagerInstance().lobbyState
 
 
     }

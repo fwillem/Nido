@@ -80,6 +80,7 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
         is GameEvent.GameOver -> ReducerResult(state)  // reserved
         is GameEvent.AITimerExpired -> handleAITimerExpired(state, event.turnId)
         is GameEvent.QuitGame -> handleQuitGame(state)
+        is GameEvent.NetworkStateSync -> handleNetworkStateSync(state, event)
     }
 
     // 📝 Record the event into replay history
@@ -556,7 +557,8 @@ private fun synthesizeSfx(
             else                          SoundEffect.GameOverLose
         }
         is GameEvent.AITimerExpired,
-        is GameEvent.QuitGame        -> { /* no sound */ }
+        is GameEvent.QuitGame,
+        is GameEvent.NetworkStateSync -> { /* no sound */ }
     }
 
     /*
@@ -612,4 +614,53 @@ private fun synthesizeMusic(
         is GameEvent.QuitGame -> listOf(GameSideEffect.StopMusic)
         else -> emptyList()
     }
+}
+
+private fun handleNetworkStateSync(state: GameState, event: GameEvent.NetworkStateSync): ReducerResult {
+    // 1. De-dupe: If we already moved past this turn, ignore
+    if (event.turnId < state.turnId) {
+        TRACE(INFO) { "STATE_SYNC ignored (old turn): msg=${event.turnId} local=${state.turnId}" }
+        return ReducerResult(state)
+    }
+
+    // 2. Map Host's currentPlayerId to local index
+    // The simplified event.currentPlayerIndex might be wrong if player lists are not perfectly aligned
+    // So we prefer matching by ID if possible, fallback to index
+    // For V1 we assume static detailed lists
+    
+    // 3. Update Players (Public View + My Hand)
+    // We need to iterate over local players and update them based on the public view
+    // AND inject myHand if provided
+    
+    // Note: detailed "PublicPlayerView" mapping is simplified here as Any in the event for now
+    // In a real refactor, we'd move PublicPlayerView to a shared model file or GameEvent
+    
+    // We'll trust the ID matching for strict correctness
+    val updatedPlayers = state.players.mapIndexed { index, localPlayer ->
+        // Find corresponding public view from event (pseudo-code match)
+        // For V1 let's assume strict ordering or we'd need a map
+        // val publicData = event.playersPublic.getOrNull(index) 
+        
+        // CRITICAL FIX: Update MY hand if provided
+        val myNetworkingId = state.multiplayerState?.myUid
+        if (myNetworkingId != null && localPlayer.id == myNetworkingId && event.myHand != null) {
+             val newHand = Hand().apply { cards.addAll(event.myHand) }
+             TRACE(INFO) { "STATE_SYNC: Applied MY HAND (${newHand.cards.size} cards)" }
+             localPlayer.copy(hand = newHand)
+        } else {
+            // For others, we might want to update card counts (hidden hands) or scores
+            // This requires parsing the 'playersPublic' struct
+            localPlayer // keep as is for now for the specific Hand Separation fix
+        }
+    }
+    
+    val newState = state.copy(
+        players = updatedPlayers,
+        turnId = event.turnId,
+        currentPlayerIndex = event.currentPlayerIndex,
+        skipCount = 0 // simplified sync
+        // pointLimit, etc.
+    )
+    
+    return ReducerResult(newState) 
 }

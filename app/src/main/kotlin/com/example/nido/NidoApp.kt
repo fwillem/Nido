@@ -66,7 +66,9 @@ fun NidoApp(
     val context = LocalContext.current
     val activity = context as? Activity
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    // Wrap everything in a Box to allow overlays on top of Scaffold
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         when (currentRoute.value) {
             AppScreen.Routes.SPLASH -> SplashScreen(
                 onExit = { currentRoute.value = AppScreen.Routes.LANDING },
@@ -239,6 +241,13 @@ fun NidoApp(
         volume  = gameState.soundMusicVolume,
         onConsumed = { cmd -> gameManager.consumeMusic(cmd) }
     )
+
+    // Debug Overlay for Multiplayer
+    com.example.nido.ui.debug.LobbyStatusDebugOverlay(
+        lobbyStateFlow = gameManager.lobbyState,
+        modifier = Modifier.align(androidx.compose.ui.Alignment.BottomStart)
+    )
+}
 
 
 }

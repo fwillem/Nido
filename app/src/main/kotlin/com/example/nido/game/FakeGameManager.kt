@@ -17,6 +17,11 @@ import kotlinx.coroutines.flow.StateFlow
  * A fake implementation of IGameManager for UI previews and automated tests.
  */
 class FakeGameManager : IGameManager {
+    
+    // Fake Lobby State
+    private val _lobbyState = MutableStateFlow(com.example.nido.game.multiplayer.LobbyState())
+    override val lobbyState: StateFlow<com.example.nido.game.multiplayer.LobbyState> = _lobbyState
+
 
 
     // ✅ Create static fake players

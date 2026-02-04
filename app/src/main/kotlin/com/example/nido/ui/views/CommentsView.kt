@@ -149,6 +149,7 @@ private fun CommentsViewPreview_YouMustPlayOne() {
         override fun hostQuickRoom(myUid: String) {}
         override fun joinQuickRoom(myUid: String) {}
         override fun autoQuickConnect(myUid: String) {}
+        override val lobbyState = MutableStateFlow(com.example.nido.game.multiplayer.LobbyState())
     }
 
     CompositionLocalProvider(LocalGameManager provides fakeManager) {
@@ -204,6 +205,7 @@ private fun CommentsViewPreview_YouMustPlayOne_NoAllIn() {
         override fun hostQuickRoom(myUid: String) {}
         override fun joinQuickRoom(myUid: String) {}
         override fun autoQuickConnect(myUid: String) {}
+        override val lobbyState = MutableStateFlow(com.example.nido.game.multiplayer.LobbyState())
     }
 
     CompositionLocalProvider(LocalGameManager provides fakeManager) {

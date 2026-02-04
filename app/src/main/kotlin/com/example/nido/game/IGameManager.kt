@@ -4,6 +4,8 @@ import com.example.nido.data.model.Hand
 import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.multiplayer.MultiplayerState
+import com.example.nido.game.multiplayer.LobbyState
+import kotlinx.coroutines.flow.StateFlow
 
 interface IGameManager : IGameStateProvider, IGameActions {
     fun updatePlayerHand(playerIndex: Int, hand: Hand)
@@ -35,4 +37,5 @@ interface IGameManager : IGameStateProvider, IGameActions {
 
     fun autoQuickConnect(myUid: String)
 
-    }
+    val lobbyState: StateFlow<LobbyState>
+}
