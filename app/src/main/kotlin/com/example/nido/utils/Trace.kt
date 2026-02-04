@@ -76,42 +76,49 @@ fun emojiForLevel(level: TraceLogLevel): String = when (level) {
 val isInsideTrace = ThreadLocal.withInitial { false }
 
 /**
+ * Fixed global tag for easy filtering.
+ */
+const val GLOBAL_TAG = "Nido"
+
+/**
  * Logs a message at the specified trace log level.
  * Prevents duplicate logs by suppressing println() when used inside TRACE().
  *
  * @param level the log level.
- * @param tag an optional tag. Defaults to a generated tag from [getTag].
+ * @param tag NOT USED explicitly anymore for Logcat tag (we use GLOBAL_TAG), but used for context.
+          Defaults to a generated string from [getTag] (Class:Method).
  * @param message a lambda that returns the log message.
  */
 inline fun TRACE(
     level: TraceLogLevel,
-    tag: String = getTag(),
+    tag: String = getTag(), // This now represents the "Context" (Class:Method)
     message: () -> String
 ) {
-    isInsideTrace.set(true)  // Prevent duplicate printing via println()
-    val decoratedMessage = "${emojiForLevel(level)} ${message()}"
-    val plainMessage = "${message()}"
-    isInsideTrace.set(false) // Restore normal println() behavior
+    isInsideTrace.set(true)
+    
+    // Format: "🟡 [Class:Method] The message content"
+    // We use GLOBAL_TAG for the Android Log Tag so you can filter by "tag:Nido"
+    val contextInfo = "[$tag]" 
+    val content = message()
+    val decoratedMessage = "${emojiForLevel(level)} $contextInfo $content"
+    val plainMessage = "$contextInfo $content"
+    
+    isInsideTrace.set(false) 
 
     when (level) {
-        TraceLogLevel.VERBOSE -> Log.v(tag, decoratedMessage)
-        TraceLogLevel.DEBUG   -> Log.d(tag, decoratedMessage)
-        TraceLogLevel.INFO    -> Log.i(tag, decoratedMessage)
-        TraceLogLevel.WARNING -> Log.w(tag, decoratedMessage)
-        TraceLogLevel.ERROR   -> Log.e(tag, decoratedMessage)
+        TraceLogLevel.VERBOSE -> Log.v(GLOBAL_TAG, decoratedMessage)
+        TraceLogLevel.DEBUG   -> Log.d(GLOBAL_TAG, decoratedMessage) // Reverted to .d, now that we have a solid filter
+        TraceLogLevel.INFO    -> Log.i(GLOBAL_TAG, decoratedMessage)
+        TraceLogLevel.WARNING -> Log.w(GLOBAL_TAG, decoratedMessage)
+        TraceLogLevel.ERROR   -> Log.e(GLOBAL_TAG, decoratedMessage)
         TraceLogLevel.FATAL   -> {
-            Log.wtf(tag, decoratedMessage)
-
-            // Instead of throwing immediately, route to global UI
+            Log.wtf(GLOBAL_TAG, decoratedMessage)
             UiEventBridge.emit(
                 AppDialogEvent.BlueScreenOfDeath(
-                    tag = tag,
+                    tag = GLOBAL_TAG,
                     message = { plainMessage }
                 )
             )
-
-            // If you prefer to crash immediately instead of showing the dialog:
-            // throw RuntimeException(decoratedMessage)
         }
     }
 }

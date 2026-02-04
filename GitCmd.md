@@ -231,3 +231,17 @@ Show all refs (branches + tags):
 ```bash
 git show-ref --heads --tags
 ```
+
+BlueStack Install
+# alias optionnel
+alias bsa='adb -s 127.0.0.1:5556'
+
+# vérifier la version installée
+bsa shell dumpsys package com.example.nido | grep -E "version(Name|Code)"
+
+# upgrade par-dessus (même clé + code supérieur)
+bsa install -r path/to/nido_v1_64.apk
+
+# si signatures différentes, faire :
+bsa uninstall com.example.nido
+bsa install path/to/nido_v1_64.apk

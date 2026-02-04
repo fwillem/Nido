@@ -140,7 +140,7 @@ object GameManager : IGameManager {
             AITimerDuration = setup.aiTimerMs
         )
 
-        // Prepare and send START + initial STATE_SYNC (order not guaranteed)
+        // Prepare and send START + initial STATE_SYNC (order important: SYNC first!)
         val ms2 = gameState.value.multiplayerState ?: return
         val gameId = ms2.currentGameId ?: return
         val startPayload = StartPayload(
@@ -159,6 +159,15 @@ object GameManager : IGameManager {
             turnId = gameState.value.turnId
         )
 
+        TRACE(INFO) { "Multiplayer game starting... Sending Initial SNAPSHOT first." }
+
+        // 1) Authoritative snapshot (MUST be first so Guest has data before Navigate)
+        val snapshot = buildClientSnapshotFor(remoteUid)
+        NetworkManager.sendStateSync(gameId, ms2.myUid, remoteUid, encodeSnapshot(snapshot))
+
+        TRACE(INFO) { "Snapshot sent. Now sending START command." }
+
+        // 2) Start command (Triggers navigation on Guest)
         NetworkManager.sendStart(
             gameId = gameId,
             fromId = ms2.myUid,
@@ -167,9 +176,6 @@ object GameManager : IGameManager {
         )
 
         TRACE(WARNING) { "Multiplayer game started; start payload sent to guest." }
-
-        val snapshot = buildClientSnapshotFor(remoteUid)
-        NetworkManager.sendStateSync(gameId, ms2.myUid, remoteUid, encodeSnapshot(snapshot))
 
         setMultiplayerState(ms.copy(gameLaunched = true))
     }
@@ -576,8 +582,10 @@ object GameManager : IGameManager {
                 if (!ms.localReady) {
                     sendReadyNow("echo-ack (peer sent READY first)") // 🟢
                 } else {
-                    // Normal path: we had already pressed Play; make sure our READY is out.
-                    maybeSendReady() // 🟢
+                    // Normal path: we are ready, they are ready.
+                    // DO NOT re-send READY here, or we create an infinite loop if they do the same.
+                    // maybeSendReady() // <-- REMOVED to fix loop
+                    TRACE(INFO) { "READY <- recv & localReady=true => synced." }
                 }
 
                 // Host will auto-start when it sees both ready.
@@ -752,7 +760,8 @@ object GameManager : IGameManager {
                                     mode = MultiplayerMode.JOINER,
                                     myUid = myUid,
                                     currentGameId = res.gameId,
-                                    knownRemoteUid = res.ownerId
+                                    knownRemoteUid = res.ownerId,
+                                    localReady = true // We came from 'Play Online' -> implying Ready
                                 )
                             )
                             // après setMultiplayerState(...) + notice :
@@ -773,6 +782,7 @@ object GameManager : IGameManager {
                             )
                             // 3) Cleanup: delete all my other rooms (simple v1)
                             cleanupMyRoomsAfterConnect(myUid, keepGameId = res.gameId)
+                            maybeSendReady() // <--- CRITICAL: Tell host we are ready!
                         },
                         onError = { _ ->
                             // Fallback: host if join failed
@@ -805,7 +815,8 @@ object GameManager : IGameManager {
                         mode = MultiplayerMode.HOST,
                         myUid = myUid,
                         currentGameId = host.gameId,
-                        knownRemoteUid = null
+                        knownRemoteUid = null,
+                        localReady = true // We came from 'Play Online' -> implying Ready
                     )
                 )
                 updateGameState(
@@ -995,7 +1006,7 @@ object GameManager : IGameManager {
             skipCount = o.getInt("skipCount"),
             pointLimit = o.getInt("pointLimit"),
             lastMove = null,
-            myHand = null
+            myHand = myHand
         )
     }
 
@@ -1065,7 +1076,12 @@ object GameManager : IGameManager {
 
 
     private fun applyStartFromHost(payload: StartPayload, hostUid: String) {
-        val players: List<Player> = payload.players.map { sp -> startPlayerToConcrete(sp, hostUid) }
+        val currentPlayers = gameState.value.players
+        val currentTurnId = gameState.value.turnId
+
+        val players: List<Player> = payload.players.map { sp ->
+            startPlayerToConcrete(sp, hostUid, currentPlayers, payload.turnId, currentTurnId)
+        }
 
         val ms0 = gameState.value.multiplayerState
         val ms = (ms0 ?: MultiplayerState(myUid = myNetworkingUidOrNull() ?: ""))
@@ -1083,18 +1099,36 @@ object GameManager : IGameManager {
     }
 
 
-    private fun startPlayerToConcrete(sp: StartPlayer, hostUid: String): Player {
+    private fun startPlayerToConcrete(
+        sp: StartPlayer,
+        hostUid: String,
+        existingPlayers: List<Player>,
+        newTurnId: Int,
+        currentTurnId: Int
+    ): Player {
         val myUid = myNetworkingUidOrNull()
         val mappedType = when {
             sp.type == PlayerType.AI -> PlayerType.AI
             sp.id == myUid           -> PlayerType.LOCAL     // me (guest)
             else                     -> PlayerType.REMOTE    // everyone else (host/humans)
         }
-        return when (mappedType) {
-            PlayerType.LOCAL  -> LocalPlayer (id = sp.id, name = sp.name, avatar = sp.avatar)
-            PlayerType.AI     -> AIPlayer    (id = sp.id, name = sp.name, avatar = sp.avatar)
+        TRACE(ERROR) { "Mapping player ${sp.name} (id=${sp.id}) vs myUid=$myUid -> $mappedType" }
+        val base = when (mappedType) {
+            PlayerType.LOCAL  -> LocalPlayer(id = sp.id, name = sp.name, avatar = sp.avatar)
+            PlayerType.AI     -> AIPlayer(id = sp.id, name = sp.name, avatar = sp.avatar)
             PlayerType.REMOTE -> RemotePlayer(id = sp.id, name = sp.name, avatar = sp.avatar)
         }
+
+        // Race-fix: if we already received a STATE_SYNC for this same turn (or newer)
+        // that populated our hand, preserve it. START payload has no hands.
+        if (newTurnId == currentTurnId) {
+            val existing = existingPlayers.find { it.id == sp.id }
+            if (existing != null && existing.hand.cards.isNotEmpty()) {
+                TRACE(INFO) { "Preserving hand for ${sp.name} despite START (race fix)" }
+                return base.copy(hand = existing.hand)
+            }
+        }
+        return base
     }
 
 
@@ -1265,8 +1299,13 @@ object GameManager : IGameManager {
 
         // v1: single remote seat → we expose that hand to the remote client
         val remoteIndex = state.players.indexOfFirst { it.playerType == PlayerType.REMOTE }
+        val isFullAuth = authorityMode() == AuthorityMode.FULL
+        val handSize = if (remoteIndex >= 0) state.players[remoteIndex].hand.cards.size else -1
+
+        TRACE(WARNING) { "SNAPSHOT: recipient=$recipientUid remoteIdx=$remoteIndex auth=$isFullAuth handSize=$handSize" }
+
         val myHand: Hand? =
-            if (authorityMode() == AuthorityMode.FULL && recipientUid != null && remoteIndex >= 0) {
+            if (isFullAuth && recipientUid != null && remoteIndex >= 0) {
                 state.players[remoteIndex].hand
             } else null
 
@@ -1285,7 +1324,9 @@ object GameManager : IGameManager {
 
     private fun applyAuthoritativeSnapshot(snapshot: ClientSnapshot) {
         val state = gameState.value
-        if (snapshot.turnId <= state.turnId) return // de-dupe
+        TRACE(WARNING) { "APPLY SNAPSHOT: turn=${snapshot.turnId} myHand=${snapshot.myHand?.cards?.size} msgPlayers=${snapshot.playersPublic}" }
+        
+        if (snapshot.turnId < state.turnId) return // de-dupe (allow same-turn updates/retries)
 
         // Map the host's currentPlayerId to our local list to compute a safe index.
         val mappedIndex = state.players.indexOfFirst { it.id == snapshot.currentPlayerId }
@@ -1294,25 +1335,52 @@ object GameManager : IGameManager {
         // Update public bits; keep local hands & mat in v1
         val remappedPlayers = state.players.map { player ->
             val pub = snapshot.playersPublic.firstOrNull { it.playerId == player.id }
-            if (pub != null) player.copy(score = pub.score) else player
+            if (pub != null) {
+                // Synthesize a visual-only hand for others if the count differs
+                val currentCount = player.hand.cards.size
+                val newHand = if (player.playerType != PlayerType.LOCAL && currentCount != pub.handCount) {
+                    Hand.createHidden(pub.handCount) // Helper to make N dummy cards
+                } else {
+                    player.hand
+                }
+                player.copy(
+                    score = pub.score,
+                    hand = newHand
+                )
+            } else player
         }
 
-        // If host supplied my hand, install it for the LOCAL player (guest).
-        snapshot.myHand?.let { hand ->
-            val myId = myNetworkingUidOrNull()
-            val idx = gameState.value.players.indexOfFirst { it.id == myId }
-            if (idx >= 0) updatePlayerHand(idx, hand)
-        }
+        // If host supplied my hand, update it for the LOCAL player (guest).
+    val myId = myNetworkingUidOrNull()
+    var finalPlayers = remappedPlayers
 
-        updateGameState(
-            players            = remappedPlayers,
-            currentPlayerIndex = safeIndex,
-            currentPlayerId    = snapshot.currentPlayerId,
-            // keep currentCombinationOnMat as-is in v1
-            skipCount          = snapshot.skipCount,
-            pointLimit         = snapshot.pointLimit,
-            turnId             = snapshot.turnId
-        )
+    if (snapshot.myHand != null && myId != null) {
+        var applied = false
+        finalPlayers = finalPlayers.map { player ->
+            if (player.id == myId) {
+                TRACE(ERROR) { "APPLY_HAND: Success! Applied hand size=${snapshot.myHand.cards.size} to ${player.id}" }
+                applied = true
+                player.copy(hand = snapshot.myHand)
+            } else {
+                player
+            }
+        }
+        if (!applied) {
+            TRACE(ERROR) { "APPLY_HAND: Failed! myId=$myId not found/matched in: ${finalPlayers.map { "${it.name}=${it.id}" }}" }
+        }
+    } else {
+        TRACE(ERROR) { "APPLY_HAND: Skipped. handNull=${snapshot.myHand == null} myId=$myId" }
+    }
+
+    updateGameState(
+        players            = finalPlayers,
+        currentPlayerIndex = safeIndex,
+        currentPlayerId    = snapshot.currentPlayerId,
+        // keep currentCombinationOnMat as-is in v1
+        skipCount          = snapshot.skipCount,
+        pointLimit         = snapshot.pointLimit,
+        turnId             = snapshot.turnId
+    )
     }
 
 

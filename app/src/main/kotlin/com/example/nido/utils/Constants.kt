@@ -106,6 +106,6 @@ object Constants {
      */
 
 
-
+    const val DB_NAME = "nido_game"
 
 }

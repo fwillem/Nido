@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 .addOnSuccessListener {
                     val uid = it.user!!.uid
                     TRACE(TraceLogLevel.INFO) { "✅ Firebase: anonymous sign-in ok (uid=$uid)" }
-                    gm.autoQuickConnect(uid) // use symmetric auto-connect (join-first else host)
+                    // gm.autoQuickConnect(uid) // Removed: deferred to 'Play Online' button
                 }
                 .addOnFailureListener { e ->
                     TRACE(TraceLogLevel.FATAL) { "❌ Firebase sign-in failed: ${e.javaClass.simpleName}: ${e.message}" }
@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
         } else {
             val uid = Firebase.auth.currentUser!!.uid
             TRACE(TraceLogLevel.DEBUG) { "Firebase: already signed-in (uid=$uid)" }
-            gm.autoQuickConnect(uid) // use symmetric auto-connect (join-first else host)
+            // gm.autoQuickConnect(uid) // Removed: deferred to 'Play Online' button
         }
 
 

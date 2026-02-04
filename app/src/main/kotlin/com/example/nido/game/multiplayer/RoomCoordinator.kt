@@ -1,5 +1,6 @@
 package com.example.nido.game.multiplayer
 
+import com.example.nido.utils.Constants.DB_NAME
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -60,7 +61,7 @@ object RoomCoordinator {
         onError: (String) -> Unit = {},
         gameId: String = newRoomCode()
     ) {
-        val ref = db.collection("games").document(gameId)
+        val ref = db.collection(DB_NAME).document(gameId)
 
         val payload = mapOf(
             "ownerId" to ownerUid,
@@ -97,7 +98,7 @@ object RoomCoordinator {
         onConnected: (JoinResult) -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        db.collection("games")
+        db.collection(DB_NAME)
             .whereEqualTo("status", "waiting")
             .orderBy("createdAt", Query.Direction.ASCENDING)
             .limit(5)
@@ -208,7 +209,7 @@ object RoomCoordinator {
         onError: (String) -> Unit = {}
     ) {
         val now = System.currentTimeMillis()
-        db.collection("games")
+        db.collection(DB_NAME)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .limit(maxRooms.toLong())
             .get()
@@ -244,7 +245,7 @@ object RoomCoordinator {
         onConnected: (JoinResult) -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
-        val ref = db.collection("games").document(gameId)
+        val ref = db.collection(DB_NAME).document(gameId)
         db.runTransaction { tx ->
             val snap = tx.get(ref)
             if (!snap.exists()) error("room not found")
@@ -280,7 +281,7 @@ object RoomCoordinator {
         excludeGameId: String?,
         onCompleted: (Int) -> Unit = {}
     ) {
-        db.collection("games")
+        db.collection(DB_NAME)
             .whereEqualTo("ownerId", ownerUid)
             .limit(50)
             .get()

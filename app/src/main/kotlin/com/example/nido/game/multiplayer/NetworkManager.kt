@@ -7,6 +7,7 @@ import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_STATE_SYNC
 import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_HINT
 import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_PLAY
 import com.example.nido.game.multiplayer.MessageTypes.MSG_TYPE_TURN_SKIP
+import com.example.nido.utils.Constants.DB_NAME
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -68,7 +69,7 @@ object NetworkManager {
         TRACE(WARNING) { "🟡 T0 Firebase: projectId=${opts?.projectId ?: "-"} appId=${opts?.applicationId ?: "-"} gameID=$gameId (dbUrl=${opts?.databaseUrl ?: "-"})" }
 
         val db = FirebaseFirestore.getInstance()
-        val colRef = db.collection("games")
+        val colRef = db.collection(DB_NAME)
             .document(gameId)
             .collection("messages")
 
@@ -172,7 +173,7 @@ object NetworkManager {
         }
 
         val db = FirebaseFirestore.getInstance()
-        val colRef = db.collection("games").document(targetGameId).collection("messages")
+        val colRef = db.collection(DB_NAME).document(targetGameId).collection("messages")
 
         val payload = hashMapOf(
             "type" to type,

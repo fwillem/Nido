@@ -48,8 +48,9 @@ fun LandingScreen(
     onQuit : () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val buttonBoxSize = 200.dp
-    val imageSize = (buttonBoxSize.value * 2f).dp  // 2x bigger than the box
+    val buttonBoxSize = 300.dp
+    // val imageSize = (buttonBoxSize.value * 2f).dp  // 2x bigger than the box
+    val imageSize = buttonBoxSize.value.dp   // 2x bigger than the box
 
     val gameManager = LocalGameManager.current  // ✅ Retrieve injected GameManager
 
@@ -107,7 +108,6 @@ fun LandingScreen(
                             onClick = onGame,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text(text = stringResource(R.string.play)) }
-                        // Multiplayer (symétrique : host/join auto, démarrage quand les 2 ont appuyé)
                         Button(
                             onClick = onMultiplayerGame,
                             modifier = Modifier.fillMaxWidth()

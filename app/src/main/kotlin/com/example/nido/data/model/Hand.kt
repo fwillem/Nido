@@ -55,4 +55,19 @@ data class Hand(
     override fun toString(): String = cards
         .joinToString(", ") { "${it.value}/${it.color.name}" }
         .ifEmpty { "The hand is empty" }
+
+    companion object {
+        fun createHidden(count: Int): Hand {
+            val list = mutableStateListOf<Card>()
+            repeat(count) {
+                // Assuming Card(0, "BACK") or similar represents a hidden card.
+                // If "BACK" isn't a valid color, we can use a dummy value.
+                // The key is that the UI treats it as hidden or we just need the count.
+                // For now, let's use a value that won't break things, or rely on UI logic.
+                // Let's create a standard card but rely on PlayerType.REMOTE logic in UI to hide face.
+                list.add(Card(1, "RED")) 
+            }
+            return Hand(cards = list)
+        }
+    }
 }
