@@ -55,10 +55,27 @@ import com.example.nido.R
 
 
 @Composable
+
 fun matBannerText(state: GameState) : String {
+    // 1. If cards are on the mat, show who played them
+    if (state.currentCombinationOnMat.cards.isNotEmpty()) {
+        val lastPlayer = state.lastPlayerWhoPlayed
+        if (lastPlayer != null) {
+            return "Played by ${lastPlayer.name}" // Or use a string resource
+        }
+    }
+
+    // 2. Fallback: If mat is empty or no history, show BannerMsg (e.g. "Wait..") or nothing
+    // We explicitly ignore "Play X" banner here because that is shown elsewhere (Player List)
+    // and we don't want to confuse "Played by" with "Play now".
+    
+    /* 
+       User feedback: "Who is the next player is shown in a diffrent way on the UI".
+       So we only use banners for special alerts here.
+    */
     val text = when (val b = state.bannerMsg) {
-       //  is BannerMsg.Play -> stringResource(R.string.banner_play, b.name)
-        is BannerMsg.Play -> stringResource(R.string.banner_play_short, b.name)
+        // We filter out "Play" messages to avoid clutter/confusion on the mat itself
+        is BannerMsg.Play -> "" 
         null -> ""
     }
 

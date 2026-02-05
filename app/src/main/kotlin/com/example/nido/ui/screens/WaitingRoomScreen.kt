@@ -47,6 +47,9 @@ fun WaitingRoomScreen(
                 else                                   -> "Starting game…"
             }
         )
+        // DEBUG: Temporary diagnostic info
+        // (Removed after verification)
+        
         Spacer(Modifier.padding(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(onClick = onCancel) { Text("Cancel") }

@@ -23,7 +23,8 @@ fun LobbyStatusDebugOverlay(
 ) {
     val state by lobbyStateFlow.collectAsState()
 
-    if (state.status == ConnectionStatus.Idle && state.error == null) return
+    // ALLOW ALWAYS VISIBLE FOR DEBUGGING:
+    // if (state.status == ConnectionStatus.Idle && state.error == null) return
 
     Column(
         modifier = modifier

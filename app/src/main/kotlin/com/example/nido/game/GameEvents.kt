@@ -1,6 +1,8 @@
 package com.example.nido.game
 
 import com.example.nido.data.model.Card
+import com.example.nido.game.BannerMsg
+import com.example.nido.game.TurnHintMsg
 sealed class GameEvent() {
     object NewRoundStarted : GameEvent()
     data class CardPlayed(
@@ -18,12 +20,11 @@ sealed class GameEvent() {
 
     // Network Events (Guest side)
     data class NetworkStateSync(
-        val turnId: Int,
-        val currentPlayerIndex: Int,
-        val playersPublic: List<Any>, // Simplified for now, will map to proper structs
-        val myHand: List<Card>?,
-        val rawSnapshotId: String? = null // For trace/debug
+        val snapshot: GameSerializer.ClientSnapshot
     ) : GameEvent()
+
+    data class TurnHintReceived(val hint: TurnHintMsg) : GameEvent()
+    data class BannerReceived(val banner: BannerMsg) : GameEvent()
     
     // Add additional events as needed.
 }

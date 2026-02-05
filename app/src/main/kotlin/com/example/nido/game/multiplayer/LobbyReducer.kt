@@ -58,9 +58,8 @@ fun lobbyReducer(state: LobbyState, event: LobbyEvent): LobbyReducerResult {
                     localReady = true // Auto-ready when joining via "Quick Play"
                 ),
                 sideEffects = listOf(
-                    LobbySideEffect.JoinInGame(event.gameId, state.myUid),
-                    // We also want to signal readiness immediately if we joined successfully
-                    LobbySideEffect.SendReadyPacket(event.gameId, state.myUid, event.ownerUid)
+                    LobbySideEffect.JoinInGame(event.gameId, state.myUid)
+                    // DELETED: SendReadyPacket (moved to onConnected callback in GameManager to avoid race condition)
                 )
             )
         }
@@ -86,10 +85,29 @@ fun lobbyReducer(state: LobbyState, event: LobbyEvent): LobbyReducerResult {
         is LobbyEvent.SendReady -> {
             // User manually clicked ready (or triggered automatically)
              if (state.gameId != null && state.remoteUid != null) {
-                LobbyReducerResult(
-                    newState = state.copy(localReady = true),
-                     sideEffects = listOf(LobbySideEffect.SendReadyPacket(state.gameId, state.myUid, state.remoteUid))
+                // Determine if we should start
+                val newState = state.copy(localReady = true)
+                val sideEffects = mutableListOf<LobbySideEffect>(
+                     LobbySideEffect.SendReadyPacket(state.gameId, state.myUid, state.remoteUid)
                 )
+
+                if (state.remoteReady) {
+                    // Both ready -> GO!
+                    sideEffects += LobbySideEffect.NotifyGameStart(
+                        gameId = state.gameId, 
+                        isHost = state.role == LobbyRole.HOST, 
+                        remoteUid = state.remoteUid
+                    )
+                     LobbyReducerResult(
+                        newState = newState.copy(status = ConnectionStatus.GameStarted),
+                        sideEffects = sideEffects
+                    )
+                } else {
+                     LobbyReducerResult(
+                        newState = newState,
+                        sideEffects = sideEffects
+                    )
+                }
              } else {
                  LobbyReducerResult(state)
              }
@@ -121,7 +139,10 @@ fun lobbyReducer(state: LobbyState, event: LobbyEvent): LobbyReducerResult {
         }
         
         is LobbyEvent.GameLaunched -> {
-             LobbyReducerResult(state.copy(status = ConnectionStatus.GameStarted))
+             LobbyReducerResult(state.copy(
+                 status = ConnectionStatus.GameStarted,
+                 remoteReady = true // Implicit trust: if game launches, peer is ready
+             ))
         }
 
         is LobbyEvent.ErrorOccurred -> {

@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.example.nido.data.SavedPlayer
 import com.example.nido.data.model.PlayerType
 import com.example.nido.events.AppDialogEvent
@@ -245,9 +246,9 @@ fun NidoApp(
     // Debug Overlay for Multiplayer
     com.example.nido.ui.debug.LobbyStatusDebugOverlay(
         lobbyStateFlow = gameManager.lobbyState,
-        modifier = Modifier.align(androidx.compose.ui.Alignment.BottomStart)
+        modifier = Modifier
+            .align(androidx.compose.ui.Alignment.BottomStart)
+            .padding(16.dp) // Avoid corner cut-off
     )
 }
-
-
 }

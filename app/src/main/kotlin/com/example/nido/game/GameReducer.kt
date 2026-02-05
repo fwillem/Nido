@@ -17,6 +17,7 @@ import com.example.nido.data.model.PlayerType
 import com.example.nido.events.GameDialogEvent
 import com.example.nido.game.SoundEffect
 import com.example.nido.game.TurnHintMsg
+import com.example.nido.game.BannerMsg
 import com.example.nido.game.multiplayer.MultiplayerMode
 import com.example.nido.game.rules.calculateTurnInfo
 import com.example.nido.replay.GameRecorder
@@ -81,6 +82,8 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
         is GameEvent.AITimerExpired -> handleAITimerExpired(state, event.turnId)
         is GameEvent.QuitGame -> handleQuitGame(state)
         is GameEvent.NetworkStateSync -> handleNetworkStateSync(state, event)
+        is GameEvent.TurnHintReceived -> ReducerResult(state.copy(turnHintMsg = event.hint))
+        is GameEvent.BannerReceived -> ReducerResult(state.copy(bannerMsg = event.banner))
     }
 
     // 📝 Record the event into replay history
@@ -365,14 +368,30 @@ private fun handleNextTurn(gameState: GameState): ReducerResult {
 
     val nextIndex = (gameState.currentPlayerIndex + 1) % gameState.players.size
 
-    // Compute new player and phase
-    val newState = gameState.copy(
+    // 1. Basic Turn Update
+    var newState = gameState.copy(
         currentPlayerIndex = nextIndex,
         turnId = gameState.turnId + 1
     )
 
     val nextPlayer = newState.players[nextIndex]
 
+    // 2. Recalculate Derived State (Rules & Hints) for the NEW player
+    val newTurnInfo = calculateTurnInfo(newState)
+    
+    // We must update the state with the new TurnInfo BEFORE building the hint
+    // because buildTurnHint relies on state.turnInfo (e.g. for canSkip logic)
+    newState = newState.copy(turnInfo = newTurnInfo)
+
+    val newHint = buildTurnHint(newState, nextPlayer.playerType)
+    val newBanner = BannerMsg.Play(nextPlayer.name)
+
+    newState = newState.copy(
+        turnHintMsg = newHint,
+        bannerMsg = newBanner
+    )
+
+    // 3. Side Effects
     // if the next player is the AI, we need to either launch a timer or display the Manual Play button
     if (nextPlayer.playerType == PlayerType.AI) {
         if (gameState.doNotAutoPlayAI) {
@@ -382,10 +401,10 @@ private fun handleNextTurn(gameState: GameState): ReducerResult {
         }
     }
 
-    TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex)" }
+    TRACE(DEBUG) { "Player is now ${nextPlayer.name}($nextIndex). Hint=$newHint" }
 
 
-    return ReducerResult(newState, sideEffects = sideEffects    )
+    return ReducerResult(newState, sideEffects = sideEffects)
 }
 
 private fun handleAITimerExpired(state: GameState, turnId: Int): ReducerResult {
@@ -558,7 +577,9 @@ private fun synthesizeSfx(
         }
         is GameEvent.AITimerExpired,
         is GameEvent.QuitGame,
-        is GameEvent.NetworkStateSync -> { /* no sound */ }
+        is GameEvent.NetworkStateSync,
+        is GameEvent.TurnHintReceived,
+        is GameEvent.BannerReceived -> { /* no sound */ }
     }
 
     /*
@@ -617,50 +638,99 @@ private fun synthesizeMusic(
 }
 
 private fun handleNetworkStateSync(state: GameState, event: GameEvent.NetworkStateSync): ReducerResult {
+    val snapshot = event.snapshot
+    
     // 1. De-dupe: If we already moved past this turn, ignore
-    if (event.turnId < state.turnId) {
-        TRACE(INFO) { "STATE_SYNC ignored (old turn): msg=${event.turnId} local=${state.turnId}" }
+    if (snapshot.turnId < state.turnId) {
+        TRACE(INFO) { "STATE_SYNC ignored (old turn): msg=${snapshot.turnId} local=${state.turnId}" }
         return ReducerResult(state)
     }
+    
+    // 2. Reconstruct Players from Snapshot
+    // We cannot just map over state.players because it might be empty on first sync.
+    // We must build the list from the authoritative source (snapshot.playersPublic).
+    val myUid = state.multiplayerState?.myUid ?: ""
 
-    // 2. Map Host's currentPlayerId to local index
-    // The simplified event.currentPlayerIndex might be wrong if player lists are not perfectly aligned
-    // So we prefer matching by ID if possible, fallback to index
-    // For V1 we assume static detailed lists
-    
-    // 3. Update Players (Public View + My Hand)
-    // We need to iterate over local players and update them based on the public view
-    // AND inject myHand if provided
-    
-    // Note: detailed "PublicPlayerView" mapping is simplified here as Any in the event for now
-    // In a real refactor, we'd move PublicPlayerView to a shared model file or GameEvent
-    
-    // We'll trust the ID matching for strict correctness
-    val updatedPlayers = state.players.mapIndexed { index, localPlayer ->
-        // Find corresponding public view from event (pseudo-code match)
-        // For V1 let's assume strict ordering or we'd need a map
-        // val publicData = event.playersPublic.getOrNull(index) 
-        
-        // CRITICAL FIX: Update MY hand if provided
-        val myNetworkingId = state.multiplayerState?.myUid
-        if (myNetworkingId != null && localPlayer.id == myNetworkingId && event.myHand != null) {
-             val newHand = Hand().apply { cards.addAll(event.myHand) }
-             TRACE(INFO) { "STATE_SYNC: Applied MY HAND (${newHand.cards.size} cards)" }
-             localPlayer.copy(hand = newHand)
+        val isMe = (publicView.playerId == myUid)
+        TRACE(DEBUG) { "SYNC_PLAYER: id=${publicView.playerId} name=${publicView.name} type=${publicView.type} isMe=$isMe myUid=$myUid" }
+
+        // Determine the concrete Player type to instantiate
+        // If it's ME, I am Local. Everyone else is Remote (or AI if marked as AI).
+        // note: The 'type' in PublicPlayerView is what the HOST sees.
+        // If Host says "AI", it's an AI.
+        // If Host says "LOCAL" (Host himself), to me (Guest) he is REMOTE.
+        // If Host says "REMOTE" (Guest), if that ID matches mine, I am LOCAL.
+
+        // Simpler logic: match ID.
+        val resolvedType = when {
+            publicView.playerId == myUid -> PlayerType.LOCAL
+            publicView.type == PlayerType.AI -> PlayerType.AI
+            else -> PlayerType.REMOTE
+        }
+
+        // Construct the hand
+        val resolvedHand = if (isMe && snapshot.myHand != null) {
+            TRACE(DEBUG) { "SYNC_HAND: Using SNAPSHOT hand for ${publicView.name} (size=${snapshot.myHand.cards.size})" }
+            snapshot.myHand // My real hand
         } else {
-            // For others, we might want to update card counts (hidden hands) or scores
-            // This requires parsing the 'playersPublic' struct
-            localPlayer // keep as is for now for the specific Hand Separation fix
+            // For others, we only know the count. Create hidden cards.
+             TRACE(DEBUG) { "SYNC_HAND: Using HIDDEN hand for ${publicView.name} (count=${publicView.handCount}) isMe=$isMe handNull=${snapshot.myHand == null}" }
+            Hand.createHidden(publicView.handCount)
+        }
+
+        // Instantiate
+        when (resolvedType) {
+            PlayerType.LOCAL -> com.example.nido.game.LocalPlayer(
+                id = publicView.playerId,
+                name = publicView.name,
+                avatar = "👤", // Avatar not currently synced in PublicView, default for now
+                score = publicView.score,
+                hand = resolvedHand
+            )
+            PlayerType.AI -> com.example.nido.game.ai.AIPlayer(
+                id = publicView.playerId,
+                name = publicView.name,
+                avatar = "🤖",
+                score = publicView.score,
+                hand = resolvedHand
+            )
+            PlayerType.REMOTE -> com.example.nido.game.multiplayer.RemotePlayer(
+                id = publicView.playerId,
+                name = publicView.name,
+                avatar = "👤",
+                score = publicView.score,
+                hand = resolvedHand
+            )
         }
     }
-    
-    val newState = state.copy(
-        players = updatedPlayers,
-        turnId = event.turnId,
-        currentPlayerIndex = event.currentPlayerIndex,
-        skipCount = 0 // simplified sync
-        // pointLimit, etc.
+
+    var newState = state.copy(
+        players = reconstructedPlayers,
+        turnId = snapshot.turnId,
+        currentPlayerIndex = snapshot.currentPlayerIndex,
+        currentPlayerId = snapshot.currentPlayerId,
+        currentCombinationOnMat = snapshot.matCombination,
+        skipCount = snapshot.skipCount,
+        pointLimit = snapshot.pointLimit,
+        lastPlayerWhoPlayed = snapshot.lastMove?.byPlayerId?.let { id ->
+            reconstructedPlayers.find { it.id == id }
+        }
     )
+
+    // 3. Recalculate Logic for the Client
+    // The snapshot gives us data, but we must re-run the rules/hints from OUR perspective.
+    // e.g. If I am the active player, I want "You must play 3 cards", not the Host telling me "Guest is playing".
+    
+    val newTurnInfo = calculateTurnInfo(newState)
+    newState = newState.copy(turnInfo = newTurnInfo)
+
+    // We recalculate the hint. If the Host sent a specific event hint (like "Player Skipped"),
+    // that usually comes via a separate MSG_TYPE_TURN_HINT.
+    // However, for the "State Sync" (baseline state), we want the baseline hint (Instruction).
+    val currentPlayer = newState.players[newState.currentPlayerIndex]
+    val newHint = buildTurnHint(newState, currentPlayer.playerType)
+    
+    newState = newState.copy(turnHintMsg = newHint)
     
     return ReducerResult(newState) 
 }
