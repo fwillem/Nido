@@ -1,11 +1,7 @@
-
+// GameManager.kt (FULL)
 package com.example.nido.game
 
 import com.example.nido.data.model.Card
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.example.nido.replay.GameSession
-import com.example.nido.game.BannerMsg
-import com.example.nido.game.TurnHintMsg
 import com.example.nido.data.model.Combination
 import com.example.nido.data.model.Player
 import com.example.nido.data.model.PlayerType
@@ -43,12 +39,15 @@ import com.example.nido.utils.TraceLogLevel.*
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.example.nido.replay.GameSession
 
 
 import org.json.JSONArray
@@ -69,82 +68,29 @@ object GameManager : IGameManager {
     private val _gameState = MutableStateFlow(GameState())
     override val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
+    // --- Lobby Reducer State ---
+    private val _lobbyState = MutableStateFlow(LobbyState())
+    override val lobbyState: StateFlow<LobbyState> = _lobbyState.asStateFlow()
+
+    // Internal job for connection timeout
+    private var connectionTimeoutJob: Job? = null
+
+    // -------------------------------------------------------------------------
+    // Event dispatcher wiring
+    // -------------------------------------------------------------------------
+
     private val dispatcher = GameEventDispatcher(
-        getState = { _gameState.value },
-        updateState = { 
-            _gameState.value = it
-            if (isHost()) broadcastAfterHostCommit() 
+        getState = { gameState.value },
+        updateState = { next ->
+            val prev = gameState.value
+            updateGameState(next)
+            if (isHost()) {
+                broadcastAfterHostCommitIfChanged(prev, gameState.value)
+            }
         },
         handleSideEffect = ::handleSideEffect,
         reducer = ::gameReducer
     )
-
-    fun updateGameState(
-        turnInfo: TurnInfo = gameState.value.turnInfo,
-        doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI,
-        pointLimit: Int = gameState.value.pointLimit,
-        aiTimerDuration: Int = gameState.value.aiTimerDuration,
-        players: List<Player> = gameState.value.players,
-        startingPlayerIndex: Int = gameState.value.startingPlayerIndex,
-        currentPlayerIndex: Int = gameState.value.currentPlayerIndex,
-        currentPlayerId: String = gameState.value.currentPlayerId,
-        multiplayerState: MultiplayerState? = gameState.value.multiplayerState,
-        currentCombinationOnMat: Combination = gameState.value.currentCombinationOnMat,
-        discardPile: SnapshotStateList<Card> = gameState.value.discardPile,
-        deck: SnapshotStateList<Card> = gameState.value.deck,
-        skipCount: Int = gameState.value.skipCount,
-        appDialogEvent: AppDialogEvent? = gameState.value.appDialogEvent,
-        gameDialogEvent: GameDialogEvent? = gameState.value.gameDialogEvent,
-        turnId: Int = gameState.value.turnId,
-        turnHintMsg: TurnHintMsg? = gameState.value.turnHintMsg,
-        bannerMsg: BannerMsg? = gameState.value.bannerMsg,
-        pendingNotices: List<UiNotice> = gameState.value.pendingNotices,
-        lastPlayerWhoPlayed: Player? = gameState.value.lastPlayerWhoPlayed,
-        lastPlayerWhoSkipped: Player? = gameState.value.lastPlayerWhoSkipped,
-        lastKeptCard: Card? = gameState.value.lastKeptCard,
-        sessions: MutableList<GameSession> = gameState.value.sessions,
-        currentSession: GameSession? = gameState.value.currentSession,
-        soundEffectVolume: SoundVolume = gameState.value.soundEffectVolume,
-        soundMusicVolume: SoundVolume = gameState.value.soundMusicVolume,
-        pendingSounds: List<SoundEffect> = gameState.value.pendingSounds,
-        pendingMusic: List<MusicCommand> = gameState.value.pendingMusic
-    ) {
-        val newState = GameState(
-            turnInfo = turnInfo,
-            doNotAutoPlayAI = doNotAutoPlayAI,
-            pointLimit = pointLimit,
-            aiTimerDuration = aiTimerDuration,
-            players = players,
-            startingPlayerIndex = startingPlayerIndex,
-            currentPlayerIndex = currentPlayerIndex,
-            currentPlayerId = currentPlayerId,
-            multiplayerState = multiplayerState,
-            currentCombinationOnMat = currentCombinationOnMat,
-            discardPile = discardPile,
-            deck = deck,
-            skipCount = skipCount,
-            appDialogEvent = appDialogEvent,
-            gameDialogEvent = gameDialogEvent,
-            turnId = turnId,
-            turnHintMsg = turnHintMsg,
-            bannerMsg = bannerMsg,
-            pendingNotices = pendingNotices,
-            lastPlayerWhoPlayed = lastPlayerWhoPlayed,
-            lastPlayerWhoSkipped = lastPlayerWhoSkipped,
-            lastKeptCard = lastKeptCard,
-            sessions = sessions,
-            currentSession = currentSession,
-            soundEffectVolume = soundEffectVolume,
-            soundMusicVolume = soundMusicVolume,
-            pendingSounds = pendingSounds,
-            pendingMusic = pendingMusic
-        )
-        _gameState.value = newState
-    }
-
-    // --- Lobby Reducer State ---
-    private val _lobbyState = MutableStateFlow(LobbyState())
-    override val lobbyState: StateFlow<LobbyState> = _lobbyState.asStateFlow()
 
     private fun dispatchLobbyEvent(event: LobbyEvent) {
         // Reducer is synchronous
@@ -160,7 +106,16 @@ object GameManager : IGameManager {
                     maxAgeMillis = 5 * 60 * 1000L,
                     maxRooms = 8,
                     onResult = { rooms ->
-                        val candidate = rooms.firstOrNull { it.ownerId != effect.myUid }
+                        // Filter rooms:
+                        // 1. Not owned by me
+                        // 2. Not full (v1 logic check)
+                        // 3. Not blacklisted (failed connection previously)
+                        val candidate = rooms.firstOrNull { 
+                            it.ownerId != effect.myUid && 
+                            it.playerCount < it.maxPlayers &&
+                            it.id !in _lobbyState.value.blacklistedRoomIds
+                        }
+                        
                         if (candidate != null) {
                             dispatchLobbyEvent(LobbyEvent.RoomFound(candidate.id, candidate.ownerId ?: ""))
                         } else {
@@ -223,6 +178,20 @@ object GameManager : IGameManager {
             is LobbySideEffect.NotifyGameStart -> {
                 // Bridge to Game Logic
                 maybeStartMultiplayerGame(effect.gameId, effect.isHost, effect.remoteUid)
+            }
+            is LobbySideEffect.StartConnectionTimer -> {
+                // Cancel any existing timer just in case
+                connectionTimeoutJob?.cancel()
+                // Start a new 10s timer
+                connectionTimeoutJob = GlobalScope.launch { // Ideally use a structured scope
+                    delay(10_000L) // 10 seconds
+                    // If we get here, it timed out
+                    dispatchLobbyEvent(LobbyEvent.ConnectionTimeout)
+                }
+            }
+            is LobbySideEffect.CancelConnectionTimer -> {
+                connectionTimeoutJob?.cancel()
+                connectionTimeoutJob = null
             }
         }
     }
@@ -704,27 +673,9 @@ object GameManager : IGameManager {
             MSG_TYPE_STATE_SYNC -> if (isGuest() || _lobbyState.value.role == LobbyRole.GUEST) {
                 // dispatch SYNC event to GameReducer (Fix for invisible hand)
                  val text = msg.text ?: return
-                 // Deserialize with strict GameSerializer
-                 try {
-                     val snapshot = decodeSnapshot(text)
-                     dispatcher.enqueueEvent(GameEvent.NetworkStateSync(snapshot))
-                 } catch (e: Exception) {
-                     TRACE(ERROR) { "SNAPSHOT decode failed: ${e.message}" }
-                 }
-            }
-
-            MSG_TYPE_TURN_HINT -> {
-                val text = msg.text ?: return
-                decodeTurnHint(text)?.let { hint ->
-                    dispatcher.enqueueEvent(GameEvent.TurnHintReceived(hint))
-                }
-            }
-
-            MSG_TYPE_BANNER_MSG -> {
-                 val text = msg.text ?: return
-                 decodeBanner(text)?.let { banner ->
-                     dispatcher.enqueueEvent(GameEvent.BannerReceived(banner))
-                 }
+                 val snapshot = decodeSnapshot(text)
+                 // applyAuthoritativeSnapshot(snapshot) // <-- OLD WAY
+                 dispatcher.enqueueEvent(GameEvent.NetworkStateSync(snapshot))
             }
             // ... (rest of messages)
             
@@ -744,6 +695,7 @@ object GameManager : IGameManager {
                 }
             }
         }
+        // ... (Notices)
     }
 
 
@@ -832,7 +784,12 @@ object GameManager : IGameManager {
             maxAgeMillis = windowMillis,
             maxRooms = 8,
             onResult = { rooms ->
-                val candidate = rooms.firstOrNull { it.ownerId != myUid }
+                val candidate = rooms.firstOrNull { 
+                    it.ownerId != myUid && 
+                    it.playerCount < it.maxPlayers &&
+                    it.id !in _lobbyState.value.blacklistedRoomIds
+                }
+                
                 if (candidate != null) {
                     TRACE(WARNING) { "ROOM_PICK: join room=${candidate.id} owner=${candidate.ownerId ?: "?"}" }
                     // 2a) Join that specific room
@@ -925,41 +882,225 @@ object GameManager : IGameManager {
         )
     }
 
-    // --- GameSerializer Delegation ------------------------------------------------
+    // ---- Neutral wire format for TurnHintMsg (no localization on the wire) ----
+    private object HintWireKind {
+        const val PLAYER_SKIPPED = "player_skipped"
+        const val MAT_DISCARDED_NEXT = "mat_discarded_next"
+        const val YOU_CANNOT_BEAT = "you_cannot_beat"
+        const val YOU_MUST_PLAY_ONE = "you_must_play_one"
+        const val YOU_CAN_PLAY_N_OR_NPLUS1 = "you_can_play_n_or_nplus1"
+        const val YOU_KEPT = "you_kept"
+        const val PLAYER_KEPT = "player_kept"
+    }
 
-    // Delegates to strict GameSerializer
-    private fun encodeTurnPlay(intent: GameSerializer.TurnPlayIntent): String =
-        GameSerializer.encodeTurnPlay(intent)
+    /** Encode a TurnHintMsg into a small JSON string. Returns null if no hint. */
+    private fun encodeTurnHint(hint: TurnHintMsg?): String? {
+        if (hint == null) return null
+        val o = JSONObject()
+        when (hint) {
+            is TurnHintMsg.PlayerSkipped -> {
+                o.put("kind", HintWireKind.PLAYER_SKIPPED)
+                o.put("name", hint.name)
+            }
 
-    private fun decodeTurnPlay(json: String): GameSerializer.TurnPlayIntent =
-        GameSerializer.decodeTurnPlay(json)
+            is TurnHintMsg.MatDiscardedNext -> {
+                o.put("kind", HintWireKind.MAT_DISCARDED_NEXT)
+                o.put("name", hint.name)
+            }
 
-    private fun encodeSnapshot(snapshot: GameSerializer.ClientSnapshot): String =
-        GameSerializer.encodeSnapshot(snapshot)
+            is TurnHintMsg.YouCannotBeat -> {
+                o.put("kind", HintWireKind.YOU_CANNOT_BEAT)
+            }
 
-    private fun decodeSnapshot(json: String): GameSerializer.ClientSnapshot =
-        GameSerializer.decodeSnapshot(json)
+            is TurnHintMsg.YouMustPlayOne -> {
+                o.put("kind", HintWireKind.YOU_MUST_PLAY_ONE)
+                o.put("canAllIn", hint.canAllIn)
+            }
 
-    private fun encodeStart(p: GameSerializer.StartPayload): String =
-        GameSerializer.encodeStart(p)
+            is TurnHintMsg.YouCanPlayNOrNPlusOne -> {
+                o.put("kind", HintWireKind.YOU_CAN_PLAY_N_OR_NPLUS1)
+                o.put("n", hint.n)
+            }
 
-    private fun decodeStart(json: String): GameSerializer.StartPayload =
-        GameSerializer.decodeStart(json)
+            is TurnHintMsg.YouKept -> {
+                o.put("kind", HintWireKind.YOU_KEPT)
+                o.put("card", hint.card) // string form you already display in UI
+            }
 
-    private fun encodeTurnHint(hint: TurnHintMsg?): String? =
-        GameSerializer.encodeTurnHint(hint)
+            is TurnHintMsg.PlayerKept -> {
+                o.put("kind", HintWireKind.PLAYER_KEPT)
+                o.put("name", hint.name)
+                o.put("card", hint.card)
+            }
+        }
+        return o.toString()
+    }
 
-    private fun encodeBanner(banner: BannerMsg?): String? =
-        GameSerializer.encodeBanner(banner)
+    /** Decode JSON string back to a TurnHintMsg (or null). */
+    private fun decodeTurnHint(json: String): TurnHintMsg? {
+        val o = JSONObject(json)
+        return when (o.getString("kind")) {
+            HintWireKind.PLAYER_SKIPPED -> TurnHintMsg.PlayerSkipped(o.getString("name"))
+            HintWireKind.MAT_DISCARDED_NEXT -> TurnHintMsg.MatDiscardedNext(o.getString("name"))
+            HintWireKind.YOU_CANNOT_BEAT -> TurnHintMsg.YouCannotBeat
+            HintWireKind.YOU_MUST_PLAY_ONE -> TurnHintMsg.YouMustPlayOne(
+                canAllIn = o.optBoolean("canAllIn", false)
+            )
 
-    private fun decodeBanner(json: String): BannerMsg? =
-        GameSerializer.decodeBanner(json)
+            HintWireKind.YOU_CAN_PLAY_N_OR_NPLUS1 -> TurnHintMsg.YouCanPlayNOrNPlusOne(
+                n = o.optInt("n", 1)
+            )
 
-    private fun decodeTurnHint(json: String): TurnHintMsg? =
-        GameSerializer.decodeTurnHint(json)
+            HintWireKind.YOU_KEPT -> TurnHintMsg.YouKept(
+                card = o.getString("card")
+            )
+
+            HintWireKind.PLAYER_KEPT -> TurnHintMsg.PlayerKept(
+                name = o.getString("name"),
+                card = o.getString("card")
+            )
+
+            else -> null
+        }
+    }
+
+    // ---- Neutral wire format for BannerMsg ----
+    private object BannerWireKind {
+        const val PLAY = "play"
+    }
+
+    private fun encodeBanner(banner: BannerMsg?): String? {
+        if (banner == null) return null
+        val o = JSONObject()
+        when (banner) {
+            is BannerMsg.Play -> {
+                o.put("kind", BannerWireKind.PLAY)
+                o.put("name", banner.name)
+            }
+        }
+        return o.toString()
+    }
+
+    private fun decodeBanner(json: String): BannerMsg? {
+        val o = JSONObject(json)
+        return when (o.getString("kind")) {
+            BannerWireKind.PLAY -> BannerMsg.Play(name = o.getString("name"))
+            else -> null
+        }
+    }
 
 
-    // --- Restored Logic Methods (using GameSerializer DTOs) ---
+    // --- Parsing helpers used by TURN_PLAY / STATE_SYNC --------------------------------------------
+
+    // Parse a single "value/COLOR" token like "7/BLUE"  //
+    private fun parseCardToken(token: String): Card {
+        val parts = token.split("/")
+        require(parts.size == 2) { "Bad card token: $token" }  //
+        val value = parts[0].trim().toInt()                    //
+        val colorStr = parts[1].trim().uppercase()             //
+        // Uses Card(value: Int, color: String) secondary ctor (sets image + enum internally)  //
+        return Card(value, colorStr)
+    }
+
+    // Parse a CSV of cards into a Hand (SnapshotStateList-backed)  //
+    private fun parseHandCsv(csv: String): Hand {
+        if (csv.isBlank()) return Hand()                        //
+        val cards = csv.split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .map(::parseCardToken)
+        return Hand().also { it.cards.addAll(cards) }           //
+    }
+
+    // Optional tiny helper if you ever need the inverse on the wire
+    private fun encodeHandCsv(hand: Hand): String =
+        hand.cards.joinToString(", ") { "${it.value}/${it.color.name}" }
+
+
+    // Minimal SnapshotDecoder for STATE_SYNC messages (Host → Guest).
+    private fun decodeSnapshot(json: String): GameSerializer.ClientSnapshot {
+        val o = JSONObject(json)
+
+        // playersPublic
+        val ppArr = o.getJSONArray("playersPublic")
+        val pp = (0 until ppArr.length()).map { i ->
+            val p = ppArr.getJSONObject(i)
+            GameSerializer.PublicPlayerView(
+                playerId = p.getString("playerId"),
+                name = p.getString("name"),
+                type = PlayerType.valueOf(p.getString("type")),
+                score = p.getInt("score"),
+                handCount = p.getInt("handCount")
+            )
+        }
+
+        // myHand
+        val myHandCsv = o.optString("myHand", null)
+        val myHand = myHandCsv
+            ?.takeIf { it.isNotBlank() && it != "The hand is empty" }
+            ?.let(::parseHandCsv)
+
+        return GameSerializer.ClientSnapshot(
+            turnId = o.getInt("turnId"),
+            currentPlayerIndex = o.getInt("currentPlayerIndex"),
+            currentPlayerId = o.getString("currentPlayerId"),
+            // v1: do not override guest playmat yet (we’ll switch to structured cards later)
+            matCombination = gameState.value.currentCombinationOnMat,
+            playersPublic = pp,
+            skipCount = o.getInt("skipCount"),
+            pointLimit = o.getInt("pointLimit"),
+            lastMove = null,
+            myHand = myHand
+        )
+    }
+
+    // 🟩 add — Host → Guest: canonical start payload
+    private fun encodeStart(p: GameSerializer.StartPayload): String {
+        val root = JSONObject().apply {
+            put("pointLimit", p.pointLimit)
+            put("startingPlayerIndex", p.startingPlayerIndex)
+            put("currentPlayerIndex", p.currentPlayerIndex)
+            put("turnId", p.turnId)
+
+            val arr = JSONArray()
+            p.players.forEach { sp ->
+                arr.put(JSONObject().apply {
+                    put("id", sp.id)
+                    put("name", sp.name)
+                    put("type", sp.type.name)
+                    put("score", sp.score)
+                    put("avatar", sp.avatar)
+                })
+            }
+            put("players", arr)
+        }
+        return root.toString()
+    }
+
+
+
+    private fun decodeStart(json: String): GameSerializer.StartPayload {
+        val o = JSONObject(json)
+        val arr = o.getJSONArray("players")
+        val players = (0 until arr.length()).map { i ->
+            val p = arr.getJSONObject(i)
+            GameSerializer.StartPlayer(
+                id = p.getString("id"),
+                name = p.getString("name"),
+                type = PlayerType.valueOf(p.getString("type")),
+                score = p.getInt("score"),
+                avatar = p.getString("avatar")
+            )
+        }
+        return GameSerializer.StartPayload(
+            players = players,
+            pointLimit = o.getInt("pointLimit"),
+            startingPlayerIndex = o.getInt("startingPlayerIndex"),
+            currentPlayerIndex = o.getInt("currentPlayerIndex"),
+            turnId = o.getInt("turnId")
+        )
+    }
+
 
     private fun applyStartFromHost(payload: GameSerializer.StartPayload, hostUid: String) {
         val currentPlayers = gameState.value.players
@@ -983,6 +1124,7 @@ object GameManager : IGameManager {
             turnId              = payload.turnId
         )
     }
+
 
     private fun startPlayerToConcrete(
         sp: GameSerializer.StartPlayer,
@@ -1016,6 +1158,7 @@ object GameManager : IGameManager {
         return base
     }
 
+
     private fun buildPlayersForHost(ms: MultiplayerState, setup: MpSetup): List<Player> {
         val host = LocalPlayer(
             id = ms.myUid,
@@ -1034,9 +1177,10 @@ object GameManager : IGameManager {
         return listOf(host, remote) + ais
     }
 
-    // -------------------------------------------------------------------------
-    // IGameManager: remaining required methods
-    // -------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------
+// IGameManager: remaining required methods
+// -------------------------------------------------------------------------
 
     override fun updatePlayerHand(playerIndex: Int, hand: Hand) {
         val current = gameState.value
@@ -1056,6 +1200,14 @@ object GameManager : IGameManager {
         return currentPlayer.hand.cards.all { it.isSelected }
     }
 
+    // Multiplayer part
+// Guest → Host: human intent to play
+    private data class TurnPlayIntent(
+        val selectedCards: List<Card>,
+        val cardToKeep: Card? = null
+    )
+
+    // DTOs moved to top-level
     private enum class AuthorityMode { FULL, MIRROR }
 
     private fun authorityMode(): AuthorityMode =
@@ -1068,6 +1220,67 @@ object GameManager : IGameManager {
     private fun isHost() = gameState.value.multiplayerState?.mode == MultiplayerMode.HOST
     private fun isGuest() = gameState.value.multiplayerState?.mode == MultiplayerMode.JOINER
 
+
+    // --- TURN_PLAY encode/decode ------------------------------------------------
+    private fun encodeTurnPlay(intent: GameSerializer.TurnPlayIntent): String {
+        val root = JSONObject()
+        root.put(
+            "selectedCards",
+            JSONArray(intent.selectedCards.map { it.toString() })
+        ) // TODO: switch to structured JSON
+        root.put("cardToKeep", intent.cardToKeep?.toString())
+        return root.toString()
+    }
+
+    private fun decodeTurnPlay(json: String): GameSerializer.TurnPlayIntent {
+        val obj = JSONObject(json)
+        val selected = obj.optJSONArray("selectedCards")?.let { arr ->
+            (0 until arr.length()).map { parseCardToken(arr.getString(it)) }
+        } ?: emptyList()                                        // 🟩
+        val keep = obj.optString("cardToKeep", "")
+            .takeIf { it.isNotBlank() }
+            ?.let(::parseCardToken)                             // 🟩
+        return GameSerializer.TurnPlayIntent(selectedCards = selected, cardToKeep = keep)
+    }
+
+
+    // --- STATE_SYNC encode (decode optional now; we apply via structured method) ---
+    private fun encodeSnapshot(snapshot: GameSerializer.ClientSnapshot): String {
+        val root = JSONObject().apply {
+            put("turnId", snapshot.turnId)
+            put("currentPlayerIndex", snapshot.currentPlayerIndex)
+            put("currentPlayerId", snapshot.currentPlayerId)
+            put("skipCount", snapshot.skipCount)
+            put("pointLimit", snapshot.pointLimit)
+
+            // v1 string forms; replace with structured JSON when ready
+            put("matCombination", snapshot.matCombination.toString())
+
+            val players = JSONArray()
+            snapshot.playersPublic.forEach { p ->
+                players.put(JSONObject().apply {
+                    put("playerId", p.playerId)
+                    put("name", p.name)
+                    put("type", p.type.name)
+                    put("score", p.score)
+                    put("handCount", p.handCount)
+                })
+            }
+            put("playersPublic", players)
+
+            snapshot.lastMove?.let { lm ->
+                put("lastMove", JSONObject().apply {
+                    put("byPlayerId", lm.byPlayerId)
+                    put("action", lm.action)
+                    put("played", lm.played?.let { a -> JSONArray(a.map { it.toString() }) })
+                    put("kept", lm.kept?.toString())
+                })
+            }
+
+            snapshot.myHand?.let { put("myHand", it.toString()) } // TODO structured
+        }
+        return root.toString()
+    }
 
     private fun buildClientSnapshotFor(recipientUid: String?): GameSerializer.ClientSnapshot {
         val state = gameState.value
@@ -1082,24 +1295,17 @@ object GameManager : IGameManager {
             )
         }
 
-        // v1: single remote seat -> we expose that hand to the remote client
-    val remoteIndex = state.players.indexOfFirst { it.playerType == PlayerType.REMOTE }
-    val isFullAuth = authorityMode() == AuthorityMode.FULL
-    val handSize = if (remoteIndex >= 0) state.players[remoteIndex].hand.cards.size else -1
+        // v1: single remote seat → we expose that hand to the remote client
+        val remoteIndex = state.players.indexOfFirst { it.playerType == PlayerType.REMOTE }
+        val isFullAuth = authorityMode() == AuthorityMode.FULL
+        val handSize = if (remoteIndex >= 0) state.players[remoteIndex].hand.cards.size else -1
 
-    TRACE(WARNING) { "SNAPSHOT_BUILD: recipient=$recipientUid remoteIdx=$remoteIndex auth=$isFullAuth handSize=$handSize players=${state.players.map { "${it.name}:${it.playerType}" }}" }
+        TRACE(WARNING) { "SNAPSHOT: recipient=$recipientUid remoteIdx=$remoteIndex auth=$isFullAuth handSize=$handSize" }
 
-    val myHand: Hand? =
-        if (isFullAuth && recipientUid != null && remoteIndex >= 0) {
-             // Basic ID check: Does recipientUid match the remote player? 
-             // Currently v1 assumes ANY recipient gets the FIRST remote player's hand.
-             // This is risky if IDs mismatch.
-             val remotePlayer = state.players[remoteIndex]
-             if (remotePlayer.id != recipientUid) {
-                 TRACE(ERROR) { "SNAPSHOT_MISMATCH: Sending hand of ${remotePlayer.name}(${remotePlayer.id}) to $recipientUid!" }
-             }
-            state.players[remoteIndex].hand
-        } else null
+        val myHand: Hand? =
+            if (isFullAuth && recipientUid != null && remoteIndex >= 0) {
+                state.players[remoteIndex].hand
+            } else null
 
         return GameSerializer.ClientSnapshot(
             turnId = state.turnId,
@@ -1109,26 +1315,75 @@ object GameManager : IGameManager {
             playersPublic = playersPublic,
             skipCount = state.skipCount,
             pointLimit = state.pointLimit,
-            lastMove = state.lastPlayerWhoPlayed?.let { player ->
-                GameSerializer.LastMove(
-                    byPlayerId = player.id,
-                    action = "PLAY",
-                    played = state.currentCombinationOnMat.cards,
-                    kept = state.lastKeptCard
-                )
-            },
+            lastMove = null, // populate when you track it in state
             myHand = myHand
         )
     }
 
     private fun applyAuthoritativeSnapshot(snapshot: GameSerializer.ClientSnapshot) {
-        TRACE(WARNING) { "APPLY SNAPSHOT: turn=${snapshot.turnId} myHand=${snapshot.myHand?.cards?.size}" }
-        dispatcher.enqueueEvent(GameEvent.NetworkStateSync(snapshot))
+        val state = gameState.value
+        TRACE(WARNING) { "APPLY SNAPSHOT: turn=${snapshot.turnId} myHand=${snapshot.myHand?.cards?.size} msgPlayers=${snapshot.playersPublic}" }
+        
+        if (snapshot.turnId < state.turnId) return // de-dupe (allow same-turn updates/retries)
+
+        // Map the host's currentPlayerId to our local list to compute a safe index.
+        val mappedIndex = state.players.indexOfFirst { it.id == snapshot.currentPlayerId }
+        val safeIndex = if (mappedIndex >= 0) mappedIndex else snapshot.currentPlayerIndex
+
+        // Update public bits; keep local hands & mat in v1
+        val remappedPlayers = state.players.map { player ->
+            val pub = snapshot.playersPublic.firstOrNull { it.playerId == player.id }
+            if (pub != null) {
+                // Synthesize a visual-only hand for others if the count differs
+                val currentCount = player.hand.cards.size
+                val newHand = if (player.playerType != PlayerType.LOCAL && currentCount != pub.handCount) {
+                    Hand.createHidden(pub.handCount) // Helper to make N dummy cards
+                } else {
+                    player.hand
+                }
+                player.copy(
+                    score = pub.score,
+                    hand = newHand
+                )
+            } else player
+        }
+
+        // If host supplied my hand, update it for the LOCAL player (guest).
+    val myId = myNetworkingUidOrNull()
+    var finalPlayers = remappedPlayers
+
+    if (snapshot.myHand != null && myId != null) {
+        var applied = false
+        finalPlayers = finalPlayers.map { player ->
+            if (player.id == myId) {
+                TRACE(ERROR) { "APPLY_HAND: Success! Applied hand size=${snapshot.myHand.cards.size} to ${player.id}" }
+                applied = true
+                player.copy(hand = snapshot.myHand)
+            } else {
+                player
+            }
+        }
+        if (!applied) {
+            TRACE(ERROR) { "APPLY_HAND: Failed! myId=$myId not found/matched in: ${finalPlayers.map { "${it.name}=${it.id}" }}" }
+        }
+    } else {
+        TRACE(ERROR) { "APPLY_HAND: Skipped. handNull=${snapshot.myHand == null} myId=$myId" }
     }
+
+    updateGameState(
+        players            = finalPlayers,
+        currentPlayerIndex = safeIndex,
+        currentPlayerId    = snapshot.currentPlayerId,
+        // keep currentCombinationOnMat as-is in v1
+        skipCount          = snapshot.skipCount,
+        pointLimit         = snapshot.pointLimit,
+        turnId             = snapshot.turnId
+    )
+    }
+
 
     private fun broadcastAfterHostCommit() {
         if (!isHost()) return
-        TRACE(WARNING) { "BROADCAST_COMMIT: Triggering state sync to guest." }
         val state = gameState.value
         val multiplayerState = state.multiplayerState ?: return
         val gameId = multiplayerState.currentGameId ?: return
@@ -1153,6 +1408,116 @@ object GameManager : IGameManager {
         encodeBanner(state.bannerMsg)?.let { json ->
             NetworkManager.sendBannerMsg(gameId, multiplayerState.myUid, remoteUid, json)
         }
+
+
+    }
+
+
+// -------------------------------------------------------------------------
+// State update helpers
+// -------------------------------------------------------------------------
+
+    /** Replace whole state (used by reducer/event dispatcher). */
+    fun updateGameState(newState: GameState) {
+        _gameState.value = newState
+    }
+
+    /** Partial update helper (do not call from reducer/event logic). */
+    fun updateGameState(
+        players: List<Player> = gameState.value.players,
+        deck: androidx.compose.runtime.snapshots.SnapshotStateList<Card> = gameState.value.deck,
+        discardPile: androidx.compose.runtime.snapshots.SnapshotStateList<Card> = gameState.value.discardPile,
+        startingPlayerIndex: Int = gameState.value.startingPlayerIndex,
+        currentPlayerIndex: Int = gameState.value.currentPlayerIndex,
+        currentPlayerId: String = gameState.value.currentPlayerId,
+        multiplayerState: MultiplayerState? = gameState.value.multiplayerState,
+        currentCombinationOnMat: Combination = gameState.value.currentCombinationOnMat,
+        skipCount: Int = gameState.value.skipCount,
+        turnInfo: TurnInfo = gameState.value.turnInfo,
+        pointLimit: Int = gameState.value.pointLimit,
+        aiTimerDuration: Int = gameState.value.aiTimerDuration,
+        soundEffectVolume: SoundVolume = gameState.value.soundEffectVolume,
+        soundMusicVolume: SoundVolume = gameState.value.soundMusicVolume,
+        pendingSounds: List<SoundEffect> = gameState.value.pendingSounds,
+        pendingMusic: List<MusicCommand> = gameState.value.pendingMusic,
+        appDialogEvent: AppDialogEvent? = gameState.value.appDialogEvent,
+        gameDialogEvent: GameDialogEvent? = gameState.value.gameDialogEvent,
+        pendingNotices: List<UiNotice> = gameState.value.pendingNotices,
+        turnId: Int = gameState.value.turnId,
+        turnHintMsg: TurnHintMsg? = gameState.value.turnHintMsg,
+        bannerMsg: BannerMsg? = gameState.value.bannerMsg,
+        doNotAutoPlayAI: Boolean = gameState.value.doNotAutoPlayAI,
+        lastPlayerWhoPlayed: Player? = gameState.value.lastPlayerWhoPlayed,
+        lastPlayerWhoSkipped: Player? = gameState.value.lastPlayerWhoSkipped,
+        lastKeptCard: Card? = gameState.value.lastKeptCard,
+        sessions: MutableList<GameSession> = gameState.value.sessions,
+        currentSession: GameSession? = gameState.value.currentSession,
+    ) {
+        _gameState.value = gameState.value.copy(
+            players = players,
+            deck = deck,
+            discardPile = discardPile,
+            startingPlayerIndex = startingPlayerIndex,
+            currentPlayerIndex = currentPlayerIndex,
+            currentPlayerId = currentPlayerId,
+            multiplayerState = multiplayerState,
+            currentCombinationOnMat = currentCombinationOnMat,
+            skipCount = skipCount,
+            turnInfo = turnInfo,
+            pointLimit = pointLimit,
+            aiTimerDuration = aiTimerDuration,
+            appDialogEvent = appDialogEvent,
+            soundEffectVolume = soundEffectVolume,
+            soundMusicVolume = soundMusicVolume,
+            pendingSounds = pendingSounds,
+            pendingMusic = pendingMusic,
+            gameDialogEvent = gameDialogEvent,
+            pendingNotices = pendingNotices,
+            turnId = turnId,
+            turnHintMsg = turnHintMsg,
+            bannerMsg = bannerMsg,
+            doNotAutoPlayAI = doNotAutoPlayAI,
+            lastPlayerWhoPlayed = lastPlayerWhoPlayed,
+            lastPlayerWhoSkipped = lastPlayerWhoSkipped,
+            lastKeptCard = lastKeptCard,
+            sessions = sessions,
+            currentSession = currentSession
+        )
+    }
+
+    private fun broadcastAfterHostCommitIfChanged(prev: GameState, next: GameState) {
+        val ms = next.multiplayerState ?: return
+        val gameId = ms.currentGameId ?: return
+        val remote = ms.knownRemoteUid ?: return
+
+        // 1) Send authoritative snapshot only if core public state changed
+        val publicChanged =
+            prev.turnId != next.turnId ||
+                    prev.currentPlayerIndex != next.currentPlayerIndex ||
+                    prev.currentCombinationOnMat != next.currentCombinationOnMat ||
+                    prev.skipCount != next.skipCount ||
+                    // keep it cheap: compare {score, handCount} only
+                    prev.players.map { it.score to it.hand.cards.size } !=
+                    next.players.map { it.score to it.hand.cards.size }
+
+        if (publicChanged) {
+            val snapshotJson = encodeSnapshot(buildClientSnapshotFor(remote))
+            NetworkManager.sendStateSync(gameId, ms.myUid, remote, snapshotJson)
+        }
+
+        // 2) Send hint only if it changed
+        if (prev.turnHintMsg != next.turnHintMsg) {
+            encodeTurnHint(next.turnHintMsg)?.let { json ->
+                NetworkManager.sendTurnHint(gameId, ms.myUid, remote, json)
+            }
+        }
+
+        // 3) Send banner only if it changed
+        if (prev.bannerMsg != next.bannerMsg) {
+            encodeBanner(next.bannerMsg)?.let { json ->
+                NetworkManager.sendBannerMsg(gameId, ms.myUid, remote, json)
+            }
+        }
     }
 
     private fun handleSideEffect(effect: GameSideEffect) {
@@ -1176,6 +1541,7 @@ object GameManager : IGameManager {
         }
     }
 }
+
 
 // Internal helper to expose GameManager as IGameManager.
 internal fun getGameManagerInstance(): IGameManager = GameManager

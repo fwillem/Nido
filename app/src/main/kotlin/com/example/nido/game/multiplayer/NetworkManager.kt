@@ -14,10 +14,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceDomain
 import com.example.nido.utils.TraceLogLevel.*
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FieldPath
-
 
 /**
  * 🔗 NetworkManager — Firestore-based, symmetric message bus
@@ -43,8 +43,6 @@ object NetworkManager {
         val text: String? = null
     )
 
-
-
     /**
      * 🎧 Connect to a game room and start receiving messages addressed to me.
      *
@@ -66,24 +64,32 @@ object NetworkManager {
 
         val app = runCatching { FirebaseApp.getInstance() }.getOrNull()
         val opts = app?.options
-        TRACE(WARNING) { "🟡 T0 Firebase: projectId=${opts?.projectId ?: "-"} appId=${opts?.applicationId ?: "-"} gameID=$gameId (dbUrl=${opts?.databaseUrl ?: "-"})" }
+        TRACE(DEBUG, domain = TraceDomain.NET) {
+            "T0 Firebase: projectId=${opts?.projectId ?: "-"} appId=${opts?.applicationId ?: "-"} gameID=$gameId (dbUrl=${opts?.databaseUrl ?: "-"})"
+        }
 
         val db = FirebaseFirestore.getInstance()
         val colRef = db.collection(DB_NAME)
             .document(gameId)
             .collection("messages")
 
-        TRACE(WARNING) { "🟡 T1 Listening at path=games/$gameId/messages filter: toId == $myPlayerId" }
+        TRACE(DEBUG, domain = TraceDomain.NET) {
+            "T1 Listening at path=games/$gameId/messages filter: toId == $myPlayerId"
+        }
 
         // One-shot audit (handy for room alignment)
         colRef.orderBy("createdAt", Query.Direction.DESCENDING)
             .limit(20)
             .get()
             .addOnSuccessListener { snap ->
-                TRACE(WARNING) { "🟡 T2 AUDIT: ${snap.size()} docs currently in games/$gameId/messages" }
+                TRACE(INFO, domain = TraceDomain.NET) {
+                    "T2 AUDIT: ${snap.size()} docs currently in games/$gameId/messages"
+                }
             }
             .addOnFailureListener { e ->
-                TRACE(WARNING) { "🟡 T2 AUDIT failed: ${e.message}" }
+                TRACE(WARNING, domain = TraceDomain.NET) {
+                    "T2 AUDIT failed: ${e.message}"
+                }
             }
 
         // Live listener: messages addressed to me
@@ -96,44 +102,50 @@ object NetworkManager {
                 // Ignore if we switched rooms meanwhile
                 val stillActive = activeGameId
                 if (stillActive != gameId) {
-                    TRACE(WARNING) { "⚠️ Stale event: eventGameId=$gameId activeGameId=$stillActive (ignored)" }
+                    TRACE(DEBUG, domain = TraceDomain.NET) {
+                        "Stale event: eventGameId=$gameId activeGameId=$stillActive (ignored)"
+                    }
                     return@addSnapshotListener
                 }
 
                 if (error != null) {
-                    TRACE(ERROR) { "❌ Listener error: ${error.message}" }
+                    TRACE(ERROR, domain = TraceDomain.NET) { "❌ Listener error: ${error.message}" }
                     return@addSnapshotListener
                 }
                 if (snapshot == null) {
-                    TRACE(WARNING) { "⚠️ Listener snapshot is null" }
+                    TRACE(WARNING, domain = TraceDomain.NET) { "⚠️ Listener snapshot is null" }
                     return@addSnapshotListener
                 }
 
-                TRACE(WARNING) {
+                TRACE(DEBUG, domain = TraceDomain.NET) {
                     val kinds = snapshot.documentChanges.joinToString(prefix = "[", postfix = "]") { it.type.name }
-                    "🟡 T4 snapshot changes=${snapshot.documentChanges.size} $kinds (fromCache=${snapshot.metadata.isFromCache} pendingWrites=${snapshot.metadata.hasPendingWrites()})"
+                    "T4 snapshot changes=${snapshot.documentChanges.size} $kinds (fromCache=${snapshot.metadata.isFromCache} pendingWrites=${snapshot.metadata.hasPendingWrites()})"
                 }
 
                 if (snapshot.documentChanges.isEmpty()) {
-                    TRACE(WARNING) { "… tick (no new messages)" }
+                    TRACE(DEBUG, domain = TraceDomain.NET) { "… tick (no new messages)" }
                 }
 
                 for (change in snapshot.documentChanges) {
                     if (change.type != DocumentChange.Type.ADDED) {
-                        TRACE(WARNING) { "Ignoring change type=${change.type} id=${change.document.id}" }
+                        TRACE(DEBUG, domain = TraceDomain.NET) {
+                            "Ignoring change type=${change.type} id=${change.document.id}"
+                        }
                         continue
                     }
                     val data = change.document.data
                     val type = data["type"] as? String ?: run {
-                        TRACE(WARNING) { "Missing 'type' in ${change.document.id}" }
+                        TRACE(WARNING, domain = TraceDomain.NET) { "Missing 'type' in ${change.document.id}" }
                         continue
                     }
                     val fromId = data["fromId"] as? String ?: run {
-                        TRACE(WARNING) { "Missing 'fromId' in ${change.document.id}" }
+                        TRACE(WARNING, domain = TraceDomain.NET) { "Missing 'fromId' in ${change.document.id}" }
                         continue
                     }
                     val text = data["text"] as? String
-                    TRACE(WARNING) { "📥 Incoming id=${change.document.id} type=$type from=$fromId text=${text ?: ""}" }
+                    TRACE(DEBUG, domain = TraceDomain.NET) {
+                        "📥 Incoming id=${change.document.id} type=$type from=$fromId text=${text ?: ""}"
+                    }
                     onMessage(InboundMessage(type = type, fromId = fromId, text = text))
                 }
             }
@@ -141,13 +153,12 @@ object NetworkManager {
 
     /** 📴 Disconnect and clear active context. */
     fun disconnect() {
-        if (registration != null) TRACE(WARNING) { "🔌 Detaching listener" }
+        if (registration != null) TRACE(INFO, domain = TraceDomain.NET) { "🔌 Detaching listener" }
         registration?.remove()
         registration = null
         activeGameId = null
         activePlayerId = null
     }
-
 
     // ---- internals ---------------------------------------------------------
 
@@ -161,15 +172,21 @@ object NetworkManager {
         val targetGameId = activeGameId
         val me = activePlayerId
         if (targetGameId == null || me == null) {
-            TRACE(ERROR) { "❌ send($type) while not connected (fromId=$fromId toId=$toId). Ignored." }
+            TRACE(ERROR, domain = TraceDomain.NET) {
+                "❌ send($type) while not connected (fromId=$fromId toId=$toId). Ignored."
+            }
             return
         }
         if (gameId != targetGameId) {
-            TRACE(WARNING) { "⚠️ send($type) gameId mismatch: provided=$gameId connected=$targetGameId. Using connected room." }
+            TRACE(WARNING, domain = TraceDomain.NET) {
+                "⚠️ send($type) gameId mismatch: provided=$gameId connected=$targetGameId. Using connected room."
+            }
         }
         if (fromId != me) {
             // Not fatal, but helps catch accidental misuse
-            TRACE(WARNING) { "⚠️ fromId ($fromId) != activePlayerId ($me). Proceeding." }
+            TRACE(WARNING, domain = TraceDomain.NET) {
+                "⚠️ fromId ($fromId) != activePlayerId ($me). Proceeding."
+            }
         }
 
         val db = FirebaseFirestore.getInstance()
@@ -186,19 +203,20 @@ object NetworkManager {
 
         val app = runCatching { FirebaseApp.getInstance() }.getOrNull()
         val opts = app?.options
-        TRACE(WARNING) { "🟡 T3 WRITE $type -> games/$targetGameId/messages  {fromId=$fromId toId=$toId} projectId=${opts?.projectId ?: "-"} appId=${opts?.applicationId ?: "-"}" }
+        TRACE(DEBUG, domain = TraceDomain.NET) {
+            "T3 WRITE $type -> games/$targetGameId/messages  {fromId=$fromId toId=$toId} projectId=${opts?.projectId ?: "-"} appId=${opts?.applicationId ?: "-"}"
+        }
 
         colRef.add(payload)
             .addOnSuccessListener { ref ->
-                TRACE(WARNING) { "✅ WRITE ok id=${ref.id} path=games/$targetGameId/messages/${ref.id}" }
+                TRACE(DEBUG, domain = TraceDomain.NET) {
+                    "✅ WRITE ok id=${ref.id} path=games/$targetGameId/messages/${ref.id}"
+                }
             }
             .addOnFailureListener { e ->
-                TRACE(ERROR) { "❌ send($type) failed to=$toId error=${e.message}" }
+                TRACE(ERROR, domain = TraceDomain.NET) { "❌ send($type) failed to=$toId error=${e.message}" }
             }
     }
-
-    // --- Add in NetworkManager.kt (near sendPing/sendChat) ---
-
 
     /**
      * 💬 Send a chat message to another player.
@@ -268,7 +286,4 @@ object NetworkManager {
     fun sendStart(gameId: String, fromId: String, toId: String, text: String) {
         send(gameId = gameId, fromId = fromId, toId = toId, type = MessageTypes.MSG_TYPE_START, text = text)
     }
-
-
-
 }

@@ -28,3 +28,52 @@ sealed class GameEvent() {
     
     // Add additional events as needed.
 }
+
+private fun String.shortId(len: Int = 6): String =
+    if (length <= len) this else take(len)
+
+/**
+ * Compact, stable debug string for GameEvent.
+ * Designed for logs (reducers, network traces, replay).
+ */
+fun GameEvent.debugString(): String = when (this) {
+
+    // --- Core game flow -----------------------------------------------------
+
+    GameEvent.NewRoundStarted ->
+        "NewRoundStarted"
+
+    is GameEvent.CardPlayed ->
+        "CardPlayed(p=${playerId.shortId()}, cards=${playedCards.size}, kept=${cardKept != null})"
+
+    GameEvent.PlayerSkipped ->
+        "PlayerSkipped"
+
+    GameEvent.NextTurn ->
+        "NextTurn"
+
+    is GameEvent.RoundOver ->
+        "RoundOver(win=$localPlayerWon)"
+
+    is GameEvent.GameOver ->
+        "GameOver(win=$localPlayerWon)"
+
+    is GameEvent.AITimerExpired ->
+        "AITimerExpired(turn=$turnId)"
+
+    GameEvent.QuitGame ->
+        "QuitGame"
+
+    // --- Network / multiplayer ---------------------------------------------
+
+    is GameEvent.NetworkStateSync ->
+        "NetworkStateSync"
+
+    // --- UI / feedback ------------------------------------------------------
+
+    is GameEvent.TurnHintReceived ->
+        "TurnHintReceived"
+
+    is GameEvent.BannerReceived ->
+        "BannerReceived"
+}

@@ -215,11 +215,15 @@ object RoomCoordinator {
             .get()
             .addOnSuccessListener { snap ->
                 val list = snap.documents.map { d ->
+                    val players = (d.get("players") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
                     RoomSummary(
                         id = d.id,
                         ownerId = d.getString("ownerId"),
                         createdAt = d.getTimestamp("createdAt"),
-                        updatedAt = d.getTimestamp("updatedAt")
+                        updatedAt = d.getTimestamp("updatedAt"),
+                        status = d.getString("status") ?: "unknown",
+                        playerCount = players.size,
+                        maxPlayers = (d.getLong("maxPlayers") ?: 2L).toInt()
                     )
                 }.filter { rs ->
                     val t = (rs.updatedAt ?: rs.createdAt)?.toDate()?.time ?: 0L
@@ -321,5 +325,8 @@ data class RoomSummary(
     val id: String,
     val ownerId: String?,
     val createdAt: Timestamp?,
-    val updatedAt: Timestamp?
+    val updatedAt: Timestamp?,
+    val status: String,
+    val playerCount: Int,
+    val maxPlayers: Int
 )

@@ -21,6 +21,7 @@ import com.example.nido.game.BannerMsg
 import com.example.nido.game.multiplayer.MultiplayerMode
 import com.example.nido.game.rules.calculateTurnInfo
 import com.example.nido.replay.GameRecorder
+import com.example.nido.utils.TraceDomain
 
 
 data class ReducerResult(
@@ -86,6 +87,7 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
         is GameEvent.BannerReceived -> ReducerResult(state.copy(bannerMsg = event.banner))
     }
 
+
     // 📝 Record the event into replay history
     val currentPlayerId = state.players.getOrNull(state.currentPlayerIndex)?.id
     GameRecorder.record(event, playerId = currentPlayerId)
@@ -100,6 +102,10 @@ fun gameReducer(state: GameState, event: GameEvent): ReducerResult {
     // Build SFX from (prev, next, event) and append them
     val sfx = synthesizeSfx(state, refreshed, event)
     val mx  = synthesizeMusic(state, refreshed, event)
+
+    TRACE(INFO, domain = TraceDomain.RED) {
+        "${event.debugString()} -> ${refreshed.debugString()} sfx=${result.sideEffects.joinToString { it.debugString() }}"
+    }
 
     return result.copy(
         newState = refreshed,
@@ -651,6 +657,7 @@ private fun handleNetworkStateSync(state: GameState, event: GameEvent.NetworkSta
     // We must build the list from the authoritative source (snapshot.playersPublic).
     val myUid = state.multiplayerState?.myUid ?: ""
 
+    val reconstructedPlayers = snapshot.playersPublic.map { publicView ->
         val isMe = (publicView.playerId == myUid)
         TRACE(DEBUG) { "SYNC_PLAYER: id=${publicView.playerId} name=${publicView.name} type=${publicView.type} isMe=$isMe myUid=$myUid" }
 

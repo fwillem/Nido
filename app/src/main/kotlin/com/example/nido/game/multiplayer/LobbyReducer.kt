@@ -1,6 +1,7 @@
 package com.example.nido.game.multiplayer
 
 import com.example.nido.utils.TRACE
+import com.example.nido.utils.TraceDomain
 import com.example.nido.utils.TraceLogLevel.*
 
 data class LobbyReducerResult(
@@ -14,10 +15,14 @@ sealed class LobbySideEffect {
     data class JoinInGame(val gameId: String, val myUid: String) : LobbySideEffect()
     data class SendReadyPacket(val gameId: String, val myUid: String, val toUid: String) : LobbySideEffect()
     data class NotifyGameStart(val gameId: String, val isHost: Boolean, val remoteUid: String) : LobbySideEffect()
+    
+    // New side effects for timeout management
+    object StartConnectionTimer : LobbySideEffect()
+    object CancelConnectionTimer : LobbySideEffect()
 }
 
 fun lobbyReducer(state: LobbyState, event: LobbyEvent): LobbyReducerResult {
-    TRACE(DEBUG) { "LobbyEvent: $event | Current State: ${state.status} Role: ${state.role}" }
+    TRACE(INFO,domain = TraceDomain.LOBBY) { event.debugString() }
 
     return when (event) {
         is LobbyEvent.Initialize -> {
@@ -58,8 +63,8 @@ fun lobbyReducer(state: LobbyState, event: LobbyEvent): LobbyReducerResult {
                     localReady = true // Auto-ready when joining via "Quick Play"
                 ),
                 sideEffects = listOf(
-                    LobbySideEffect.JoinInGame(event.gameId, state.myUid)
-                    // DELETED: SendReadyPacket (moved to onConnected callback in GameManager to avoid race condition)
+                    LobbySideEffect.JoinInGame(event.gameId, state.myUid),
+                    LobbySideEffect.StartConnectionTimer // Start timeout guard
                 )
             )
         }
@@ -98,6 +103,8 @@ fun lobbyReducer(state: LobbyState, event: LobbyEvent): LobbyReducerResult {
                         isHost = state.role == LobbyRole.HOST, 
                         remoteUid = state.remoteUid
                     )
+                    sideEffects += LobbySideEffect.CancelConnectionTimer // Stop timer
+
                      LobbyReducerResult(
                         newState = newState.copy(status = ConnectionStatus.GameStarted),
                         sideEffects = sideEffects
@@ -124,7 +131,8 @@ fun lobbyReducer(state: LobbyState, event: LobbyEvent): LobbyReducerResult {
                             gameId = state.gameId!!, 
                             isHost = state.role == LobbyRole.HOST, 
                             remoteUid = state.remoteUid!!
-                        )
+                        ),
+                        LobbySideEffect.CancelConnectionTimer // Stop timer
                     )
                 )
             } else {
@@ -139,19 +147,48 @@ fun lobbyReducer(state: LobbyState, event: LobbyEvent): LobbyReducerResult {
         }
         
         is LobbyEvent.GameLaunched -> {
-             LobbyReducerResult(state.copy(
-                 status = ConnectionStatus.GameStarted,
-                 remoteReady = true // Implicit trust: if game launches, peer is ready
-             ))
+             LobbyReducerResult(
+                 state.copy(
+                     status = ConnectionStatus.GameStarted,
+                     remoteReady = true // Implicit trust: if game launches, peer is ready
+                 ),
+                 sideEffects = listOf(LobbySideEffect.CancelConnectionTimer) // Stop timer
+             )
         }
 
         is LobbyEvent.ErrorOccurred -> {
+            TRACE(WARNING, domain = TraceDomain.LOBBY) { "Error: ${event.message} -> Falling back to HOST" }
             LobbyReducerResult(
-                state.copy(
-                    status = ConnectionStatus.Idle, 
-                    error = event.message,
-                    role = LobbyRole.NONE
-                )
+                newState = state.copy(
+                    status = ConnectionStatus.Creating,
+                    role = LobbyRole.HOST,
+                    error = event.message // Keep the error visible briefly or log it?
+                ),
+                sideEffects = listOf(LobbySideEffect.CreateRoom(state.myUid))
+            )
+        }
+
+        is LobbyEvent.ConnectionTimeout -> {
+            val failedId = state.gameId
+            val newBlacklist = if (failedId != null) {
+                state.blacklistedRoomIds + failedId
+            } else {
+                state.blacklistedRoomIds
+            }
+            
+            TRACE(WARNING, domain = TraceDomain.LOBBY) { "Timeout! Blacklisting $failedId. Retrying..." }
+
+            // Reset state to scanning and try again, preserving blacklist
+            LobbyReducerResult(
+                newState = state.copy(
+                    status = ConnectionStatus.Scanning,
+                    role = LobbyRole.GUEST,
+                    gameId = null,
+                    remoteUid = null,
+                    error = "Connection timed out",
+                    blacklistedRoomIds = newBlacklist
+                ),
+                sideEffects = listOf(LobbySideEffect.ScanForRooms(state.myUid))
             )
         }
 

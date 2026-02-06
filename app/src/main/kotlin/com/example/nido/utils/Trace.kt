@@ -5,43 +5,94 @@ import com.example.nido.events.AppDialogEvent
 import com.example.nido.events.UiEventBridge
 
 /**
- * TRACE logging utility.
- *
- * Goals:
- * - Keep Logcat-friendly simplicity and inline efficiency.
- * - Add readable emojis and auto-tagging (Class:method).
- * - Avoid duplicate println() when TRACE() builds the string.
- * - Integrate with the UI event system for fatal errors (BSOD dialog).
- *
- * Architecture tie-in:
- * - For FATAL logs, we emit an AppDialogEvent.BlueScreenOfDeath
- *   via UiEventBridge so the UI (NidoApp) can show a blocking dialog.
- *   If you prefer an immediate crash, uncomment the throw at the end.
- */
-
-/**
  * Log levels for TRACE.
  */
 enum class TraceLogLevel {
-    VERBOSE,     // Very detailed traces
-    DEBUG,       // Detailed traces
-    INFO,        // Basic traces
-    WARNING,     // Warning (abnormal situation, not planned)
-    ERROR,       // Error, something went wrong but program can go on. Needs to be solved
-    FATAL        // Fatal error, will raise an exception or BSOD dialog
+    VERBOSE,
+    DEBUG,
+    INFO,
+    WARNING,
+    ERROR,
+    FATAL
+}
+
+/**
+ * Coarse domain for Logcat filtering.
+ * Used to build the Android Log tag, e.g. "Nido-NET", "Nido-LOBBY", etc.
+ *
+ * IMPORTANT:
+ * - If no domain is provided to TRACE(), the tag remains exactly "Nido".
+ */
+enum class TraceDomain(val key: String) {
+    NET("NET"),
+    LOBBY("LOBBY"),
+    GAME("GAME"),
+    RED("RED"),
+    UI("UI"),
+    AI("AI"),
+    DATA("DATA")
 }
 
 /** Maximum tag length for Android Studio Logcat. */
 const val tagMaxLen = 23
 
 /**
- * Attempts to generate a meaningful tag by inspecting the current stack trace.
- * It uses the caller's class and method name (formatted as "ClassName:methodName").
- * If the tag exceeds [tagMaxLen], it will be truncated appropriately.
+ * Default/global tag prefix.
+ */
+const val GLOBAL_TAG = "@Nido"
+
+/**
+ * Thread-local flag to detect when TRACE() is running.
+ * This prevents the custom println() from printing duplicate output
+ * when called within TRACE().
+ */
+val isInsideTrace = ThreadLocal.withInitial { false }
+
+/**
+ * Optional runtime override:
+ * If true, even VERBOSE/DEBUG/INFO will include caller context (stack inspection).
+ *
+ * Default false for CPU efficiency.
+ * Turn it on temporarily from anywhere (e.g. debug screen) without changing TRACE call sites.
+ */
+@Volatile
+var FORCE_CALLER_FOR_LOW_LEVELS: Boolean = false
+
+/** Returns an emoji based on the trace log level. */
+fun emojiForLevel(level: TraceLogLevel): String = when (level) {
+    /*
+    TraceLogLevel.VERBOSE -> "Nido 🟡"
+    TraceLogLevel.DEBUG -> "Nido 🟡"
+    TraceLogLevel.INFO -> "Nido 🟡"
+    TraceLogLevel.WARNING -> "Nido ⚠"
+    TraceLogLevel.ERROR -> "Nido ❌"
+    TraceLogLevel.FATAL -> "\uD83D\uDC80" // Skull emoji
+
+     */
+    else -> ""
+}
+
+/**
+ * Attempts to generate a meaningful caller context by inspecting the current stack trace.
+ * Uses the caller's class and method name (formatted as "ClassName:methodName").
+ *
+ * NOTE: This is CPU/alloc expensive, so TRACE() will only call it for WARNING+ by default.
  */
 fun getTag(): String {
     val stackTrace = Throwable().stackTrace
-    val fullTag = stackTrace.getOrNull(1)
+
+    // Find the first frame that is outside this Trace utility.
+    // This is more reliable than a fixed index (lambda/inline/coroutines shift frames).
+    val caller = stackTrace.firstOrNull { e ->
+        val cn = e.className
+        // Exclude this file's top-level functions class and any utils trace frames
+        cn != "com.example.nido.utils.TraceKt" &&
+                !cn.startsWith("com.example.nido.utils.Trace") &&
+                // Try to prefer real app frames
+                cn.startsWith("com.example.nido.")
+    } ?: stackTrace.getOrNull(1)
+
+    val fullTag = caller
         ?.let { "${it.className.substringAfterLast('.')}:${it.methodName}" }
         ?: "UnknownTag"
 
@@ -58,68 +109,85 @@ fun getTag(): String {
     }
 }
 
-/** Returns an emoji based on the trace log level. */
-fun emojiForLevel(level: TraceLogLevel): String = when (level) {
-    TraceLogLevel.VERBOSE    -> "Nido 🟡"
-    TraceLogLevel.DEBUG      -> "Nido 🟡"
-    TraceLogLevel.INFO       -> "Nido 🟡"
-    TraceLogLevel.WARNING    -> "Nido ⚠"
-    TraceLogLevel.ERROR      -> "Nido ❌"
-    TraceLogLevel.FATAL      -> "\uD83D\uDC80" // Skull emoji
+/**
+ * IMPORTANT:
+ * TRACE() is a public inline function. Kotlin requires that any function it calls
+ * is also public API (otherwise it could inline private/internal symbols into other call sites).
+ */
+fun buildLogcatTag(domain: TraceDomain?): String {
+    // If domain is not provided, keep the original "Nido" tag (best noise gate).
+    if (domain == null) return GLOBAL_TAG
+
+    // Otherwise, append a stable suffix for filtering, e.g. "Nido-NET"
+    return "$GLOBAL_TAG-${domain.key}".take(tagMaxLen)
 }
 
 /**
- * Thread-local flag to detect when TRACE() is running.
- * This prevents the custom println() from printing duplicate output
- * when called within TRACE().
- */
-val isInsideTrace = ThreadLocal.withInitial { false }
-
-/**
- * Fixed global tag for easy filtering.
- */
-const val GLOBAL_TAG = "Nido"
-
-/**
  * Logs a message at the specified trace log level.
- * Prevents duplicate logs by suppressing println() when used inside TRACE().
+ *
+ * CPU optimization:
+ * - For VERBOSE/DEBUG/INFO: NO stack inspection by default.
+ * - For WARNING/ERROR/FATAL: caller context is included via stack inspection.
+ * - You can force caller context for low levels using FORCE_CALLER_FOR_LOW_LEVELS=true
+ *   or includeCaller=true at a specific call site.
+ *
+ * Compatibility:
+ * - Existing calls like TRACE(level) { ... } keep working (domain defaults to null → tag "Nido").
  *
  * @param level the log level.
- * @param tag NOT USED explicitly anymore for Logcat tag (we use GLOBAL_TAG), but used for context.
-          Defaults to a generated string from [getTag] (Class:Method).
+ * @param domain coarse domain to build Logcat tag (e.g. Nido-NET). If null, tag remains "Nido".
+ * @param tag Context override (rare). If empty, TRACE may auto-generate it when caller info is enabled.
+ * @param includeCaller if true, forces caller context (stack inspection) even for VERBOSE/DEBUG/INFO.
  * @param message a lambda that returns the log message.
  */
 inline fun TRACE(
     level: TraceLogLevel,
-    tag: String = getTag(), // This now represents the "Context" (Class:Method)
+    domain: TraceDomain? = null,
+    tag: String = "",
+    includeCaller: Boolean = false,
     message: () -> String
 ) {
-    isInsideTrace.set(true)
-    
-    // Format: "🟡 [Class:Method] The message content"
-    // We use GLOBAL_TAG for the Android Log Tag so you can filter by "tag:Nido"
-    val contextInfo = "[$tag]" 
-    val content = message()
-    val decoratedMessage = "${emojiForLevel(level)} $contextInfo $content"
-    val plainMessage = "$contextInfo $content"
-    
-    isInsideTrace.set(false) 
+    val logcatTag = buildLogcatTag(domain)
 
-    when (level) {
-        TraceLogLevel.VERBOSE -> Log.v(GLOBAL_TAG, decoratedMessage)
-        TraceLogLevel.DEBUG   -> Log.d(GLOBAL_TAG, decoratedMessage) // Reverted to .d, now that we have a solid filter
-        TraceLogLevel.INFO    -> Log.i(GLOBAL_TAG, decoratedMessage)
-        TraceLogLevel.WARNING -> Log.w(GLOBAL_TAG, decoratedMessage)
-        TraceLogLevel.ERROR   -> Log.e(GLOBAL_TAG, decoratedMessage)
-        TraceLogLevel.FATAL   -> {
-            Log.wtf(GLOBAL_TAG, decoratedMessage)
-            UiEventBridge.emit(
-                AppDialogEvent.BlueScreenOfDeath(
-                    tag = GLOBAL_TAG,
-                    message = { plainMessage }
+    // Decide whether we should include caller info (stack inspection).
+    val needCaller: Boolean =
+        includeCaller || FORCE_CALLER_FOR_LOW_LEVELS || (level >= TraceLogLevel.WARNING)
+
+    // Compute caller context only if requested.
+    val resolvedContext: String = when {
+        tag.isNotEmpty() -> tag
+        needCaller -> getTag()
+        else -> ""
+    }
+
+    // Ensure ThreadLocal always resets even if message() throws.
+    isInsideTrace.set(true)
+    try {
+        val content = message()
+
+        // Avoid noisy "[]"
+        val contextPrefix = if (resolvedContext.isNotEmpty()) "[$resolvedContext] " else ""
+        val decoratedMessage = "${emojiForLevel(level)} $contextPrefix$content"
+        val plainMessage = "$contextPrefix$content"
+
+        when (level) {
+            TraceLogLevel.VERBOSE -> Log.v(logcatTag, decoratedMessage)
+            TraceLogLevel.DEBUG -> Log.d(logcatTag, decoratedMessage)
+            TraceLogLevel.INFO -> Log.i(logcatTag, decoratedMessage)
+            TraceLogLevel.WARNING -> Log.w(logcatTag, decoratedMessage)
+            TraceLogLevel.ERROR -> Log.e(logcatTag, decoratedMessage)
+            TraceLogLevel.FATAL -> {
+                Log.wtf(logcatTag, decoratedMessage)
+                UiEventBridge.emit(
+                    AppDialogEvent.BlueScreenOfDeath(
+                        tag = logcatTag,
+                        message = { plainMessage }
+                    )
                 )
-            )
+            }
         }
+    } finally {
+        isInsideTrace.set(false)
     }
 }
 
@@ -130,16 +198,8 @@ inline fun TRACE(
  */
 fun println(message: String): String {
     return if (isInsideTrace.get()) {
-        message // Do not print if inside TRACE()
+        message
     } else {
         message.also { kotlin.io.println(it) }
     }
-}
-
-/** Spare: Emoji bank. */
-object TraceEmojisBank {
-    val emojis = arrayOf(
-        "😀","😂","😎","😍","🥳","🟢","🟡","🟥","🟦","🟨",
-        "🔹","❌","✅","🔄","🍾","⭐","🔥","✨","🌟"
-    )
 }

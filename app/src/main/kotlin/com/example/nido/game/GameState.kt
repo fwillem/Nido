@@ -135,6 +135,56 @@ data class GameState(
     }
 }
 
+private fun String.ellipsize(max: Int): String =
+    if (length <= max) this else take(max - 1) + "…"
+
+/**
+ * FULL (but focused) debug string for multiplayer work:
+ * only the 4 requested signals.
+ */
+fun GameState.debugString(): String {
+    val hintStr = turnHintMsg?.toString()?.ellipsize(80) ?: "-"
+    val bannerStr = bannerMsg?.toString()?.ellipsize(80) ?: "-"
+
+    val matCards = currentCombinationOnMat.cards
+    val matStr = if (matCards.isEmpty()) {
+        "mat=∅"
+    } else {
+        // Default: show count + a short preview. Adapt cardDebug() if needed.
+        val preview = matCards.take(5).joinToString(separator = ",") { it.cardDebug() }
+        val more = if (matCards.size > 5) " +${matCards.size - 5}" else ""
+        "mat=${matCards.size}[$preview$more]"
+    }
+
+    val noticesStr = if (pendingNotices.isEmpty()) {
+        "notices=∅"
+    } else {
+        val preview = pendingNotices.take(3).joinToString(separator = " | ") { it.noticeDebug() }
+        val more = if (pendingNotices.size > 3) " +${pendingNotices.size - 3}" else ""
+        "notices=${pendingNotices.size}[$preview$more]"
+    }
+
+    return "GS hint=\"$hintStr\" banner=\"$bannerStr\" $matStr $noticesStr"
+}
+
+/**
+ * Very small representation of a card for logs.
+ * Adjust this to match your Card model (rank/value/suit).
+ */
+private fun com.example.nido.data.model.Card.cardDebug(): String {
+    // If Card.toString() is already compact, keep it.
+    // Otherwise replace with something like "${rank}${suit}".
+    return this.toString().ellipsize(12)
+}
+
+/**
+ * Compact representation of a UI notice for logs.
+ */
+private fun UiNotice.noticeDebug(): String {
+    val msg = message.ellipsize(40)
+    val act = actionLabel?.let { ", act=${it.ellipsize(12)}" } ?: ""
+    return "${kind.name}(${msg}$act)"
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Lightweight notice model for transient UI messages.
